@@ -6,11 +6,11 @@
 
 
   
-(global-set-key (kbd "M-c") 'compile)
+;(global-set-key (kbd "M-c") 'compile)
+(global-set-key (kbd "M-c") 'recompile)
 (global-set-key (kbd "M-C") 'compile-set-command-and-run)
-(setf
- ;compilation-read-command nil
- compilation-ask-about-save nil )
+(setf compilation-ask-about-save nil )
+(setf compilation-read-command t)
 
 
 
@@ -31,4 +31,19 @@
     (compilation-next-error 1)))
 
 (add-to-list 'compilation-finish-functions 'cc-goto-first-error)
-;- See more at: http://compgroups.net/comp.emacs/show-tail-of-compilation-buffer-by-auto-scrolling/111626#sthash.1r8ETB0J.dpuf
+
+(defun compilation-finished-notify (buff finish-description)
+  (call-process
+   "notify-send" nil 0 nil
+   (format "compilation: %s" finish-description))
+  (let ((current-hour
+	 (third (decode-time (current-time)))))
+    (unless (or (> current-hour 23)
+	      (< current-hour 9))
+      ;;this theme is nice. text easy to read, dark background
+      ;;only load at night?
+      '(beeper-beep)
+      )))
+
+(add-to-list 'compilation-finish-functions
+	     'compilation-finished-notify)
