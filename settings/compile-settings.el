@@ -47,3 +47,7 @@
 
 (add-to-list 'compilation-finish-functions
 	     'compilation-finished-notify)
+
+;;TODO autoload recompile
+(require 'compile)
+
