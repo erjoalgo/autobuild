@@ -48,6 +48,21 @@
 (add-to-list 'compilation-finish-functions
 	     'compilation-finished-notify)
 
+(with-eval-after-load "tex-mode"
+  (define-key tex-mode-map (kbd "M-c") 'latex-compile))
+
+;(defvar mode-to-compile-command
+(setf mode-to-compile-command
+ '((sh-mode (format "bash %s" (f-filename (buffer-file-name))))
+  (python-mode (format "python %s" (f-filename (buffer-file-name))))
+  (java (let (f-no-ext (f-filename (f-no-ext (buffer-file-name))))
+	  (format "javac %s.java && java %s" f-no-ext f-no-ext)))))
+
+(loop for (mode form) in mode-to-compile-command do
+  (add-hook-to-modes
+       `(lambda () (setf compile-command ,form))
+       (list mode)))
+
 ;;TODO autoload recompile
 (require 'compile)
 
