@@ -5,14 +5,14 @@
   (compile compile-command))
 
 
-  
 ;(global-set-key (kbd "M-c") 'compile)
+;(global-set-key (kbd "M-c") 'recompile)
 (global-set-key (kbd "M-c") 'recompile)
-(global-set-key (kbd "M-C") 'compile-set-command-and-run)
+(global-set-key (kbd "M-C") 'compile)
+;(global-set-key (kbd "M-C") 'compile-set-command-and-run)
 (setf compilation-ask-about-save nil )
-(setf compilation-read-command t)
-
-
+;(setf compilation-read-command t)
+(setf compilation-read-command nil)
 
 (global-set-key (kbd "M-p") 'previous-error)
 (global-set-key (kbd "M-n") 'next-error)
