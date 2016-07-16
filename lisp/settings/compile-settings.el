@@ -86,6 +86,17 @@ or nil if unknown")
 	 (when (-> (buffer-local-value 'major-mode buff)
 		   (eq 'python-mode))
 	   (format "python %s" (f-filename (buffer-file-name)))))
+
+       (lambda (buff)
+	 (when (-> (buffer-local-value 'major-mode buff)
+		   (member '(git-rebase-mode text-mode)))
+	   (lambda (buf) (call-interactively 'with-editor-finish))))
+
+       (lambda (buff)
+	 (when (-> (buffer-local-value 'major-mode buff)
+		   (eq 'diff-mode))
+	   (lambda (buf) (call-interactively 'server-edit))))
+
 ))
 
 
