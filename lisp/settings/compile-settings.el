@@ -5,7 +5,7 @@
   (let ((cmd-list
 	 (or (erjoalgo-compile-read-cmd-list)
 	     (erjoalgo-compile-cmd-for-buffer (current-buffer)))))
-    (when (functionp cmd-list)
+    (when (or (functionp cmd-list) (atom cmd-list))
       (setf cmd-list (list cmd-list)))
     (if (or arg (not cmd-list))
 	(recompile)
@@ -16,6 +16,7 @@
 	    (cond
 	     ((stringp cmd) (compile cmd))
 	     ((functionp cmd) (funcall cmd (current-buffer)))
+	     ((null cmd) (error "no compile command found for this buffer"))
 	     (t (error "cmd must be function or string, not %s" cmd)))))))
 
 (defun erjoalgo-compile-read-cmd-list ()
