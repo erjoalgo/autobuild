@@ -3,23 +3,20 @@
   (when arg
     (call-interactively 'erjoalgo-compile-prompt-and-set-command))
   (let ((cmd-list
-	 (or (erjoalgo-compile-read-cmd-list)
+	 (or (erjoalgo-compile-read-file-local-cmd-list)
 	     (erjoalgo-compile-cmd-for-buffer (current-buffer)))))
     (when (or (functionp cmd-list) (atom cmd-list))
       (setf cmd-list (list cmd-list)))
     (if (or arg (not cmd-list))
 	(recompile)
-      (loop for cmd in
-	    ;(if (atom cmd-list) (list cmd-list) cmd-list)
-	    cmd-list
-	    do
+      (loop for cmd in cmd-list do
 	    (cond
 	     ((stringp cmd) (compile cmd))
 	     ((functionp cmd) (funcall cmd (current-buffer)))
 	     ((null cmd) (error "no compile command found for this buffer"))
 	     (t (error "cmd must be function or string, not %s" cmd)))))))
 
-(defun erjoalgo-compile-read-cmd-list ()
+(defun erjoalgo-compile-read-file-local-cmd-list ()
   ;;(read-file-local-variable-value 'compile-command)
   ;;TODO read file local compile-command
   )
@@ -41,7 +38,7 @@ or nil if unknown")
   ;(compile compile-command)
   )
 
-(defun wrap-ignore (fun)
+(defun wrap-ignore-args (fun)
   (lexical-let ((fun fun))
     (lambda (&rest args) (funcall fun))))
 
@@ -52,7 +49,7 @@ or nil if unknown")
 	 (when (-> (buffer-local-value 'major-mode buff)
 		   (eq 'fundamental-mode))
 	   ;;git commit
-	   (wrap-ignore 'server-edit)))
+	   (wrap-ignore-args 'server-edit)))
 
        (lambda (buff)
 	 (when (-> (buffer-local-value 'major-mode buff)
@@ -131,10 +128,7 @@ or nil if unknown")
 	 (third (decode-time (current-time)))))
     (unless (or (> current-hour 23)
 	      (< current-hour 9))
-      ;;this theme is nice. text easy to read, dark background
-      ;;only load at night?
-      '(beeper-beep)
-      )))
+      '(beeper-beep))))
 
 (add-to-list 'compilation-finish-functions
 	     'compilation-finished-notify)
