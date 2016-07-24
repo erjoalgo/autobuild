@@ -1,14 +1,18 @@
 (defun erjoalgo-compile-compile (arg)
   (interactive "P")
-  (when arg
-    (call-interactively 'erjoalgo-compile-prompt-and-set-command))
-  (let ((cmd-list
-	 (or (erjoalgo-compile-read-file-local-cmd-list)
-	     (erjoalgo-compile-cmd-for-buffer (current-buffer)))))
-    (when (or (functionp cmd-list) (atom cmd-list))
-      (setf cmd-list (list cmd-list)))
-    (if (or arg (not cmd-list))
-	(recompile)
+  (if (and arg compile-command) (recompile)
+    (let* ((cmd-list
+	    (or
+	     ;compile-command
+		(erjoalgo-compile-read-file-local-cmd-list);;file-local
+		(erjoalgo-compile-cmd-for-buffer (current-buffer));;matcher
+		(call-interactively 'erjoalgo-compile-ask '(4)));;ask user and save
+	    )
+
+	   (cmd-list (if (or (functionp cmd-list)
+			     (atom cmd-list))
+			 (list cmd-list)
+		       cmd-list)))
       (loop for cmd in cmd-list do
 	    (cond
 	     ((stringp cmd) (compile cmd))
@@ -30,10 +34,12 @@
 the command for compiling a particular buffer,
 or nil if unknown")
 
-(defun erjoalgo-compile-prompt-and-set-command (cmd)
+(defun erjoalgo-compile-ask (cmd save-file-local)
   (interactive
-   (list (read-shell-command "enter compile command: " compile-command)))
-  (add-file-local-variable 'compile-command compile-command)
+   (list (read-shell-command "enter compile command: " compile-command)
+	 current-prefix-arg))
+  (when save-file-local
+    (add-file-local-variable 'compile-command compile-command))
   (setf compile-command cmd)
   ;(compile compile-command)
   )
@@ -98,11 +104,14 @@ or nil if unknown")
 
 
 
-(global-set-key (kbd "M-c") 'erjoalgo-compile-compile)
-(global-set-key (kbd "M-C") (lambda () (interactive)
-			      (erjoalgo-compile-compile '(4))))
 
 (setf compilation-ask-about-save nil)
+(global-set-key (kbd "M-c") 'erjoalgo-compile-compile)
+(global-set-key (kbd "M-C")
+		(lambda (arg) (interactive "P")
+		  (call-interactively
+		   'erjoalgo-compile-ask arg)
+		  (compile compile-command)))
 ;;(setf compilation-read-command nil)
 
 (global-set-key (kbd "M-p") 'previous-error)
