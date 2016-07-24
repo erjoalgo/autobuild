@@ -48,61 +48,60 @@ or nil if unknown")
   (lexical-let ((fun fun))
     (lambda (&rest args) (funcall fun))))
 
-(setf erjoalgo-compile-cmd-for-buffer
-      ;;TODO make this less verbose
-      (list
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (eq 'fundamental-mode))
-	   ;;git commit
-	   (wrap-ignore-args 'server-edit)))
-
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (eq 'sh-mode))
-	   (format "bash %s" (f-filename (buffer-file-name)))))
-
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (eq 'java-mode))
-	   (let ((f-no-ext
-		  (-> (buffer-file-name) (f-filename) (f-no-ext))))
-	     (format "javac %s.java && java %s" f-no-ext f-no-ext))))
-
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (eq 'c-mode))
-	   (let ((fn (f-filename (buffer-file-name))))
-	     (format "gcc -g %s && ./a.out" fn fn))))
-
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (eq 'go-mode))
-	   "go test"))
-
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (eq 'tex-mode))
-	   latex-compile))
-
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (eq 'python-mode))
-	   (format "python %s" (f-filename (buffer-file-name)))))
-
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (member '(git-rebase-mode text-mode)))
-	   (lambda (buf) (call-interactively 'with-editor-finish))))
-
-       (lambda (buff)
-	 (when (-> (buffer-local-value 'major-mode buff)
-		   (eq 'diff-mode))
-	   (lambda (buf) (call-interactively 'server-edit))))
-
-))
+(defmacro buffer-major-mode-matcher (modes &rest forms)
+  `(lambda (buffer)
+     (when (member
+	    (buffer-local-value 'major-mode buffer)
+	    ',(if (atom modes) (list modes) modes))
+       (with-current-buffer buffer ,@forms))))
 
 
+(setf
+ erjoalgo-compile-cmd-for-buffer
+ (list
+  (buffer-major-mode-matcher
+   fundamental-mode
+   ;;git commit
+   (wrap-ignore-args 'server-edit))
+
+  (buffer-major-mode-matcher
+   sh-mode
+   (format "bash %s" (f-filename (buffer-file-name))))
+
+  (buffer-major-mode-matcher
+   java-mode
+   (let ((f-no-ext
+	  (-> (buffer-file-name) (f-filename) (f-no-ext))))
+     (format "javac %s.java && java %s" f-no-ext f-no-ext)))
+
+  (buffer-major-mode-matcher
+   c-mode
+   (let ((fn (f-filename (buffer-file-name))))
+     (format "gcc -g %s && ./a.out" fn fn)))
+
+  (buffer-major-mode-matcher
+   go-mode
+   "go test")
+
+  (buffer-major-mode-matcher tex-mode 'latex-compile)
+
+  (buffer-major-mode-matcher
+   python-mode
+   (format "python %s" (f-filename (buffer-file-name))))
+
+  (buffer-major-mode-matcher
+   (git-rebase-mode text-mode)
+   (lambda (buf) (call-interactively 'with-editor-finish)))
+
+  (buffer-major-mode-matcher
+   diff-mode
+   (call-interactively 'server-edit))
+
+  (buffer-major-mode-matcher clojure-mode 'cider-load-buffer)
+
+  (buffer-major-mode-matcher message-mode-map 'message-send-and-exit)
+  (buffer-major-mode-matcher org-mode 'org-export-mine)
+  ))
 
 
 (setf compilation-ask-about-save nil)
