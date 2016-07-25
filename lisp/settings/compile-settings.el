@@ -133,7 +133,7 @@ or nil if unknown")
 ;taken from
 ;http://compgroups.net/comp.emacs/show-tail-of-compilation-buffer-by-auto-scrolling/111626
 (setq compilation-scroll-output t)
-
+(setf compilation-ask-about-save nil)
 (defun cc-goto-first-error (buffer exit-condition)
   (with-current-buffer buffer
     (goto-char (point-min))
