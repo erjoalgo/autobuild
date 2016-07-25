@@ -55,6 +55,11 @@ or nil if unknown")
 	    ',(if (atom modes) (list modes) modes))
        (with-current-buffer buffer ,@forms))))
 
+(defun walk-up-directories (dir)
+  (loop with dir = default-directory
+	while dir
+	collect dir
+	do (setf dir (f-dirname dir))))
 
 (setf
  erjoalgo-compile-cmd-for-buffer
@@ -71,8 +76,16 @@ or nil if unknown")
   (buffer-major-mode-matcher
    java-mode
    (let ((f-no-ext
-	  (-> (buffer-file-name) (f-filename) (f-no-ext))))
-     (format "javac %s.java && java %s" f-no-ext f-no-ext)))
+	  (-> (buffer-file-name) (f-filename) (f-no-ext)))
+	 (pom-directory (loop for dir in (walk-up-directories
+					  default-directory)
+			      thereis (and
+				       (member "pom.xml"
+					       (directory-files dir))
+				       dir))))
+     (if pom-directory
+	 (format "cd %s && mvn clean install" pom-directory)
+       (format "javac %s.java && java %s" f-no-ext f-no-ext))))
 
   (buffer-major-mode-matcher
    c-mode
