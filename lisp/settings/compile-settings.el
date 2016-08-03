@@ -132,6 +132,8 @@ or nil if unknown")
 
   (buffer-major-mode-matcher message-mode-map 'message-send-and-exit)
   (buffer-major-mode-matcher org-mode 'org-export-mine)
+
+  (buffer-major-mode-matcher 'emacs-lisp-mode 'eval-buffer)
   ))
 
 
