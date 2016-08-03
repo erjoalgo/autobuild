@@ -37,11 +37,13 @@
 the command for compiling a particular buffer,
 or nil if unknown")
 
-(defun erjoalgo-compile-ask (cmd save-file-local)
+(defun erjoalgo-compile-ask (cmd)
   (interactive
-   (list (read-shell-command "enter compile command: " compile-command)
-	 current-prefix-arg))
-  (when save-file-local
+   (list
+    (if current-prefix-arg;; read-lisp-object
+	(read--expression "enter compile command sexp: ")
+	(read-shell-command "enter compile command: " nil))))
+  (when t
     (add-file-local-variable 'compile-command compile-command))
   (setf compile-command cmd)
   (setf compile-command-set t)
