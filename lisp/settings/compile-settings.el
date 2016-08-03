@@ -3,7 +3,7 @@
   (if (and arg compile-command) (recompile)
     (let* ((cmd-list
 	    (or
-	     ;compile-command
+	     (and compile-command-set compile-command)
 		(erjoalgo-compile-read-file-local-cmd-list);;file-local
 		(erjoalgo-compile-cmd-for-buffer (current-buffer));;matcher
 		(call-interactively 'erjoalgo-compile-ask '(4)));;ask user and save
@@ -19,6 +19,8 @@
 	     ((functionp cmd) (funcall cmd (current-buffer)))
 	     ((null cmd) (error "no compile command found for this buffer"))
 	     (t (error "cmd must be function or string, not %s" cmd)))))))
+
+(defvar-local compile-command-set nil)
 
 (defun erjoalgo-compile-read-file-local-cmd-list ()
   ;;(read-file-local-variable-value 'compile-command)
@@ -41,6 +43,7 @@ or nil if unknown")
   (when save-file-local
     (add-file-local-variable 'compile-command compile-command))
   (setf compile-command cmd)
+  (setf compile-command-set t)
   ;(compile compile-command)
   )
 
