@@ -17,7 +17,7 @@
 	    (cond
 	     ((stringp cmd) (let ((compile-command cmd))
 			      (compile cmd)))
-	     ((functionp cmd) (funcall cmd (current-buffer)))
+	     ((functionp cmd) (funcall cmd))
 	     ((null cmd) (error "no compile command found for this buffer"))
 	     (t (error "cmd must be function or string, not %s" cmd)))))))
 
@@ -108,7 +108,7 @@ or nil if unknown")
 
   (buffer-major-mode-matcher
    (git-rebase-mode text-mode)
-   (lambda (buf) (call-interactively 'with-editor-finish)))
+   (lambda () (call-interactively 'with-editor-finish)))
 
   (buffer-major-mode-matcher
    diff-mode
