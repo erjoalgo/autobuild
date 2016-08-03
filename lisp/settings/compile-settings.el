@@ -133,6 +133,8 @@ or nil if unknown")
 (global-set-key (kbd "M-p") 'previous-error)
 (global-set-key (kbd "M-n") 'next-error)
 
+(global-set-key (kbd "M-,") 'previous-error)
+(global-set-key (kbd "M-.") 'next-error)
 
 ;taken from
 ;http://compgroups.net/comp.emacs/show-tail-of-compilation-buffer-by-auto-scrolling/111626
