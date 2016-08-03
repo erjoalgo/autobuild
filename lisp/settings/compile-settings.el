@@ -149,7 +149,9 @@ or nil if unknown")
 
 (add-to-list 'compilation-finish-functions 'cc-goto-first-error)
 
+(defvar compilation-notify-send nil)
 (defun compilation-finished-notify (buff finish-description)
+  (when compilation-notify-send
   (call-process
    "notify-send" nil 0 nil
    (format "compilation: %s" finish-description))
@@ -157,7 +159,7 @@ or nil if unknown")
 	 (third (decode-time (current-time)))))
     (unless (or (> current-hour 23)
 	      (< current-hour 9))
-      '(beeper-beep))))
+	'(beeper-beep)))))
 
 (add-to-list 'compilation-finish-functions
 	     'compilation-finished-notify)
