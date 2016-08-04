@@ -97,8 +97,14 @@ or nil if unknown")
 
   (buffer-major-mode-matcher
    c-mode
-   (let ((fn (f-filename (buffer-file-name))))
-     (format "gcc -g %s && ./a.out" fn fn)))
+   (if (file-exists-p "Makefile")
+       "make"
+     (let ((fn (f-filename (buffer-file-name))))
+       (format "gcc -g %s && ./a.out" fn fn))))
+
+  (lambda (buffer)
+    (when (string= (f-base (buffer-file-name buffer))
+		   "Makefile") "make"))
 
   (buffer-major-mode-matcher
    go-mode
