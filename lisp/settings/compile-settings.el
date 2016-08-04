@@ -73,7 +73,9 @@ or nil if unknown")
   (buffer-major-mode-matcher
    fundamental-mode
    ;;git commit
-   (wrap-ignore-args 'server-edit))
+   (lambda ()
+     (save-buffer)
+     (server-edit)))
 
   (buffer-major-mode-matcher
    sh-mode
@@ -110,11 +112,15 @@ or nil if unknown")
 
   (buffer-major-mode-matcher
    (git-rebase-mode text-mode)
-   (lambda () (call-interactively 'with-editor-finish)))
+   (lambda ()
+     (save-buffer)
+     (with-editor-finish nil)))
 
   (buffer-major-mode-matcher
    diff-mode
-   (call-interactively 'server-edit))
+   (lambda ()
+     (save-buffer)
+     (server-edit)))
 
   (buffer-major-mode-matcher clojure-mode 'cider-load-buffer)
 
