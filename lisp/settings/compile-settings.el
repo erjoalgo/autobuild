@@ -101,7 +101,7 @@ or nil if unknown")
    (if (file-exists-p "Makefile")
        "make"
      (let ((fn (f-filename (buffer-file-name))))
-       (format "gcc -g %s && ./a.out" fn fn))))
+       (format "gcc -g -Wall -W -Werror -Wextra %s && ./a.out" fn fn))))
 
   (lambda (buffer)
     (when (string= (f-base (buffer-file-name buffer))
