@@ -181,4 +181,3 @@ or nil if unknown")
 
 ;;TODO autoload recompile
 (require 'compile)
-
