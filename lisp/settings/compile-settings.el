@@ -42,7 +42,8 @@ or nil if unknown")
    (list
     (if current-prefix-arg;; read-lisp-object
 	(read--expression "enter compile command sexp: ")
-	(read-shell-command "enter compile command: " nil))))
+      (read-shell-command "enter compile command: "
+			  (and (boundp 'compile-command) compile-command)))))
   (when t
     (add-file-local-variable 'compile-command compile-command))
   (setf compile-command cmd)
