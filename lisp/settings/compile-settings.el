@@ -93,7 +93,10 @@ or nil if unknown")
 					       (directory-files dir))
 				       dir))))
      (if pom-directory
-	 (format "cd %s && mvn clean install" pom-directory)
+	 (format (concat "cd %s && mvn "
+			  (cond ((s-ends-with-p "IT" f-no-ext) "verify")
+				(t "clean install")))
+		      pom-directory)
        (format "javac %s.java && java %s" f-no-ext f-no-ext))))
 
   (buffer-major-mode-matcher
