@@ -95,7 +95,10 @@ or nil if unknown")
      (if pom-directory
 	 (format (concat "cd %s && mvn "
 			  (cond ((s-ends-with-p "IT" f-no-ext) "verify")
-				(t "clean install")))
+				(t "clean install"))
+			  (when (f-exists? (f-join pom-directory "mvn_settings.xml"))
+			    " -s mvn_settings.xml")
+			  )
 		      pom-directory)
        (format "javac %s.java && java %s" f-no-ext f-no-ext))))
 
