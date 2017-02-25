@@ -94,6 +94,7 @@ or nil if unknown")
 				       dir))))
      (if pom-directory
 	 (concat "cd " pom-directory " && mvn "
+		 (when (and (boundp 'mvn-offline-p) mvn-offline-p) "-o ")
 		 (cond
 		  ((s-ends-with-p "IT" f-no-ext) "verify ")
 		  (t "clean install "))
