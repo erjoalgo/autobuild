@@ -93,13 +93,16 @@ or nil if unknown")
 					       (directory-files dir))
 				       dir))))
      (if pom-directory
-	 (format (concat "cd %s && mvn "
-			  (cond ((s-ends-with-p "IT" f-no-ext) "verify")
-				(t "clean install"))
-			  (when (f-exists? (f-join pom-directory "mvn_settings.xml"))
-			    " -s mvn_settings.xml")
-			  )
-		      pom-directory)
+	 (concat "cd " pom-directory " && mvn "
+		 (cond
+		  ((s-ends-with-p "IT" f-no-ext) "verify ")
+		  (t "clean install "))
+		 (let* ((mvn-settings (remove-if-not
+				(lambda (filename)
+				  (s-ends-with-p "_settings.xml" filename))
+				(directory-files pom-directory)))
+			(cand (car mvn-settings)))
+		   (when cand (concat "-s " cand " "))))
        (format "javac %s.java && java %s" f-no-ext f-no-ext))))
 
   (buffer-major-mode-matcher
