@@ -147,6 +147,13 @@ or nil if unknown")
   (buffer-major-mode-matcher 'emacs-lisp-mode 'eval-buffer)
 
   (buffer-major-mode-matcher 'lisp-mode 'slime-compile-and-load-file)
+
+  (buffer-major-mode-matcher 'octave-mode
+			     (lambda ()
+			       (call-interactively
+				(if (region-active-p)
+				    'octave-send-region
+				  'octave-send-buffer))))
   ))
 
 
