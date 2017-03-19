@@ -113,8 +113,10 @@ or nil if unknown")
    c-mode
    (if (file-exists-p "Makefile")
        "make"
-     (let ((fn (f-filename (buffer-file-name))))
-       (format "gcc -g -Wall -W -Werror -Wextra %s && ./a.out" fn fn))))
+     (let ((fn (f-filename (buffer-file-name)))
+	   (pipe-in (if (file-exists-p "test.in") " < test.in" "")))
+       (format "gcc -g -Wall -W -Werror -Wextra %s && ./a.out %s"
+	       fn pipe-in))))
 
   (lambda (buffer)
     (when (string= (f-base (buffer-file-name buffer))
