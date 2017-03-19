@@ -16,7 +16,10 @@
       (loop for cmd in cmd-list do
 	    (cond
 	     ((stringp cmd) (let ((compile-command cmd))
-			      (compile cmd)))
+			      (compile cmd)
+			      (let ((proc (get-buffer-process "*compilation*")))
+				(assert proc)
+				(set-process-query-on-exit-flag proc nil))))
 	     ((functionp cmd) (funcall cmd))
 	     ((null cmd) (error "no compile command found for this buffer"))
 	     (t (error "cmd must be function or string, not %s" cmd)))))))
