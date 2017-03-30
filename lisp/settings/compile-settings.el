@@ -95,19 +95,32 @@ or nil if unknown")
 				       (member "pom.xml"
 					       (directory-files dir))
 				       dir))))
-     (if pom-directory
-	 (concat "cd " pom-directory " && mvn "
-		 (when (and (boundp 'mvn-offline-p) mvn-offline-p) "-o ")
-		 (cond
-		  ((s-ends-with-p "IT" f-no-ext) "verify ")
-		  (t "clean install "))
-		 (let* ((mvn-settings (remove-if-not
-				(lambda (filename)
-				  (s-ends-with-p "_settings.xml" filename))
-				(directory-files pom-directory)))
-			(cand (car mvn-settings)))
-		   (when cand (concat "-s " cand " "))))
-       (format "javac %s.java && java %s" f-no-ext f-no-ext))))
+     (if (not pom-directory)
+	 (format "javac %s.java && java %s" f-no-ext f-no-ext)
+       (concat "cd " pom-directory " && mvn "
+	       ;;maybe add offline flag
+	       (when (and (boundp 'mvn-offline-p) mvn-offline-p) "-o ")
+	       ;;always clean
+	       "clean"
+	       ;; verify or install
+	       (cond
+		((s-ends-with-p "IT" f-no-ext) "verify ")
+		(t "install "))
+	       ;;maybe add -s *_settings.xml
+	       (let* ((mvn-settings (remove-if-not
+				     (lambda (filename)
+				       (s-ends-with-p "_settings.xml" filename))
+				     (directory-files pom-directory)))
+		      (mvn-settings (car mvn-settings)))
+		 (when mvn-settings (concat "-s " mvn-settings " ")))
+	       ;;maybe add proxy opts
+	       (let ((jvm-proxy (if (assoc "https" url-proxy-services)
+				    (apply 'format "-Dhttps.proxyHost=%s -Dhttps.proxyPort=%s"
+					   (split-string (cdr (assoc "https" url-proxy-services))
+							 ":" t))
+				  "")))
+		 (when jvm-proxy (concat jvm-proxy " "))))
+       )))
 
   (buffer-major-mode-matcher
    c-mode
