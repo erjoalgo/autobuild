@@ -128,7 +128,7 @@ or nil if unknown")
        "make"
      (let ((fn (f-filename (buffer-file-name)))
 	   (pipe-in (if (file-exists-p "test.in") " < test.in" "")))
-       (format "gcc -g -Wall -W -Werror -Wextra %s && ./a.out %s"
+       (format "gcc -g -Wall -W -Werror -Wextra -lm %s && ./a.out %s"
 	       fn pipe-in))))
 
   (lambda (buffer)
