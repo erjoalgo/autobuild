@@ -29,6 +29,7 @@
 (defun erjoalgo-compile-read-file-local-cmd-list ()
   ;;(read-file-local-variable-value 'compile-command)
   ;;TODO read file local compile-command
+  (cdr (assoc 'compile-command file-local-variables-alist))
   )
 
 (defun erjoalgo-compile-cmd-for-buffer (buffer)
