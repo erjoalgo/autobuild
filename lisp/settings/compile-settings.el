@@ -48,8 +48,8 @@ or nil if unknown")
 	(read--expression "enter compile command sexp: ")
       (read-shell-command "enter compile command: "
 			  (and (boundp 'compile-command) compile-command)))))
-  (when t
-    (add-file-local-variable 'compile-command compile-command))
+
+  (add-file-local-variable 'compile-command cmd)
   (setf compile-command cmd)
   (setf compile-command-set t)
   ;(compile compile-command)
