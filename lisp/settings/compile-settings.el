@@ -102,7 +102,7 @@ or nil if unknown")
 	       ;;maybe add offline flag
 	       (when (and (boundp 'mvn-offline-p) mvn-offline-p) "-o ")
 	       ;;always clean
-	       "clean"
+	       "clean "
 	       ;; verify or install
 	       (cond
 		((s-ends-with-p "IT" f-no-ext) "verify ")
