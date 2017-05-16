@@ -176,6 +176,13 @@ or nil if unknown")
 				(if (region-active-p)
 				    'octave-send-region
 				  'octave-send-buffer))))
+
+  (buffer-major-mode-matcher 'html-mode
+			     (lambda ()
+			       (let ((url
+				      (-> (buffer-file-name)
+					  (format "file://"))))
+				 (firefox-new-tab url))))
   ))
 
 
