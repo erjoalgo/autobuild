@@ -84,7 +84,10 @@ or nil if unknown")
 
   (buffer-major-mode-matcher
    sh-mode
-   (format "bash %s" (f-filename (buffer-file-name))))
+   (let ((fn (f-filename (buffer-file-name))))
+     (if (file-executable-p fn)
+	 (format "./%s" fn)
+       (format "bash %s" fn))))
 
   (buffer-major-mode-matcher
    java-mode
