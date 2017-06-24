@@ -180,8 +180,9 @@ or nil if unknown")
   (buffer-major-mode-matcher 'html-mode
 			     (lambda ()
 			       (let ((url
-				      (-> (buffer-file-name)
-					  (format "file://"))))
+				      (->> (buffer-file-name)
+					   (sanitize-filename)
+					   (format "file://%s"))))
 				 (firefox-new-tab url))))
   ))
 
