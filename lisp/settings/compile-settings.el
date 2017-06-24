@@ -184,6 +184,12 @@ or nil if unknown")
 					   (sanitize-filename)
 					   (format "file://%s"))))
 				 (firefox-new-tab url))))
+
+  (buffer-major-mode-matcher
+   'js-mode
+   (let ((filename (-> (f-filename (buffer-file-name)) sanitize-filename)))
+     (when (s-ends-with-p "-boot.json" filename)
+       (format "cf-boot %s -i free-vars.json" filename))))
   ))
 
 
