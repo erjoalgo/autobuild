@@ -113,7 +113,7 @@ or nil if unknown")
 	       ;;maybe add -s *_settings.xml
 	       (let* ((mvn-settings (remove-if-not
 				     (lambda (filename)
-				       (s-ends-with-p "_settings.xml" filename))
+				       (s-ends-with-p "settings.xml" filename))
 				     (directory-files pom-directory)))
 		      (mvn-settings (car mvn-settings)))
 		 (when mvn-settings (concat "-s " mvn-settings " ")))
