@@ -118,11 +118,11 @@ or nil if unknown")
 		      (mvn-settings (car mvn-settings)))
 		 (when mvn-settings (concat "-s " mvn-settings " ")))
 	       ;;maybe add proxy opts
-	       (let ((jvm-proxy (if (assoc "https" url-proxy-services)
-				    (apply 'format "-Dhttps.proxyHost=%s -Dhttps.proxyPort=%s"
-					   (split-string (cdr (assoc "https" url-proxy-services))
-							 ":" t))
-				  "")))
+	       (let ((jvm-proxy (let ((https (cdr (assoc "https" url-proxy-services))))
+				  (if (and https (s-contains? ":" https))
+				      (apply 'format "-Dhttps.proxyHost=%s -Dhttps.proxyPort=%s"
+					     (split-string https ":" t))
+				    ""))))
 		 (when jvm-proxy (concat jvm-proxy " "))))
        )))
 
