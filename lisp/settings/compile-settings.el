@@ -4,9 +4,9 @@
     (let* ((cmd-list
 	    (or
 	     (and compile-command-set compile-command)
-		(erjoalgo-compile-read-file-local-cmd-list);;file-local
-		(erjoalgo-compile-cmd-for-buffer (current-buffer));;matcher
-		(call-interactively 'erjoalgo-compile-ask '(4)));;ask user and save
+	     (erjoalgo-compile-read-file-local-cmd-list);;file-local
+	     (erjoalgo-compile-cmd-for-buffer (current-buffer));;matcher
+	     (call-interactively 'erjoalgo-compile-ask '(4)));;ask user and save
 	    )
 
 	   (cmd-list (if (or (functionp cmd-list)
@@ -57,7 +57,7 @@ or nil if unknown")
   (add-file-local-variable 'compile-command cmd)
   (setf compile-command cmd)
   (setf compile-command-set t)
-  ;(compile compile-command)
+					;(compile compile-command)
   )
 
 (defun wrap-ignore-args (fun)
@@ -213,8 +213,8 @@ or nil if unknown")
 (global-set-key (kbd "M-,") 'previous-error)
 (global-set-key (kbd "M-.") 'next-error)
 
-;taken from
-;http://compgroups.net/comp.emacs/show-tail-of-compilation-buffer-by-auto-scrolling/111626
+;;taken from
+;;http://compgroups.net/comp.emacs/show-tail-of-compilation-buffer-by-auto-scrolling/111626
 (setq compilation-scroll-output t)
 (setf compilation-ask-about-save nil)
 (defun cc-goto-first-error (buffer exit-condition)
@@ -227,13 +227,13 @@ or nil if unknown")
 (defvar compilation-notify-send nil)
 (defun compilation-finished-notify (buff finish-description)
   (when compilation-notify-send
-  (call-process
-   "notify-send" nil 0 nil
-   (format "compilation: %s" finish-description))
-  (let ((current-hour
-	 (third (decode-time (current-time)))))
-    (unless (or (> current-hour 23)
-	      (< current-hour 9))
+    (call-process
+     "notify-send" nil 0 nil
+     (format "compilation: %s" finish-description))
+    (let ((current-hour
+	   (third (decode-time (current-time)))))
+      (unless (or (> current-hour 23)
+		  (< current-hour 9))
 	'(beeper-beep)))))
 
 (add-to-list 'compilation-finish-functions
