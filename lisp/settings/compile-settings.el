@@ -148,7 +148,7 @@ or nil if unknown")
    go-mode
    "go test")
 
-  (buffer-major-mode-matcher tex-mode 'latex-compile)
+  (buffer-major-mode-matcher (tex-mode latex-mode) 'latex-compile)
 
   (buffer-major-mode-matcher
    python-mode
