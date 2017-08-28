@@ -12,7 +12,12 @@
 	   (cmd-list (if (or (functionp cmd-list)
 			     (atom cmd-list))
 			 (list cmd-list)
-		       cmd-list)))
+		       cmd-list))
+	   (emacs-filename-env-directive
+	    (concat "EMACS_BUFFER_FILENAME=" (buffer-file-name (current-buffer))))
+	   (process-environment (append (list emacs-filename-env-directive)
+					process-environment))
+	   )
       (loop for cmd in cmd-list do
 	    (cond
 	     ((stringp cmd) (let ((compile-command cmd))
