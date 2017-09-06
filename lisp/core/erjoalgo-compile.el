@@ -14,7 +14,7 @@
 			 (list cmd-list)
 		       cmd-list))
 	   (emacs-filename-env-directive
-	    (concat "EMACS_BUFFER_FILENAME=" (buffer-file-name (current-buffer))))
+	    (concat "EMACS_COMPILATION_FILENAME=" (buffer-file-name (current-buffer))))
 	   (process-environment (append (list emacs-filename-env-directive)
 					process-environment))
 	   )
