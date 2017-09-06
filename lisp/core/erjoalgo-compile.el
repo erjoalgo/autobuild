@@ -27,9 +27,21 @@
 				(set-process-query-on-exit-flag proc nil))))
 	     ((functionp cmd) (funcall cmd))
 	     ((null cmd) (error "no compile command found for this buffer"))
-	     (t (error "cmd must be function or string, not %s" cmd)))))))
+	     (t (error "cmd must be function or string, not %s" cmd))))
+      (when (and (boundp 'erjoalgo-compilation-next-buffer)
+		 erjoalgo-compilation-next-buffer)
+	(if (get-buffer erjoalgo-compilation-next-buffer)
+	    (progn
+	      (message "exit rec edit for %s compilation..."
+		       erjoalgo-compilation-next-buffer)
+	      (recursive-edit)
+	      (switch-to-buffer erjoalgo-compilation-next-buffer)
+	      (when compile-command
+		(erjoalgo-compile-compile arg)))))
+      )))
 
 (defvar-local compile-command-set nil)
+(defvar-local erjoalgo-compilation-next-buffer nil)
 
 (defun erjoalgo-compile-read-file-local-cmd-list ()
   ;;(read-file-local-variable-value 'compile-command)
@@ -59,6 +71,12 @@ or nil if unknown")
   (setf compile-command-set t)
 					;(compile compile-command)
   )
+
+(defun erjoalgo-compile-set-next-buffer (next-buffer)
+  (interactive "benter next buffer to compile: ")
+  ;; (add-file-local-variable 'erjoalgo-compile-next-buffer next-buffer)
+  (add-file-local-variable 'erjoalgo-compilation-next-buffer next-buffer)
+  (setf erjoalgo-compilation-next-buffer next-buffer))
 
 (defun wrap-ignore-args (fun)
   (lexical-let ((fun fun))
