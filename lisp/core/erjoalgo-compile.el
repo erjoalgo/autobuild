@@ -5,7 +5,7 @@
 	    (or
 	     (and compile-command-set compile-command)
 	     (erjoalgo-compile-read-file-local-cmd-list);;file-local
-	     (erjoalgo-compile-cmd-for-buffer (current-buffer));;matcher
+	     (erjoalgo-compile-cmd-for-current-buffer);;matcher
 	     (call-interactively 'erjoalgo-compile-ask '(4)));;ask user and save
 	    )
 
@@ -49,9 +49,9 @@
   (cdr (assoc 'compile-command file-local-variables-alist))
   )
 
-(defun erjoalgo-compile-cmd-for-buffer (buffer)
+(defun erjoalgo-compile-cmd-for-current-buffer ()
   (loop for matcher in erjoalgo-compile-cmd-for-buffer
-	thereis (funcall matcher buffer)))
+	thereis (funcall matcher)))
 
 (defvar erjoalgo-compile-cmd-for-buffer ()
   "list of functions, each should return
@@ -83,11 +83,11 @@ or nil if unknown")
     (lambda (&rest args) (funcall fun))))
 
 (defmacro buffer-major-mode-matcher (modes &rest forms)
-  `(lambda (buffer)
+  `(lambda ()
      (when (member
-	    (buffer-local-value 'major-mode buffer)
+	    major-mode
 	    ',(if (atom modes) (list modes) modes))
-       (with-current-buffer buffer ,@forms))))
+       ,@forms)))
 
 (defun walk-up-directories (dir)
   (loop with dir = default-directory
@@ -158,8 +158,8 @@ or nil if unknown")
        (format "gcc -g -Wall -W -std=c99 -Wextra -lm %s && ./a.out %s"
 	       fn pipe-in))))
 
-  (lambda (buffer)
-    (when (string= (f-base (buffer-file-name buffer))
+  (lambda ()
+    (when (string= (f-base (buffer-file-name))
 		   "Makefile") "make"))
 
   (buffer-major-mode-matcher
