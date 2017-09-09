@@ -112,8 +112,10 @@ or nil if unknown")
 	 (format "./%s" fn)
        (format "bash %s" fn))))
 
-  (buffer-major-mode-matcher
-   java-mode
+  (lambda ()
+    (when (or (eq 'java-mode major-mode)
+	      (equal (f-filename (buffer-file-name)) "pom.xml"))
+
    (let ((f-no-ext
 	  (-> (buffer-file-name) (f-filename) (f-no-ext)))
 	 (pom-directory (loop for dir in (walk-up-directories
