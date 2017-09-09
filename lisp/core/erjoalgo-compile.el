@@ -148,8 +148,11 @@ or nil if unknown")
 				      (apply 'format "-Dhttps.proxyHost=%s -Dhttps.proxyPort=%s"
 					     (split-string https ":" t))
 				    ""))))
-		 (when jvm-proxy (concat jvm-proxy " "))))
-       )))
+		 (when jvm-proxy (concat jvm-proxy " ")))
+
+	       (when (and (boundp 'mvn-extra-args)
+			  mvn-extra-args) (concat mvn-extra-args " ")))
+       ))))
 
   (buffer-major-mode-matcher
    c-mode
