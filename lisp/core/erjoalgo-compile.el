@@ -219,6 +219,12 @@ or nil if unknown")
    (let ((filename (-> (f-filename (buffer-file-name)) sanitize-filename)))
      (when (s-ends-with-p "-boot.json" filename)
        (format "cf-boot %s -i free-vars.json" filename))))
+
+  (buffer-major-mode-matcher
+   'texinfo-mode
+   (concat "texi2any ${EMACS_COMPILATION_FILENAME}"
+	   " --html"
+	   " --no-number-sections"))
   ))
 
 
