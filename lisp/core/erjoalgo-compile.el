@@ -58,7 +58,7 @@
 the command for compiling a particular buffer,
 or nil if unknown")
 
-(defun erjoalgo-compile-ask (cmd)
+(defun erjoalgo-compile-set-cmd (cmd)
   (interactive
    (list
     (if current-prefix-arg;; read-lisp-object
@@ -226,7 +226,7 @@ or nil if unknown")
 (global-set-key (kbd "M-C")
 		(lambda (arg) (interactive "P")
 		  (call-interactively
-		   'erjoalgo-compile-ask arg)
+		   'erjoalgo-compile-set-cmd arg)
 		  (compile compile-command)))
 ;;(setf compilation-read-command nil)
 
