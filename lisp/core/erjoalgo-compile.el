@@ -43,6 +43,7 @@
 (defvar-local compile-command-set nil)
 (defvar-local erjoalgo-compilation-next-buffer nil)
 
+(put 'compile-command 'safe-local-variable 'stringp)
 (defun erjoalgo-compile-read-file-local-cmd-list ()
   ;;(read-file-local-variable-value 'compile-command)
   ;;TODO read file local compile-command
