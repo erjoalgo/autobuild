@@ -234,6 +234,10 @@ or nil if unknown")
    (concat "texi2any ${EMACS_COMPILATION_FILENAME}"
 	   " --html"
 	   " --no-number-sections"))
+
+  (buffer-major-mode-matcher
+   'nginx-mode
+   (concat "sudo service nginx restart"))
   ))
 
 
