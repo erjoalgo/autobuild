@@ -164,6 +164,15 @@ or nil if unknown")
        (format "gcc -g -Wall -W -std=c99 -Wextra -lm %s && ./a.out %s"
 	       fn pipe-in))))
 
+  (buffer-major-mode-matcher
+   c++-mode
+   (if (file-exists-p "Makefile")
+       "make"
+     (let ((fn (f-filename (buffer-file-name)))
+	   (pipe-in (if (file-exists-p "test.in") " < test.in" "")))
+       (format "g++ %s -std=c++11 && ./a.out %s"
+	       fn pipe-in))))
+
   (lambda ()
     (when (string= (f-base (buffer-file-name))
 		   "Makefile") "make"))
