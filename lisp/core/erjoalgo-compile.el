@@ -160,9 +160,11 @@ or nil if unknown")
    (if (file-exists-p "Makefile")
        "make"
      (let ((fn (f-filename (buffer-file-name)))
-	   (pipe-in (if (file-exists-p "test.in") " < test.in" "")))
-       (format "gcc -g -Wall -W -std=c99 -Wextra -lm %s && ./a.out %s"
-	       fn pipe-in))))
+	   (pipe-in (if (file-exists-p "test.in") " < test.in" ""))
+	   (speed (if (and (boundp 'c-ofast-compilation) c-ofast-compilation)
+		      "-Ofast" "-g")))
+       (format "gcc %s -Wall -W -std=c99 -Wextra -lm %s && ./a.out %s"
+	       speed fn pipe-in))))
 
   (buffer-major-mode-matcher
    c++-mode
