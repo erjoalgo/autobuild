@@ -271,6 +271,8 @@ or nil if unknown")
 
 (defvar compilation-notify-send nil)
 (defun compilation-finished-notify (buff finish-description)
+  (set-face-background 'mode-line "orange")
+  (message "compilation finished")
   (when compilation-notify-send
     (call-process
      "notify-send" nil 0 nil
