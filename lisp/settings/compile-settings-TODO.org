@@ -1,0 +1,30 @@
+* shift vs numeric arg
+  | shift on (M-C) | numeric-arg '(4) | action              |
+  |                |                  | compile             |
+  |                | ✓                | recompile           |
+  | ✓              |                  | ask                 |
+  | ✓              | ✓                | ask-save-file-local |
+* compile
+  | compile-command | recompile available | file-local-var | mode or matcher-based command | M-c action |
+  |                 |                     |                |                               | ask-save   |
+  |                 |                     |                | ✓                             | matcher    |
+  |                 |                     | ✓              |                               | file-local |
+  |                 |                     | ✓              | ✓                             | file-local |
+  |                 | ✓                   |                |                               | recompile  |
+  |                 | ✓                   |                | ✓                             | matcher    |
+  |                 | ✓                   | ✓              |                               | file-local |
+  |                 | ✓                   | ✓              | ✓                             | file-local |
+  | ✓               |                     |                |                               | compile    |
+  | ✓               |                     |                | ✓                             | compile    |
+  | ✓               |                     | ✓              |                               | compile    |
+  | ✓               |                     | ✓              | ✓                             |            |
+  | ✓               | ✓                   |                |                               |            |
+  | ✓               | ✓                   |                | ✓                             |            |
+  | ✓               | ✓                   | ✓              |                               |            |
+  | ✓               | ✓                   | ✓              | ✓                             |            |
+* if buffer has a compile-command set
+* for buffers without a compile command
+** ask-set?
+** recompile last?
+* if buffer-local compile cmd present
+
