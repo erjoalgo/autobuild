@@ -40,6 +40,8 @@
 		(erjoalgo-compile-compile arg)))))
       )))
 
+(setf compilation-save-buffers-predicate (lambda () nil))
+
 (defvar-local compile-command-set nil)
 (defvar-local erjoalgo-compilation-next-buffer nil)
 
