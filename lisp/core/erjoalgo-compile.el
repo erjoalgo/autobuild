@@ -225,7 +225,7 @@ or nil if unknown")
 				      (->> (buffer-file-name)
 					   (sanitize-filename)
 					   (format "file://%s"))))
-				 (firefox-new-tab url))))
+				 (browser-new-tab url))))
 
   (buffer-major-mode-matcher
    'js-mode
