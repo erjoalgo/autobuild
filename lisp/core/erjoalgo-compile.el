@@ -269,7 +269,7 @@ or nil if unknown")
     (goto-char (point-min))
     (compilation-next-error 1)))
 
-(add-to-list 'compilation-finish-functions 'cc-goto-first-error)
+;; (add-to-list 'compilation-finish-functions 'cc-goto-first-error)
 
 (defvar compilation-notify-send nil)
 (defun compilation-finished-notify (buff finish-description)
