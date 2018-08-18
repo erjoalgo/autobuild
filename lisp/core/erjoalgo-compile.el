@@ -6,7 +6,7 @@
 	     (and compile-command-set compile-command)
 	     (erjoalgo-compile-read-file-local-cmd-list);;file-local
 	     (erjoalgo-compile-cmd-for-current-buffer);;matcher
-	     (call-interactively 'erjoalgo-compile-ask '(4)));;ask user and save
+	     (call-interactively 'erjoalgo-compile-set-cmd '(4)));;ask user and save
 	    )
 
 	   (cmd-list (if (or (functionp cmd-list)
