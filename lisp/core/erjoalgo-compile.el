@@ -206,16 +206,16 @@ or nil if unknown")
 
   (buffer-major-mode-matcher org-mode 'org-export-mine)
 
-  (buffer-major-mode-matcher 'emacs-lisp-mode 'eval-buffer)
+  (buffer-major-mode-matcher emacs-lisp-mode 'eval-buffer)
 
-  (buffer-major-mode-matcher 'octave-mode
+  (buffer-major-mode-matcher octave-mode
 			     (lambda ()
 			       (call-interactively
 				(if (region-active-p)
 				    'octave-send-region
 				  'octave-send-buffer))))
 
-  (buffer-major-mode-matcher 'html-mode
+  (buffer-major-mode-matcher (html-mode mhtml-mode)
 			     (lambda ()
 			       (let ((url
 				      (->> (buffer-file-name)
