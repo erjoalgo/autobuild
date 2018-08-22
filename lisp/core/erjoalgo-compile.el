@@ -67,7 +67,9 @@ or nil if unknown")
     (if current-prefix-arg;; read-lisp-object
 	(read--expression "enter compile command sexp: ")
       (read-shell-command "enter compile command: "
-			  (and (boundp 'compile-command) compile-command)))))
+			  (if (and (boundp 'compile-command-set) compile-command-set)
+                              compile-command
+                            (erjoalgo-compile-cmd-for-current-buffer))))))
 
   (add-file-local-variable 'compile-command cmd)
   (setf compile-command cmd)
