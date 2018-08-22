@@ -110,12 +110,15 @@ or nil if unknown")
      (save-buffer)
      (server-edit)))
 
+  (lambda ()
+    (let ((fn (f-filename (buffer-file-name))))
+      (if (file-executable-p fn)
+          (format "./%s" fn))))
+
   (buffer-major-mode-matcher
    sh-mode
    (let ((fn (f-filename (buffer-file-name))))
-     (if (file-executable-p fn)
-	 (format "./%s" fn)
-       (format "bash %s" fn))))
+     (format "bash %s" fn)))
 
   (lambda ()
     (when (or (eq 'java-mode major-mode)
