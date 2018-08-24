@@ -49,8 +49,7 @@
 (defun erjoalgo-compile-read-file-local-cmd-list ()
   ;;(read-file-local-variable-value 'compile-command)
   ;;TODO read file local compile-command
-  (cdr (assoc 'compile-command file-local-variables-alist))
-  )
+  (cdr (assoc 'compile-command file-local-variables-alist)))
 
 (defun erjoalgo-compile-cmd-for-current-buffer ()
   (loop for matcher in erjoalgo-compile-cmd-for-buffer
@@ -73,9 +72,7 @@ or nil if unknown")
 
   (add-file-local-variable 'compile-command cmd)
   (setf compile-command cmd)
-  (setf compile-command-set t)
-					;(compile compile-command)
-  )
+  (setf compile-command-set t))
 
 (defun erjoalgo-compile-set-next-buffer (next-buffer)
   (interactive "benter next buffer to compile: ")
@@ -242,8 +239,7 @@ or nil if unknown")
 
   (buffer-major-mode-matcher
    'nginx-mode
-   (concat "sudo service nginx restart"))
-  ))
+   (concat "sudo service nginx restart"))))
 
 
 (setf compilation-ask-about-save nil)
