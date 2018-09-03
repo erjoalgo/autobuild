@@ -110,9 +110,10 @@ or nil if unknown")
      (server-edit)))
 
   (lambda ()
-    (let ((fn (f-filename (buffer-file-name))))
-      (if (file-executable-p fn)
-          (format "./%s" fn))))
+    (when (buffer-file-name)
+      (let ((fn (f-filename (buffer-file-name))))
+        (if (and fn (file-executable-p fn))
+            (format "./%s" fn)))))
 
   (buffer-major-mode-matcher
    sh-mode
@@ -121,7 +122,8 @@ or nil if unknown")
 
   (lambda ()
     (when (or (eq 'java-mode major-mode)
-	      (equal (f-filename (buffer-file-name)) "pom.xml"))
+	      (and (buffer-file-name)
+                   (equal (f-filename (buffer-file-name)) "pom.xml")))
 
    (let ((f-no-ext
 	  (-> (buffer-file-name) (f-filename) (f-no-ext)))
