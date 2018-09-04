@@ -168,6 +168,11 @@ or nil if unknown")
   (lambda ()
     (when (file-exists-p "Makefile") "make"))
 
+  (lambda ()
+    (when (and (file-exists-p "BUILD")
+               (which "blaze"))
+               "blaze build :all"))
+
   (buffer-major-mode-matcher
    c-mode
    (let ((fn (f-filename (buffer-file-name)))
