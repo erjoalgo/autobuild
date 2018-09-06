@@ -70,7 +70,9 @@ or nil if unknown")
                                    (or compile-command-set
                                        (assoc 'compile-command file-local-variables-alist)))
                               compile-command
-                            (erjoalgo-compile-cmd-for-current-buffer))))))
+                            (let ((match (erjoalgo-compile-cmd-for-current-buffer)))
+                              (if (and match (stringp match))
+                                  match "")))))))
 
   (add-file-local-variable 'compile-command cmd)
   (setf compile-command cmd)
