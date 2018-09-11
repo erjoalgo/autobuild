@@ -1,10 +1,34 @@
 (defvar erjoalgo-compile-last-compilation-start-time nil
   "The start time in seconds since epoch of the last compilation")
 
-(defun erjoalgo-compile-compile (arg)
+(defvar erjoalgo-compile-command-queue nil
+  "Internal. Keep track of the next command in the global compilation pipeline")
+
+(defvar erjoalgo-compile-original-compile-directory nil
+  "Internal. Keep track of the original compile directory
+when the global compilation pipeline started")
+
+(defun erjoalgo-compile-next-cmd (compilation-buffer compilation-state)
+  (if erjoalgo-compile-command-queue
+             (erjoalgo-compile-compile nil erjoalgo-compile-command-queue)
+    ;; call with a dummy sync function to trigger pipeline finished hooks
+    (erjoalgo-compile-compile nil '(ignore))))
+
+(add-hook 'compilation-finish-functions 'erjoalgo-compile-next-cmd)
+
+(defvar erjoalgo-compile-pipeline-finished-hook nil
+  "Hook called when the entire compilation pipeline has completed")
+
+(defun erjoalgo-compile-compile (arg &optional cmd-list)
   (interactive "P")
-  (if (and arg compile-command) (recompile)
-    (let* ((cmd-list
+  (if (and arg compile-command)
+      (recompile)
+
+    (unless cmd-list
+      ;; just called interactively, not recursively from list
+
+      ;; determine compile command
+      (setf cmd-list
 	    (or
 	     (and compile-command-set compile-command)
              ;;file-local
@@ -14,35 +38,64 @@
              ;;ask user and save
 	     (call-interactively 'erjoalgo-compile-set-cmd '(4))))
 
-	   (cmd-list (if (or (functionp cmd-list)
-			     (atom cmd-list))
-			 (list cmd-list)
-		       cmd-list))
-	   (emacs-filename-env-directive
-	    (concat "EMACS_COMPILATION_FILENAME=" (buffer-file-name (current-buffer))))
-	   (process-environment (append (list emacs-filename-env-directive)
-					process-environment)))
+      ;; maybe coerce to list
+      (when (or (functionp cmd-list)
+		(atom cmd-list)
+                (eq (car cmd-list) 'async))
+        (setf cmd-list (list cmd-list)))
+
+      ;; set start time
       (setf erjoalgo-compile-last-compilation-start-time (time-to-seconds))
-      (loop for cmd in cmd-list do
-	    (cond
-	     ((stringp cmd) (let ((compile-command cmd))
-			      (compile cmd)
-			      (let ((proc (get-buffer-process "*compilation*")))
-				(assert proc)
-				(set-process-query-on-exit-flag proc nil))))
-	     ((functionp cmd) (funcall cmd))
-	     ((null cmd) (error "no compile command found for this buffer"))
-	     (t (error "cmd must be function or string, not %s" cmd))))
-      (when (and (boundp 'erjoalgo-compilation-next-buffer)
-		 erjoalgo-compilation-next-buffer)
-	(if (get-buffer erjoalgo-compilation-next-buffer)
-	    (progn
-	      (message "exit rec edit for %s compilation..."
-		       erjoalgo-compilation-next-buffer)
-	      (recursive-edit)
-	      (switch-to-buffer erjoalgo-compilation-next-buffer)
-	      (when compile-command
-		(erjoalgo-compile-compile arg))))))))
+      (setf erjoalgo-compile-original-compile-directory default-directory))
+
+    (unless (equal default-directory erjoalgo-compile-original-compile-directory)
+      (warn "default directory changed from %s to %s. setting it back"
+            erjoalgo-compile-original-compile-directory default-directory)
+      (setf default-directory erjoalgo-compile-original-compile-directory))
+
+    (let (asyncp)
+      (loop while cmd-list
+            for i from 1
+            ;; thereis to allow short-circuiting
+            thereis
+            (progn
+              (when (and (consp cmd) (eq 'async (car cmd)))
+                (setf asyncp t
+                      cmd (cdr cmd)))
+	      (cond
+	       ((stringp cmd)
+                ;; will run a subshell. add EMACS_COMPILATION_FILENAME env var
+                (let ((compile-command cmd)
+	              (emacs-filename-env-directive
+	               (concat "EMACS_COMPILATION_FILENAME=" (buffer-file-name (current-buffer)))))
+
+                  (push emacs-filename-env-directive process-environment)
+	          (compile cmd)
+                  ;; break, since (compile cmd) is async...
+                  ;; update 'erjoalgo-compile-command-queue and continue remaining commands
+                  ;; via 'erjoalgo-compile-next-cmd hook
+                  (setf asyncp t)))
+	       ((functionp cmd) (funcall cmd))
+	       ((null cmd) (error "no compile command found for this buffer"))
+	       (t (error "cmd must be a function or string, not %s" cmd)))
+              asyncp))
+
+      (setf erjoalgo-compile-command-queue cmd-list)
+
+      (when (and (not asyncp)
+                 (null erjoalgo-compile-command-queue))
+        ;; done with pipeline
+        (run-hooks 'erjoalgo-compile-pipeline-finished-hook)
+
+        ;; allow chaining by possibly starting compilation on another buffer
+        (when (and (boundp 'erjoalgo-compilation-next-buffer)
+	           erjoalgo-compilation-next-buffer)
+          (if (get-buffer erjoalgo-compilation-next-buffer)
+	      (progn
+	        (recursive-edit)
+	        (switch-to-buffer erjoalgo-compilation-next-buffer)
+	        (when compile-command
+	          (erjoalgo-compile-compile arg)))))))))
 
 (setf compilation-save-buffers-predicate (lambda () nil))
 
@@ -177,8 +230,8 @@ or nil if unknown")
   (lambda ()
     (when (and (file-exists-p "BUILD")
                (which "blaze"))
-      `(google3-compile-current-file
-        ,(apply-partially 'google3-run nil))))
+      `((async . google3-compile-current-file)
+        (async . ,(apply-partially 'google3-run nil)))))
 
   (buffer-major-mode-matcher
    c-mode
