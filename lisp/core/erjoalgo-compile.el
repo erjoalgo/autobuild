@@ -1,3 +1,6 @@
+(defvar erjoalgo-compile-last-compilation-start-time nil
+  "The start time in seconds since epoch of the last compilation")
+
 (defun erjoalgo-compile-compile (arg)
   (interactive "P")
   (if (and arg compile-command) (recompile)
@@ -19,6 +22,7 @@
 	    (concat "EMACS_COMPILATION_FILENAME=" (buffer-file-name (current-buffer))))
 	   (process-environment (append (list emacs-filename-env-directive)
 					process-environment)))
+      (setf erjoalgo-compile-last-compilation-start-time (time-to-seconds))
       (loop for cmd in cmd-list do
 	    (cond
 	     ((stringp cmd) (let ((compile-command cmd))
