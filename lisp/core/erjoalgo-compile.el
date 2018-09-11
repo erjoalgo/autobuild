@@ -263,8 +263,6 @@ or nil if unknown")
 		  (compile compile-command)))
 ;;(setf compilation-read-command nil)
 
-(global-set-key (kbd "M-p") 'previous-error)
-(global-set-key (kbd "M-n") 'next-error)
 
 (global-set-key (kbd "M-,") 'previous-error)
 (global-set-key (kbd "M-.") 'next-error)
