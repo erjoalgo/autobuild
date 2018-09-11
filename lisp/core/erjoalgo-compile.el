@@ -173,7 +173,8 @@ or nil if unknown")
   (lambda ()
     (when (and (file-exists-p "BUILD")
                (which "blaze"))
-               "blaze build :all"))
+      `(google3-compile-current-file
+        ,(apply-partially 'google3-run nil))))
 
   (buffer-major-mode-matcher
    c-mode
