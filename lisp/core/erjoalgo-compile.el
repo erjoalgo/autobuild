@@ -4,10 +4,12 @@
     (let* ((cmd-list
 	    (or
 	     (and compile-command-set compile-command)
-	     (erjoalgo-compile-read-file-local-cmd-list);;file-local
-	     (erjoalgo-compile-cmd-for-current-buffer);;matcher
-	     (call-interactively 'erjoalgo-compile-set-cmd '(4)));;ask user and save
-	    )
+             ;;file-local
+	     (erjoalgo-compile-read-file-local-cmd-list)
+             ;;matcher
+	     (erjoalgo-compile-cmd-for-current-buffer)
+             ;;ask user and save
+	     (call-interactively 'erjoalgo-compile-set-cmd '(4))))
 
 	   (cmd-list (if (or (functionp cmd-list)
 			     (atom cmd-list))
@@ -16,8 +18,7 @@
 	   (emacs-filename-env-directive
 	    (concat "EMACS_COMPILATION_FILENAME=" (buffer-file-name (current-buffer))))
 	   (process-environment (append (list emacs-filename-env-directive)
-					process-environment))
-	   )
+					process-environment)))
       (loop for cmd in cmd-list do
 	    (cond
 	     ((stringp cmd) (let ((compile-command cmd))
@@ -37,8 +38,7 @@
 	      (recursive-edit)
 	      (switch-to-buffer erjoalgo-compilation-next-buffer)
 	      (when compile-command
-		(erjoalgo-compile-compile arg)))))
-      )))
+		(erjoalgo-compile-compile arg))))))))
 
 (setf compilation-save-buffers-predicate (lambda () nil))
 
