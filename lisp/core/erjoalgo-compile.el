@@ -10,7 +10,9 @@ when the global compilation pipeline started")
 
 (defun erjoalgo-compile-next-cmd (compilation-buffer compilation-state)
   (if erjoalgo-compile-command-queue
-             (erjoalgo-compile-compile nil erjoalgo-compile-command-queue)
+      (progn (message "running next compile command: %s on default %s"
+                      (car erjoalgo-compile-command-queue) default-directory)
+             (erjoalgo-compile-compile nil erjoalgo-compile-command-queue))
     ;; call with a dummy sync function to trigger pipeline finished hooks
     (erjoalgo-compile-compile nil '(ignore))))
 
@@ -21,10 +23,13 @@ when the global compilation pipeline started")
 
 (defun erjoalgo-compile-compile (arg &optional cmd-list)
   (interactive "P")
+  (message "compile compile default-directory: %s" default-directory)
+
   (if (and arg compile-command)
       (recompile)
 
     (unless cmd-list
+      (message "setting up cmd list")
       ;; just called interactively, not recursively from list
 
       ;; determine compile command
@@ -53,9 +58,15 @@ when the global compilation pipeline started")
             erjoalgo-compile-original-compile-directory default-directory)
       (setf default-directory erjoalgo-compile-original-compile-directory))
 
+    (message "on compile compile pre loop with list: %s. default: %s" cmd-list default-directory)
+
     (let (asyncp)
       (loop while cmd-list
             for i from 1
+            as cmd = (pop cmd-list)
+            ;; do
+            ;; (message "running compilation command %d/%d" i (length cmd-list))
+
             ;; thereis to allow short-circuiting
             thereis
             (progn
@@ -70,6 +81,9 @@ when the global compilation pipeline started")
 	               (concat "EMACS_COMPILATION_FILENAME=" (buffer-file-name (current-buffer)))))
 
                   (push emacs-filename-env-directive process-environment)
+
+                  (message "running command %s on %s" cmd default-directory)
+
 	          (compile cmd)
                   ;; break, since (compile cmd) is async...
                   ;; update 'erjoalgo-compile-command-queue and continue remaining commands
@@ -80,10 +94,15 @@ when the global compilation pipeline started")
 	       (t (error "cmd must be a function or string, not %s" cmd)))
               asyncp))
 
+      (message "on compile compile post loop with list: %s. default: %s" cmd-list default-directory)
+
       (setf erjoalgo-compile-command-queue cmd-list)
 
+      (message "post loop. asyncp: %s, cmd-list: %s"
+               asyncp cmd-list)
       (when (and (not asyncp)
                  (null erjoalgo-compile-command-queue))
+        (message "pipeline finished")
         ;; done with pipeline
         (run-hooks 'erjoalgo-compile-pipeline-finished-hook)
 
@@ -92,6 +111,8 @@ when the global compilation pipeline started")
 	           erjoalgo-compilation-next-buffer)
           (if (get-buffer erjoalgo-compilation-next-buffer)
 	      (progn
+	        (message "exit rec edit for %s compilation..."
+		         erjoalgo-compilation-next-buffer)
 	        (recursive-edit)
 	        (switch-to-buffer erjoalgo-compilation-next-buffer)
 	        (when compile-command
