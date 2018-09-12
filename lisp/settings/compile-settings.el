@@ -6,6 +6,8 @@
 
 (defun erjoalgo-compile-post-compile-message (compilation-buffer compilation-state)
   ;; TODO try notify-send, xmessage, audible/visible beep...
+  (when compilation-state
+    (message "compilation %s" (s-trim compilation-state))
   (when (and
          ;; no remaining cmds in the pieline
          (null erjoalgo-compile-command-queue)
@@ -21,6 +23,7 @@
        (format "%scompilation %s^*"
                (if (equal "finished" (s-trim compilation-state)) green red)
                compilation-state)))))
+)
 
 (add-hook 'erjoalgo-compile-pipeline-finished-hook 'erjoalgo-compile-post-compile-message)
 
