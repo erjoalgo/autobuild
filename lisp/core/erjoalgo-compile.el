@@ -55,6 +55,7 @@ when the global compilation pipeline started")
 
     (let (asyncp)
       (loop while cmd-list
+            as cmd = (pop cmd-list)
             for i from 1
             ;; thereis to allow short-circuiting
             thereis
