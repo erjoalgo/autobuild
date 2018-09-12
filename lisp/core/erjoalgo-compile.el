@@ -51,8 +51,6 @@ when the global compilation pipeline started")
       (setf erjoalgo-compile-original-compile-directory default-directory))
 
     (unless (equal default-directory erjoalgo-compile-original-compile-directory)
-      (warn "default directory changed from %s to %s. setting it back"
-            erjoalgo-compile-original-compile-directory default-directory)
       (setf default-directory erjoalgo-compile-original-compile-directory))
 
     (let (asyncp)
