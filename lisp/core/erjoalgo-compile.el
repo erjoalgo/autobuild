@@ -10,7 +10,7 @@ when the global compilation pipeline started")
 
 (defun erjoalgo-compile-next-cmd (compilation-buffer compilation-state)
   (if erjoalgo-compile-command-queue
-             (erjoalgo-compile-compile nil erjoalgo-compile-command-queue)
+      (erjoalgo-compile-compile nil erjoalgo-compile-command-queue)
     ;; call with a dummy sync function to trigger pipeline finished hooks
     (erjoalgo-compile-compile nil '(ignore) compilation-buffer compilation-state)))
 
@@ -189,43 +189,42 @@ or nil if unknown")
 	      (and (buffer-file-name)
                    (equal (f-filename (buffer-file-name)) "pom.xml")))
 
-   (let ((f-no-ext
-	  (-> (buffer-file-name) (f-filename) (f-no-ext)))
-	 (pom-directory (loop for dir in (walk-up-directories
-					  default-directory)
-			      thereis (and
-				       (member "pom.xml"
-					       (directory-files dir))
-				       dir))))
-     (if (not pom-directory)
-	 (format "javac %s.java && java %s" f-no-ext f-no-ext)
-       (concat "cd " pom-directory " && mvn "
-	       ;;maybe add offline flag
-	       (when (and (boundp 'mvn-offline-p) mvn-offline-p) "-o ")
-	       ;;always clean
-	       "clean "
-	       ;; verify or install
-	       (cond
-		((s-ends-with-p "IT" f-no-ext) "verify ")
-		(t "install "))
-	       ;;maybe add -s *_settings.xml
-	       (let* ((mvn-settings (remove-if-not
-				     (lambda (filename)
-				       (s-ends-with-p "settings.xml" filename))
-				     (directory-files pom-directory)))
-		      (mvn-settings (car mvn-settings)))
-		 (when mvn-settings (concat "-s " mvn-settings " ")))
-	       ;;maybe add proxy opts
-	       (let ((jvm-proxy (let ((https (cdr (assoc "https" url-proxy-services))))
-				  (if (and https (s-contains? ":" https))
-				      (apply 'format "-Dhttps.proxyHost=%s -Dhttps.proxyPort=%s"
-					     (split-string https ":" t))
-				    ""))))
-		 (when jvm-proxy (concat jvm-proxy " ")))
+      (let ((f-no-ext
+	     (-> (buffer-file-name) (f-filename) (f-no-ext)))
+	    (pom-directory (loop for dir in (walk-up-directories
+					     default-directory)
+			         thereis (and
+				          (member "pom.xml"
+					          (directory-files dir))
+				          dir))))
+        (if (not pom-directory)
+	    (format "javac %s.java && java %s" f-no-ext f-no-ext)
+          (concat "cd " pom-directory " && mvn "
+	          ;;maybe add offline flag
+	          (when (and (boundp 'mvn-offline-p) mvn-offline-p) "-o ")
+	          ;;always clean
+	          "clean "
+	          ;; verify or install
+	          (cond
+		   ((s-ends-with-p "IT" f-no-ext) "verify ")
+		   (t "install "))
+	          ;;maybe add -s *_settings.xml
+	          (let* ((mvn-settings (remove-if-not
+				        (lambda (filename)
+				          (s-ends-with-p "settings.xml" filename))
+				        (directory-files pom-directory)))
+		         (mvn-settings (car mvn-settings)))
+		    (when mvn-settings (concat "-s " mvn-settings " ")))
+	          ;;maybe add proxy opts
+	          (let ((jvm-proxy (let ((https (cdr (assoc "https" url-proxy-services))))
+				     (if (and https (s-contains? ":" https))
+				         (apply 'format "-Dhttps.proxyHost=%s -Dhttps.proxyPort=%s"
+					        (split-string https ":" t))
+				       ""))))
+		    (when jvm-proxy (concat jvm-proxy " ")))
 
-	       (when (and (boundp 'mvn-extra-args)
-			  mvn-extra-args) (concat mvn-extra-args " ")))
-       ))))
+	          (when (and (boundp 'mvn-extra-args)
+			     mvn-extra-args) (concat mvn-extra-args " ")))))))
 
   (buffer-major-mode-matcher 'lisp-mode 'slime-compile-and-load-file)
 
