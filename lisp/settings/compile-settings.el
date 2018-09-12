@@ -22,7 +22,7 @@
                  (if (equal "finished" (s-trim compilation-state)) green red)
                  compilation-state)))))
 
-(add-hook 'compilation-finish-functions 'erjoalgo-compile-post-compile-message)
+(add-hook 'erjoalgo-compile-pipeline-finished-hook 'erjoalgo-compile-post-compile-message)
 
 (defun erjoalgo-compile-disable-query-on-proc-exit (proc)
   (set-process-query-on-exit-flag proc nil))

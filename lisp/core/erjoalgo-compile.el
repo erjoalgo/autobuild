@@ -12,14 +12,16 @@ when the global compilation pipeline started")
   (if erjoalgo-compile-command-queue
              (erjoalgo-compile-compile nil erjoalgo-compile-command-queue)
     ;; call with a dummy sync function to trigger pipeline finished hooks
-    (erjoalgo-compile-compile nil '(ignore))))
+    (erjoalgo-compile-compile nil '(ignore) compilation-buffer compilation-state)))
 
 (add-hook 'compilation-finish-functions 'erjoalgo-compile-next-cmd)
 
 (defvar erjoalgo-compile-pipeline-finished-hook nil
   "Hook called when the entire compilation pipeline has completed")
 
-(defun erjoalgo-compile-compile (arg &optional cmd-list)
+(defun erjoalgo-compile-compile (arg &optional cmd-list
+                                     compilation-finish-function-buffer
+                                     compilation-finish-function-message)
   (interactive "P")
   (if (and arg compile-command)
       (recompile)
@@ -86,7 +88,9 @@ when the global compilation pipeline started")
       (when (and (not asyncp)
                  (null erjoalgo-compile-command-queue))
         ;; done with pipeline
-        (run-hooks 'erjoalgo-compile-pipeline-finished-hook)
+        (run-hook-with-args 'erjoalgo-compile-pipeline-finished-hook
+                            compilation-finish-function-buffer
+                            compilation-finish-function-message)
 
         ;; allow chaining by possibly starting compilation on another buffer
         (when (and (boundp 'erjoalgo-compilation-next-buffer)
