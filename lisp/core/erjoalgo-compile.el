@@ -226,6 +226,8 @@ or nil if unknown")
 
   (buffer-major-mode-matcher 'lisp-mode 'slime-compile-and-load-file)
 
+  (buffer-major-mode-matcher emacs-lisp-mode 'eval-buffer)
+
   (lambda ()
     (when (file-exists-p "Makefile") "make"))
 
@@ -278,8 +280,6 @@ or nil if unknown")
   (buffer-major-mode-matcher message-mode-map 'message-send-and-exit)
 
   (buffer-major-mode-matcher org-mode 'org-export-mine)
-
-  (buffer-major-mode-matcher emacs-lisp-mode 'eval-buffer)
 
   (buffer-major-mode-matcher octave-mode
 			     (lambda ()
