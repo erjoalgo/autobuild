@@ -50,10 +50,8 @@ when the global compilation pipeline started")
       (setf erjoalgo-compile-last-compilation-start-time (time-to-seconds))
       (setf erjoalgo-compile-original-compile-directory default-directory))
 
-    (unless (equal default-directory erjoalgo-compile-original-compile-directory)
-      (setf default-directory erjoalgo-compile-original-compile-directory))
-
-    (let (asyncp)
+    (let (asyncp
+          (default-directory erjoalgo-compile-original-compile-directory))
       (loop while cmd-list
             as cmd = (pop cmd-list)
             for i from 1
