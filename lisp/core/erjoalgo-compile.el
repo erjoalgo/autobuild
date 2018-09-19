@@ -240,6 +240,11 @@ or nil if unknown")
   (lambda ()
     (when (file-exists-p "Makefile") "make"))
 
+  (lambda ()
+    (when (equal "pkgdef" (f-ext (buffer-file-name (current-buffer))))
+      (format "mpm build --pkgdef_file=%s --alsologtostderr"
+              (buffer-file-name (current-buffer)))))
+
   (buffer-major-mode-matcher
    borg-mode
    (format "borgcfg -skip_confirmation %s reload"
