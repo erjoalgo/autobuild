@@ -254,7 +254,7 @@ or nil if unknown")
     (when (equal "BUILD" (f-filename (buffer-file-name)))
       (let ((google3-build-auto-select-target 'if-unique)
             (google3-build-auto-try-completion 'prefix))
-        (apply-partially 'google3-run nil))))
+        (google3-build nil))))
 
   (lambda ()
     (when (and (file-exists-p "BUILD")
