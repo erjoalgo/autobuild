@@ -76,6 +76,7 @@ when the global compilation pipeline started")
                   ;; update 'erjoalgo-compile-command-queue and continue remaining commands
                   ;; via 'erjoalgo-compile-next-cmd hook
                   (setf asyncp t)))
+	       ((commandp cmd) (call-interactively cmd))
 	       ((functionp cmd) (funcall cmd))
 	       ((functionp (car cmd))
                 (eval cmd)
