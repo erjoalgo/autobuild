@@ -41,8 +41,9 @@ when the global compilation pipeline started")
 	     (call-interactively 'erjoalgo-compile-set-cmd '(4))))
 
       ;; maybe coerce to list
-      (when (or (functionp cmd-list)
-		(atom cmd-list)
+      (when (or (atom cmd-list)
+		(functionp cmd-list)
+                (functionp (car cmd-list))
                 (eq (car cmd-list) 'async))
         (setf cmd-list (list cmd-list)))
 
@@ -76,6 +77,9 @@ when the global compilation pipeline started")
                   ;; via 'erjoalgo-compile-next-cmd hook
                   (setf asyncp t)))
 	       ((functionp cmd) (funcall cmd))
+	       ((functionp (car cmd))
+                (eval cmd)
+                (message "completed %s" cmd))
 	       ((null cmd) (error "no compile command found for this buffer"))
 	       (t (error "cmd must be a function or string, not %s" cmd)))
               asyncp))
