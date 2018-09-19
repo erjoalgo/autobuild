@@ -97,13 +97,18 @@ when the global compilation pipeline started")
         ;; allow chaining by possibly starting compilation on another buffer
         (when (and (boundp 'erjoalgo-compilation-next-buffer)
 	           erjoalgo-compilation-next-buffer)
-          (if (get-buffer erjoalgo-compilation-next-buffer)
-	      (progn
-	        (recursive-edit)
-	        (switch-to-buffer erjoalgo-compilation-next-buffer)
-	        (when compile-command
-	          (erjoalgo-compile-compile arg)))))))))
+          (when
+              (or
+               (get-buffer erjoalgo-compilation-next-buffer)
+               (find-file erjoalgo-compilation-next-buffer))
+            (when (eq (current-buffer)
+                      (get-buffer erjoalgo-compilation-next-buffer))
+              (error "compilation cycle"))
+            (progn
+              (with-current-buffer erjoalgo-compilation-next-buffer
+	        (erjoalgo-compile-compile arg)))))))))
 
+(make-variable-buffer-local 'erjoalgo-compilation-next-buffer)
 (setf compilation-save-buffers-predicate (lambda () nil))
 
 (defvar-local compile-command-set nil)
