@@ -232,6 +232,11 @@ or nil if unknown")
   (lambda ()
     (when (file-exists-p "Makefile") "make"))
 
+  (buffer-major-mode-matcher
+   borg-mode
+   (format "borgcfg -skip_confirmation %s reload"
+           (buffer-file-name (current-buffer))))
+
   (lambda ()
     (when (equal "BUILD" (f-filename (buffer-file-name)))
       (let ((google3-build-auto-select-target 'if-unique)
