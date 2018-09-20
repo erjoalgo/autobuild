@@ -70,8 +70,9 @@ when the global compilation pipeline started")
 	               (concat "EMACS_COMPILATION_FILENAME=" (buffer-file-name (current-buffer)))))
 
                   (push emacs-filename-env-directive process-environment)
-                  (with-split-preference t
-	                                 (compile cmd))
+                  (let ((ansi-color-for-comint-mode t))
+                    (with-split-preference t
+	                                   (compile cmd)))
                   ;; break, since (compile cmd) is async...
                   ;; update 'erjoalgo-compile-command-queue and continue remaining commands
                   ;; via 'erjoalgo-compile-next-cmd hook
