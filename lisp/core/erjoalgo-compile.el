@@ -157,10 +157,6 @@ buffer where compilation has been requested as current.")
   (add-file-local-variable 'erjoalgo-compilation-next-buffer next-buffer)
   (setf erjoalgo-compilation-next-buffer next-buffer))
 
-(defun wrap-ignore-args (fun)
-  (lexical-let ((fun fun))
-    (lambda (&rest args) (funcall fun))))
-
 (defmacro buffer-major-mode-matcher (modes &rest forms)
   `(lambda ()
      (when (member
