@@ -125,10 +125,13 @@ when the global compilation pipeline started")
   (loop for matcher in erjoalgo-compile-cmd-for-buffer
 	thereis (funcall matcher)))
 
-(defvar erjoalgo-compile-cmd-for-buffer ()
-  "list of functions, each should return
-the command for compiling a particular buffer,
-or nil if unknown")
+(defvar compile-command-matchers-list ()
+  "Each entry in this list is a matcher
+whose value should be the compile-command to use
+for the current buffer, or nil if matcher does not
+know how to compile the current buffer.
+It is called with no arguments and with the
+buffer where compilation has been requested as current.")
 
 (defun erjoalgo-compile-set-cmd (cmd)
   (interactive
