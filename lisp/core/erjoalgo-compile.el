@@ -32,7 +32,7 @@ when the global compilation pipeline started")
       ;; determine compile command
       (setf cmd-list
 	    (or
-	     (and compile-command-set compile-command)
+	     (and compile-command-set-interactively compile-command)
              ;;file-local
 	     (erjoalgo-compile-read-file-local-cmd-list)
              ;;matcher
@@ -112,7 +112,7 @@ when the global compilation pipeline started")
 (make-variable-buffer-local 'erjoalgo-compilation-next-buffer)
 (setf compilation-save-buffers-predicate (lambda () nil))
 
-(defvar-local compile-command-set nil)
+(defvar-local compile-command-set-interactively nil)
 (defvar-local erjoalgo-compilation-next-buffer nil)
 
 (put 'compile-command 'safe-local-variable 'stringp)
@@ -146,7 +146,7 @@ or nil if unknown")
 
   (add-file-local-variable 'compile-command cmd)
   (setf compile-command cmd)
-  (setf compile-command-set t))
+  (setf compile-command-set-interactively t))
 
 (defun erjoalgo-compile-set-next-buffer (next-buffer)
   (interactive "benter next buffer to compile: ")
