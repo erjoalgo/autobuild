@@ -159,9 +159,8 @@ buffer where compilation has been requested as current.")
 
 (defmacro buffer-major-mode-matcher (modes &rest forms)
   `(lambda ()
-     (when (member
-	    major-mode
-	    ',(if (atom modes) (list modes) modes))
+     (when ,(if (atom modes) `(eq major-mode ',modes)
+              `(member major-mode ',modes))
        ,@forms)))
 
 (defun walk-up-directories (dir)
