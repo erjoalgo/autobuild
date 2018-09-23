@@ -13,7 +13,7 @@
            (null erjoalgo-compile-command-queue)
            ;; this fails when emacs is not raised and therefore not visible...
            ;; (not (frame-visible-p (selected-frame)))
-           (not (member (emacs-pid) (stumpwm-visible-window-pids t)))
+           (not (member (emacs-pid) (stumpwm-visible-window-ids t)))
            (or (null erjoalgo-compile-notify-min-compilation-duration)
                (>=
                 (- (time-to-seconds) erjoalgo-compile-last-compilation-start-time)
