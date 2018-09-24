@@ -4,9 +4,9 @@
 (defvar erjoalgo-compile-command-queue nil
   "Internal. Keep track of the next command in the global compilation pipeline")
 
-(defvar erjoalgo-compile-original-compile-directory nil
-  "Internal. Keep track of the original compile directory
-when the global compilation pipeline started")
+(defvar erjoalgo-compile-original-compile-buffer nil
+  "Internal. Keep track of the original buffer
+where the global compilation pipeline was invoked")
 
 (defun erjoalgo-compile-next-cmd (compilation-buffer compilation-state)
   (if erjoalgo-compile-command-queue
@@ -49,10 +49,12 @@ when the global compilation pipeline started")
 
       ;; set start time
       (setf erjoalgo-compile-last-compilation-start-time (time-to-seconds))
-      (setf erjoalgo-compile-original-compile-directory default-directory))
+      (setf erjoalgo-compile-original-compile-buffer (current-buffer)))
 
     (let (asyncp
-          (default-directory erjoalgo-compile-original-compile-directory))
+          (default-directory
+            (f-dirname (buffer-file-name
+                        erjoalgo-compile-original-compile-buffer))))
       (loop while cmd-list
             as cmd = (pop cmd-list)
             for i from 1
@@ -96,18 +98,19 @@ when the global compilation pipeline started")
                             compilation-finish-function-message)
 
         ;; allow chaining by possibly starting compilation on another buffer
-        (when (and (boundp 'erjoalgo-compilation-next-buffer)
-	           erjoalgo-compilation-next-buffer)
-          (when
-              (or
-               (get-buffer erjoalgo-compilation-next-buffer)
-               (find-file erjoalgo-compilation-next-buffer))
-            (when (eq (current-buffer)
-                      (get-buffer erjoalgo-compilation-next-buffer))
-              (error "compilation cycle"))
-            (progn
-              (with-current-buffer erjoalgo-compilation-next-buffer
-	        (erjoalgo-compile-compile arg)))))))))
+        (with-current-buffer erjoalgo-compile-original-compile-buffer
+          (when (and (boundp 'erjoalgo-compilation-next-buffer)
+	             erjoalgo-compilation-next-buffer)
+            (when
+                (or
+                 (get-buffer erjoalgo-compilation-next-buffer)
+                 (find-file erjoalgo-compilation-next-buffer))
+              (when (eq (current-buffer)
+                        (get-buffer erjoalgo-compilation-next-buffer))
+                (error "compilation cycle"))
+              (progn
+                (with-current-buffer erjoalgo-compilation-next-buffer
+	          (erjoalgo-compile-compile arg))))))))))
 
 (make-variable-buffer-local 'erjoalgo-compilation-next-buffer)
 (setf compilation-save-buffers-predicate (lambda () nil))
