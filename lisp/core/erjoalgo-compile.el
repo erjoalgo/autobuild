@@ -261,8 +261,12 @@ buffer where compilation has been requested as current.")
   (lambda ()
     (when (and (file-exists-p "BUILD")
                (which "blaze"))
-      `((async . google3-compile-current-file)
-        (async . ,(apply-partially 'google3-run nil)))))
+      (list
+       `(async . google3-compile-current-file)
+       (if (boundp 'google-rabbit-build-args)
+           (format "rabbit --verifiable build %s"
+                   google-rabbit-build-args)
+         `(async . ,(apply-partially 'google3-run nil))))))
 
   (buffer-major-mode-matcher
    c-mode
