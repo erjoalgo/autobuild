@@ -8,10 +8,20 @@
   "Internal. Keep track of the original buffer
 where the global compilation pipeline was invoked")
 
+(defun compilation-exited-abnormally-p (compilation-finished-message)
+  (s-contains-p "abnormally" (s-trim compilation-finished-message)))
+
 (defun erjoalgo-compile-next-cmd (compilation-buffer compilation-state)
+  "‘compilation-finish-functions' hook function
+ invoked after compilation to resume pipeline.
+If COMPILATION-STATE indicates compilation exited abnormally,
+the pipeline is aborted."
   (if erjoalgo-compile-command-queue
-      (erjoalgo-compile-compile nil erjoalgo-compile-command-queue)
-    ;; call with a dummy sync function to trigger pipeline finished hooks
+      (if (compilation-exited-abnormally-p compilation-state)
+          (progn (message "aborting the rest of the compilation pipeline...")
+                 (setf erjoalgo-compile-command-queue nil))
+        (erjoalgo-compile-compile nil erjoalgo-compile-command-queue))
+    ;; call with a dummy synchronous function to possibly trigger pipeline finished hooks
     (erjoalgo-compile-compile nil '(ignore) compilation-buffer compilation-state)))
 
 (add-hook 'compilation-finish-functions 'erjoalgo-compile-next-cmd)
