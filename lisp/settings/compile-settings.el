@@ -1,5 +1,5 @@
 (defvar erjoalgo-compile-notify-min-compilation-duration 5
-  "if non-nil, do not notify of compilation ended if compilation took less than
+  "if non-nil, notify that compilation ended unless compilation took less than
  ‘erjoalgo-compile-notify-threshold-secs' seconds")
 
 (setf erjoalgo-compile-notify-min-compilation-duration 10)
@@ -16,10 +16,9 @@
               (null erjoalgo-compile-command-queue)
               ;; this fails when emacs is not raised and therefore not visible...
               ;; (not (frame-visible-p (selected-frame)))
-              (or (null erjoalgo-compile-notify-min-compilation-duration)
-                  (>=
-                   (- (time-to-seconds) erjoalgo-compile-last-compilation-start-time)
-                   erjoalgo-compile-notify-min-compilation-duration))
+              erjoalgo-compile-notify-min-compilation-duration
+              (>= (- (time-to-seconds) erjoalgo-compile-last-compilation-start-time)
+                  erjoalgo-compile-notify-min-compilation-duration)
               (not (member (emacs-pid) (stumpwm-visible-window-ids t))))
          (stumpwm-message (stumpwm-color
                            (if (equal "finished" (s-trim compilation-state)) 'green
