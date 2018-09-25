@@ -20,9 +20,9 @@
               (>= (- (time-to-seconds) erjoalgo-compile-last-compilation-start-time)
                   erjoalgo-compile-notify-min-compilation-duration)
               (not (member (emacs-pid) (stumpwm-visible-window-ids t))))
-         (stumpwm-message (stumpwm-color
-                           (if (equal "finished" (s-trim compilation-state)) 'green
-                             'red))))))))
+         (let ((color (if (equal "finished" (s-trim compilation-state))
+                          'green 'red)))
+           (stumpwm-message (stumpwm-color msg color))))))))
 
 (add-hook 'erjoalgo-compile-pipeline-finished-hook 'erjoalgo-compile-post-compile-message)
 
