@@ -16,13 +16,15 @@ where the global compilation pipeline was invoked")
  invoked after compilation to resume pipeline.
 If COMPILATION-STATE indicates compilation exited abnormally,
 the pipeline is aborted."
-  (if erjoalgo-compile-command-queue
-      (if (compilation-exited-abnormally-p compilation-state)
-          (progn (message "aborting the rest of the compilation pipeline...")
-                 (setf erjoalgo-compile-command-queue nil))
-        (erjoalgo-compile-compile nil erjoalgo-compile-command-queue))
+  (cond
+   ((compilation-exited-abnormally-p compilation-state)
+    (message "aborting the rest of the compilation pipeline...")
+    (setf erjoalgo-compile-command-queue '(abort)))
+   ((null erjoalgo-compile-command-queue)
     ;; call with a dummy synchronous function to possibly trigger pipeline finished hooks
-    (erjoalgo-compile-compile nil '(ignore) compilation-buffer compilation-state)))
+    ;; like notifications
+    (setf erjoalgo-compile-command-queue '(ignore)))
+   (erjoalgo-compile-compile nil erjoalgo-compile-command-queue compilation-buffer compilation-state)))
 
 (add-hook 'compilation-finish-functions 'erjoalgo-compile-next-cmd)
 
@@ -64,7 +66,8 @@ the pipeline is aborted."
     (let (asyncp
           (default-directory
             (f-dirname (buffer-file-name
-                        erjoalgo-compile-original-compile-buffer))))
+                        erjoalgo-compile-original-compile-buffer)))
+          abort)
       (loop while cmd-list
             as cmd = (pop cmd-list)
             for i from 1
@@ -94,6 +97,7 @@ the pipeline is aborted."
 	       ((functionp (car cmd))
                 (eval cmd)
                 (message "completed %s" cmd))
+               ((eq 'abort cmd) (setf abort t))
 	       ((null cmd) (error "no compile command found for this buffer"))
 	       (t (error "cmd must be a function or string, not %s" cmd)))
               asyncp))
@@ -101,7 +105,8 @@ the pipeline is aborted."
       (setf erjoalgo-compile-command-queue cmd-list)
 
       (when (and (not asyncp)
-                 (null erjoalgo-compile-command-queue))
+                 (null erjoalgo-compile-command-queue)
+                 (not abort))
         ;; done with pipeline
         (run-hook-with-args 'erjoalgo-compile-pipeline-finished-hook
                             compilation-finish-function-buffer
