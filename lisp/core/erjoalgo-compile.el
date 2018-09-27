@@ -23,8 +23,8 @@ the pipeline is aborted."
    ((null erjoalgo-compile-command-queue)
     ;; call with a dummy synchronous function to possibly trigger pipeline finished hooks
     ;; like notifications
-    (setf erjoalgo-compile-command-queue '(ignore)))
-   (erjoalgo-compile-compile nil erjoalgo-compile-command-queue compilation-buffer compilation-state)))
+    (setf erjoalgo-compile-command-queue '(ignore))))
+  (erjoalgo-compile-compile nil erjoalgo-compile-command-queue compilation-buffer compilation-state))
 
 (add-hook 'compilation-finish-functions 'erjoalgo-compile-next-cmd)
 
@@ -94,9 +94,7 @@ the pipeline is aborted."
                   (setf asyncp t)))
 	       ((commandp cmd) (call-interactively cmd))
 	       ((functionp cmd) (funcall cmd))
-	       ((functionp (car cmd))
-                (eval cmd)
-                (message "completed %s" cmd))
+	       ((functionp (car-safe cmd)) (eval cmd) (message "completed %s" cmd))
                ((eq 'abort cmd) (setf abort t))
 	       ((null cmd) (error "no compile command found for this buffer"))
 	       (t (error "cmd must be a function or string, not %s" cmd)))
