@@ -383,7 +383,11 @@ buffer where compilation has been requested as current.")
 
 (defvar compilation-notify-send nil)
 (defun compilation-finished-notify (buff finish-description)
-  (set-face-background 'mode-line "orange")
+  (with-current-buffer compilation-last-buffer
+    (set-face-background 'mode-line
+                         (if (s-contains-p "abnormally" finish-description)
+                             "orange"
+                           "sea green")))
   (message "compilation finished")
   (when compilation-notify-send
     (call-process
