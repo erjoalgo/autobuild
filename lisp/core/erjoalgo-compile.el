@@ -103,27 +103,26 @@ the pipeline is aborted."
       (setf erjoalgo-compile-command-queue cmd-list)
 
       (when (and (not asyncp)
-                 (null erjoalgo-compile-command-queue)
-                 (not abort))
+                 (null erjoalgo-compile-command-queue))
         ;; done with pipeline
         (run-hook-with-args 'erjoalgo-compile-pipeline-finished-hook
                             compilation-finish-function-buffer
                             compilation-finish-function-message)
-
-        ;; allow chaining by possibly starting compilation on another buffer
-        (with-current-buffer erjoalgo-compile-original-compile-buffer
-          (when (and (boundp 'erjoalgo-compilation-next-buffer)
-	             erjoalgo-compilation-next-buffer)
-            (when
-                (or
-                 (get-buffer erjoalgo-compilation-next-buffer)
-                 (find-file erjoalgo-compilation-next-buffer))
-              (when (eq (current-buffer)
-                        (get-buffer erjoalgo-compilation-next-buffer))
-                (error "compilation cycle"))
-              (progn
-                (with-current-buffer erjoalgo-compilation-next-buffer
-	          (erjoalgo-compile-compile arg))))))))))
+        (unless abort
+          ;; allow chaining by possibly starting compilation on another buffer
+          (with-current-buffer erjoalgo-compile-original-compile-buffer
+            (when (and (boundp 'erjoalgo-compilation-next-buffer)
+	               erjoalgo-compilation-next-buffer)
+              (when
+                  (or
+                   (get-buffer erjoalgo-compilation-next-buffer)
+                   (find-file erjoalgo-compilation-next-buffer))
+                (when (eq (current-buffer)
+                          (get-buffer erjoalgo-compilation-next-buffer))
+                  (error "compilation cycle"))
+                (progn
+                  (with-current-buffer erjoalgo-compilation-next-buffer
+	            (erjoalgo-compile-compile arg)))))))))))
 
 (make-variable-buffer-local 'erjoalgo-compilation-next-buffer)
 (setf compilation-save-buffers-predicate (lambda () nil))
