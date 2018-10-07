@@ -63,10 +63,10 @@ the pipeline is aborted."
       (setf erjoalgo-compile-last-compilation-start-time (time-to-seconds))
       (setf erjoalgo-compile-original-compile-buffer (current-buffer)))
 
-    (let (asyncp
-          (default-directory
-            (f-dirname (buffer-file-name
-                        erjoalgo-compile-original-compile-buffer)))
+    (let ((default-directory
+            (buffer-local-value 'default-directory
+                                erjoalgo-compile-original-compile-buffer))
+          asyncp
           abort)
       (loop while cmd-list
             as cmd = (pop cmd-list)
