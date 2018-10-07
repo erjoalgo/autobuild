@@ -200,6 +200,12 @@ buffer where compilation has been requested as current.")
         (if (and fn (file-executable-p fn))
             (format "./%s" fn)))))
 
+  (buffer-major-mode-matcher dired-mode
+                             (with-temporary-current-file
+                              (dired-file-name-at-point)
+                              (call-interactively 'erjoalgo-compile-compile)
+                              '(abort)))
+
   (buffer-major-mode-matcher
    sh-mode
    (let ((fn (f-filename (buffer-file-name))))
