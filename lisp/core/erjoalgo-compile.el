@@ -270,22 +270,6 @@ buffer where compilation has been requested as current.")
    (format "borgcfg -skip_confirmation %s reload"
            (buffer-file-name (current-buffer))))
 
-  (lambda ()
-    (when (equal "BUILD" (f-filename (buffer-file-name)))
-      (let ((google3-build-auto-select-target 'if-unique)
-            (google3-build-auto-try-completion 'prefix))
-        (google3-build nil))))
-
-  (lambda ()
-    (when (and (file-exists-p "BUILD")
-               (which "blaze"))
-      (list
-       `(async . google3-compile-current-file)
-       (if (boundp 'google-rabbit-build-args)
-           (format "rabbit --verifiable build %s"
-                   google-rabbit-build-args)
-         `(async . ,(apply-partially 'google3-run nil))))))
-
   (buffer-major-mode-matcher
    c-mode
    (let ((fn (f-filename (buffer-file-name)))
