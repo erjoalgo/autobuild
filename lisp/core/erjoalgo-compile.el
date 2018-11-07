@@ -97,7 +97,9 @@ the pipeline is aborted."
 	       ((functionp (car-safe cmd)) (eval cmd) (message "completed %s" cmd))
                ((eq 'abort cmd) (setf abort t))
 	       ((null cmd) (error "no compile command found for this buffer"))
-	       (t (error "cmd must be a function or string, not %s" cmd)))
+	       (t (error (typecase cmd
+                           (symbol (error "the function %s is undefined" cmd))
+                           (t "cmd must be a function or string, not %s" cmd)))))
               asyncp))
 
       (setf erjoalgo-compile-command-queue cmd-list)
