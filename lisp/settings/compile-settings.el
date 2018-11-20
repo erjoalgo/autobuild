@@ -22,7 +22,7 @@
               (not (member (emacs-pid) (stumpwm-visible-window-ids t))))
          (let ((color (if (equal "finished" (s-trim compilation-state))
                           'green 'red)))
-           (stumpwm-message (stumpwm-color msg color))))))))
+           (stumpwm-message msg color)))))))
 
 (add-hook 'erjoalgo-compile-pipeline-finished-hook 'erjoalgo-compile-post-compile-message)
 
