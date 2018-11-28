@@ -110,7 +110,8 @@ the pipeline is aborted."
         (run-hook-with-args 'erjoalgo-compile-pipeline-finished-hook
                             compilation-finish-function-buffer
                             compilation-finish-function-message)
-        (unless abort
+        (unless (or abort
+                    (not (buffer-live-p erjoalgo-compile-original-compile-buffer)))
           ;; allow chaining by possibly starting compilation on another buffer
           (with-current-buffer erjoalgo-compile-original-compile-buffer
             (when (and (boundp 'erjoalgo-compilation-next-buffer)
