@@ -190,6 +190,15 @@ buffer where compilation has been requested as current.")
 (setf
  erjoalgo-compile-cmd-for-buffer
  (list
+
+  (lambda ()
+    (when (s-starts-with?
+           (expand-file-name "~/git/translations")
+           (buffer-file-name))
+      (lambda ()
+        (when (translation-prepare)
+          (call-interactively #'translation-publish-commit)))))
+
   (buffer-major-mode-matcher
    fundamental-mode
    ;;git commit
