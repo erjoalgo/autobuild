@@ -267,12 +267,12 @@ buffer where compilation has been requested as current.")
 
   (buffer-major-mode-matcher 'lisp-mode 'slime-compile-and-load-file)
 
-  (lambda ()
-    (when (and (buffer-file-name)
-               (s-ends-with-p "-tests.el" (buffer-file-name)))
-      (lambda () (eval-buffer) (ert t))))
-
-  (buffer-major-mode-matcher emacs-lisp-mode 'eval-buffer)
+  (buffer-major-mode-matcher
+   emacs-lisp-mode
+   (if (and (buffer-file-name)
+            (s-ends-with-p "-tests.el" (buffer-file-name)))
+       (lambda () (eval-buffer) (ert t))
+     'eval-buffer))
 
   (lambda ()
     (when (file-exists-p "Makefile") "make"))
