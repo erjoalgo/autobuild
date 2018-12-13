@@ -283,11 +283,6 @@ buffer where compilation has been requested as current.")
               (buffer-file-name (current-buffer)))))
 
   (buffer-major-mode-matcher
-   borg-mode
-   (format "borgcfg -skip_confirmation %s reload"
-           (buffer-file-name (current-buffer))))
-
-  (buffer-major-mode-matcher
    c-mode
    (let ((fn (f-filename (buffer-file-name)))
          (pipe-in (if (file-exists-p "test.in") " < test.in" ""))
