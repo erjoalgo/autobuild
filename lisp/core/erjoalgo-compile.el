@@ -344,6 +344,11 @@ buffer where compilation has been requested as current.")
   (buffer-major-mode-matcher
    'js-mode
    (let ((filename (-> (f-filename (buffer-file-name)) sanitize-filename)))
+     (format "node %s" filename)))
+
+  (buffer-major-mode-matcher
+   'js-mode
+   (let ((filename (-> (f-filename (buffer-file-name)) sanitize-filename)))
      (when (s-ends-with-p "-boot.json" filename)
        (format "cf-boot %s -i free-vars.json" filename))))
 
