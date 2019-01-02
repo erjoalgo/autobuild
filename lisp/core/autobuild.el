@@ -36,6 +36,7 @@
   (cl-loop for name in rule-names
            as rule = (alist-get autobuild-rules-alist name)
            as action = (autobuild-rule-action rule)
+           do (assert action)
            ;; TODO fail early on non-zero exit, error
            ;; or ensure each action errs
            as ret = (autobuild-run-action action)))
