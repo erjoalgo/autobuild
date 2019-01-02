@@ -189,17 +189,8 @@ buffer where compilation has been requested as current.")
 
 
 (setf compilation-ask-about-save nil)
-(global-set-key (kbd "M-c") 'erjoalgo-compile-compile)
-(global-set-key (kbd "M-C")
-		(lambda (arg) (interactive "P")
-		  (call-interactively
-		   'erjoalgo-compile-set-cmd arg)
-		  (compile compile-command)))
 ;;(setf compilation-read-command nil)
 
-
-(global-set-key (kbd "M-,") 'previous-error)
-(global-set-key (kbd "M-.") 'next-error)
 
 ;;taken from
 ;;http://compgroups.net/comp.emacs/show-tail-of-compilation-buffer-by-auto-scrolling/111626
