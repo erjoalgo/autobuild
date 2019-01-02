@@ -32,7 +32,7 @@
        :genaction (defun ,name () ,@body)))))
 
 
-(defun autobuild-pipeline (&rest rule-names)
+(defun autobuild-pipeline (rule-names)
   (cl-loop for name in rule-names
            as rule = (alist-get autobuild-rules-alist name)
            as action = (autobuild-rule-action rule)
