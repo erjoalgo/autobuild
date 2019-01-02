@@ -41,16 +41,10 @@
            ;; or ensure each action errs
            as ret = (autobuild-run-action action)))
 
-;; (defmacro with-slots (slots obj &rest body)
-;;   `(let (loop for slot in slots
-;;               collect `(slot (slot-value ,obj ',slot))))
-
-
 (defun autobuild-current-build-actions ()
   (cl-loop for (name . rule) in autobuild-rules-alist
            as nice = (autobuild-rule-nice rule)
            as action =
-           ;; (with-slots (major-modes genaction) rule
            (let ((major-modes (autobuild-rule-major-modes rule))
                  (genaction (autobuild-rule-genaction rule)))
              (and
@@ -59,11 +53,9 @@
                (if (atom major-modes)
                    (eq major-mode major-modes)
                  (find major-mode major-modes)))
-              ;; (funcall genaction filename)
               (funcall genaction)))
            when action
            collect (cons nice action) into cands
-           ;; finally (return (sort-by #'autobuild-rule-nice rules)))
            finally (return (mapcar #'cdr (sort-by #'car cands)))))
 
 (defcustom selcand-default-hints
