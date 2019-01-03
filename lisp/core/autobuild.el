@@ -129,12 +129,13 @@
              for cand in cands
              collect (cons hint cand))))
 
-(defun selcand-select (cands &optional prompt)
+(defun selcand-select (cands &optional prompt stringify)
   "Use PROMPT to prompt for a selection from CANDS candidates."
   (let* ((hints-cands (selcand-hints cands))
          (sep ") ")
+         (stringify (or stringify #'prin1-to-string))
          (choices (cl-loop for (hint . cand) in hints-cands
-                           collect (concat hint sep (prin1-to-string cand))))
+                           collect (concat hint sep (funcall stringify cand))))
          (prompt (or prompt "select candidate: "))
          (choice (completing-read prompt choices
                                   nil
@@ -155,8 +156,12 @@
 (defun autobuild-build (&optional prompt)
   (interactive "P")
   (let* ((cands (autobuild-current-build-actions))
-         (choice (if (and prompt (cdr cands))
-                     (selcand-select cands "select build rule: ")
+         (choice (if (and prompt)
+                     (caddr (selcand-select cands "select build rule: "
+                                            (lambda (name-rule-action)
+                                              (format "%s: %s"
+                                                      (car name-rule-action)
+                                                      (caddr name-rule-action)))))
                    (or autobuild-last-rule (car cands)))))
     (if (null choice)
         (error "No build rules matched")
@@ -169,7 +174,7 @@
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
    ((functionp action) (funcall action))
-   (t (error "Action must be string or function"))))
+   (t (error "Action must be string or function, not %s" action))))
 
 (defun autobuild-run-string-command (cmd)
   (let ((compile-command cmd)
