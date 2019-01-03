@@ -6,7 +6,8 @@
   ;; name
   major-modes
   nice
-  genaction)
+  genaction
+  action-async-p)
 
 (defvar autobuild-rules-alist nil)
 ;; (setq autobuild-rules-alist nil)
@@ -15,35 +16,75 @@
   ;; (assq-delete-all name autobuild-rules)
   (setf (alist-get name autobuild-rules-alist) rule))
 
+(defvar autobuild-directives '(autobuild-nice autobuild-async))
+
+(defun autobuild-nice (_nice))
+(defun autobuild-async (_async))
+
 (cl-defmacro autobuild-define-rule (name
                                     major-modes
                                     &rest body)
   (cl-assert major-modes)
-  (let ((nice (loop for top-level-form in '((autobuild-nice 20))
-                    thereis (when (eq (car top-level-form) 'autobuild-nice)
-                              (cadr top-level-form))
-                    finally (return 10))))
+  (let* ((directives
+          (loop for top-level-form in body
+                ;; TODO remove directives from body
+               when (and (listp top-level-form)
+                         (member (car top-level-form) autobuild-directives))
+               collect (cons (car top-level-form)
+                             (cadr top-level-form))))
+        (nice (or (alist-get 'autobuild-nice directives) 10))
+        (async (or (alist-get 'autobuild-async directives) t)))
     `(autobuild-add-rule
       ',name
       (make-autobuild-rule
        ;; :name ',name
        :major-modes ',major-modes
        :nice ,nice
-       :genaction (defun ,name () ,@body)))))
+       :genaction (defun ,name () ,@body)
+       :action-async-p ,async))))
 
+
+(defvar autobuild-rules-remaining nil)
+(make-variable-buffer-local 'autobuild-rules-remaining)
+(defvar autobuild-rules-remaining-global nil)
 
 (defun autobuild-pipeline (rule-names)
-  (cl-loop for name in rule-names
-           as rule = (alist-get autobuild-rules-alist name)
-           as action = (autobuild-rule-action rule)
-           do (assert action)
-           ;; TODO fail early on non-zero exit, error
-           ;; or ensure each action errs
-           as ret = (autobuild-run-action action)))
+  (cl-loop for rules-remaining on rule-names
+           do
+           (destructuring-bind (buffer name) (car rules-remaining)
+             (with-current-buffer buffer
+               (let* ((rule (alist-get name autobuild-rules-alist))
+                      (action (funcall (autobuild-rule-genaction rule))))
+                 (assert action)
+                 ;; TODO fail early on non-zero exit, error
+                 ;; or ensure each action errs
+                 (if (and (cdr rules-remaining)
+                          (or (stringp action)
+                              (autobuild-rule-action-async-p rule)))
+                     (progn
+                       (setq autobuild-rules-remaining-global (cdr rules-remaining))
+                       (autobuild-run-action action)
+                       (return))
+                   (autobuild-run-action action)))))))
+
+(defun autobuild-pipeline-continue-schedule (proc)
+  ;; TODO use proc vars instead of buffer-local var
+  (assert (eq major-mode 'compilation-mode))
+  (message "scheduling remaining rules: %s" autobuild-rules-remaining-global)
+  (setq autobuild-rules-remaining autobuild-rules-remaining-global
+        autobuild-rules-remaining-global nil))
+(add-hook 'compilation-start-hook #'autobuild-pipeline-continue-schedule)
+
+(defun autobuild-pipeline-continue (compilation-buffer finish-state)
+  ;; (edebug)
+  (with-current-buffer compilation-buffer
+    (when autobuild-rules-remaining
+      (message "continuing with pipeline: %s" autobuild-rules-remaining)
+      (autobuild-pipeline autobuild-rules-remaining))))
+(add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
 (defun autobuild-current-build-actions ()
   (cl-loop for (name . rule) in autobuild-rules-alist
-           as nice = (autobuild-rule-nice rule)
            as action =
            (let ((major-modes (autobuild-rule-major-modes rule))
                  (genaction (autobuild-rule-genaction rule)))
@@ -55,8 +96,10 @@
                  (find major-mode major-modes)))
               (funcall genaction)))
            when action
-           collect (cons nice action) into cands
-           finally (return (mapcar #'cdr (sort-by #'car cands)))))
+           collect (list name rule action) into cands
+           finally (return (sort-by (lambda (rule-action)
+                                      (autobuild-rule-nice (cadr rule-action)))
+                                    cands))))
 
 (defcustom selcand-default-hints
   "qwertasdfzxcv1234"
