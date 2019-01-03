@@ -288,7 +288,7 @@
 
 (autobuild-define-rule ab-cl (lisp-mode) 'slime-compile-and-load-file)
 
-(autobuild-define-rule ab-el
+(autobuild-define-rule ab-el-eval-buffer
  (emacs-lisp-mode)
  (if (and (buffer-file-name)
           (s-ends-with-p "-tests.el" (buffer-file-name)))
