@@ -26,7 +26,6 @@ the pipeline is aborted."
     (setf erjoalgo-compile-command-queue '(ignore))))
   (erjoalgo-compile-compile nil erjoalgo-compile-command-queue compilation-buffer compilation-state))
 
-(add-hook ' compilation-finish-functions 'erjoalgo-compile-next-cmd)
 
 (defvar erjoalgo-compile-pipeline-finished-hook nil
   "Hook called when the entire compilation pipeline has completed")
