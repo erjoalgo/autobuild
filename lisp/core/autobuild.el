@@ -25,6 +25,9 @@
                                     major-modes
                                     &rest body)
   (cl-assert major-modes)
+  (when (and (not (eq t major-modes))
+             (member t major-modes))
+    (error "invalid major mode specification"))
   (let* ((directives
           (loop for top-level-form in body
                 ;; TODO remove directives from body
@@ -184,7 +187,7 @@
 
 (autobuild-define-rule
  ab-file-local-compile-command
- (t)
+ t
  ;; compile-command ;; this includes the default "make -k"
  "A rule that matches any buffer whose compile-command is set"
  ;; make sure there is a custom compile command
@@ -192,7 +195,7 @@
 
 (autobuild-define-rule
  ab-translations
- (t)
+ t
  (when (s-starts-with?
         (expand-file-name "~/git/translations")
         (buffer-file-name))
@@ -208,7 +211,7 @@
 
 (autobuild-define-rule
  ab-run-executable
- (t)
+ t
  (when (buffer-file-name)
    (let ((fn (f-filename (buffer-file-name))))
      (if (and fn (file-executable-p fn))
@@ -287,10 +290,10 @@
    'eval-buffer))
 
 (autobuild-define-rule ab-makefile
-                       (t)
+                       t
                        (when (file-exists-p "Makefile") "make"))
 
-(autobuild-define-rule ab-mpm (t)
+(autobuild-define-rule ab-mpm t
                        (when (equal "pkgdef" (f-ext (buffer-file-name (current-buffer))))
                          (format "mpm build --pkgdef_file=%s --alsologtostderr"
                                  (buffer-file-name (current-buffer)))))
