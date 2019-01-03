@@ -115,6 +115,7 @@
 
   each hint consists of characters in the string CHARS."
   (setf chars (or chars selcand-default-hints))
+  (assert cands)
   (let* ((w (ceiling (log (length cands) (length chars))))
          (hints (cl-loop with curr = '("")
                          for wi below w do
