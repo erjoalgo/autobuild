@@ -157,16 +157,16 @@
   (interactive "P")
   (let* ((cands (autobuild-current-build-actions))
          (choice (if (and prompt)
-                     (caddr (selcand-select cands "select build rule: "
+                     (selcand-select cands "select build rule: "
                                             (lambda (name-rule-action)
                                               (format "%s: %s"
                                                       (car name-rule-action)
-                                                      (caddr name-rule-action)))))
+                                                      (caddr name-rule-action))))
                    (or autobuild-last-rule (car cands)))))
     (if (null choice)
         (error "No build rules matched")
       (setq autobuild-last-rule choice)
-      (autobuild-run-action choice))))
+      (autobuild-run-action (caddr choice)))))
 
 (defun autobuild-run-action (action)
   (assert action)
