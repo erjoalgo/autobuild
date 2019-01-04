@@ -296,7 +296,7 @@
  (if (and (buffer-file-name)
           (s-ends-with-p "-tests.el" (buffer-file-name)))
      (lambda () (eval-buffer) (ert t))
-   'eval-buffer))
+   #'eval-buffer))
 
 (autobuild-define-rule ab-makefile
                        t
