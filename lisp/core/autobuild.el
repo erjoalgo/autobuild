@@ -278,6 +278,9 @@
                                      (when (and (boundp 'mvn-extra-args)
                                                 mvn-extra-args) (concat mvn-extra-args " ")))))))
 
+(autobuild-define-rule ab-cl-slime-eval (lisp-mode)
+                       #'slime-compile-and-load-file)
+
 (autobuild-define-rule ab-cl-asdf (lisp-mode)
                        (let ((filename (f-filename (buffer-file-name))))
                          (when (member (f-ext filename) '("asd" "asdf"))
