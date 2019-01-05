@@ -18,8 +18,8 @@
 
 (defvar autobuild-directives '(autobuild-nice autobuild-async))
 
-(defun autobuild-nice (_nice))
-(defun autobuild-async (_async))
+(defalias 'autobuild-nice #'ignore)
+(defalias 'autobuild-async #'ignore)
 
 (cl-defmacro autobuild-define-rule (name
                                     major-modes
