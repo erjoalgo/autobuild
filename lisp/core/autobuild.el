@@ -79,12 +79,21 @@
 
 (add-hook 'compilation-start-hook #'autobuild-pipeline-continue-schedule)
 
+(defun compilation-exited-abnormally-p (compilation-finished-message)
+  (s-contains-p "abnormally" (s-trim compilation-finished-message)))
+
 (defun autobuild-pipeline-continue (compilation-buffer finish-state)
   ;; (edebug)
   (with-current-buffer compilation-buffer
     (when autobuild-rules-remaining
-      (message "continuing with pipeline: %s" autobuild-rules-remaining)
-      (autobuild-pipeline autobuild-rules-remaining))))
+      (if (compilation-exited-abnormally-p finish-state)
+          (progn
+            (message "aborting pipeline: %s" autobuild-rules-remaining)
+            (setq autobuild-rules-remaining nil))
+        (progn
+          (message "continuing with pipeline: %s" autobuild-rules-remaining)
+          (autobuild-pipeline autobuild-rules-remaining))))))
+
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
 (defun autobuild-current-build-actions ()
