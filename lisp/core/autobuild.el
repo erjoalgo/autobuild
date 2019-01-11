@@ -72,10 +72,10 @@
 
 (defun autobuild-pipeline-continue-schedule (proc)
   ;; TODO use proc vars instead of buffer-local var
-  (assert (eq major-mode 'compilation-mode))
   (message "scheduling remaining rules: %s" autobuild-rules-remaining-global)
   (setq autobuild-rules-remaining autobuild-rules-remaining-global
         autobuild-rules-remaining-global nil))
+
 (add-hook 'compilation-start-hook #'autobuild-pipeline-continue-schedule)
 
 (defun autobuild-pipeline-continue (compilation-buffer finish-state)
