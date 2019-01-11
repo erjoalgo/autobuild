@@ -195,18 +195,13 @@
     (let ((ansi-color-for-comint-mode t))
       (compile cmd))))
 
-(defun file-local-compile-command ()
-  ;;(read-file-local-variable-value 'compile-command)
-  ;;TODO read file local compile-command
-  (cdr (assoc 'compile-command file-local-variables-alist)))
-
 (autobuild-define-rule
  autobuild-file-local-compile-command
  t
  ;; compile-command ;; this includes the default "make -k"
  "A rule that matches any buffer whose compile-command is set"
  ;; make sure there is a custom compile command
- (file-local-compile-command))
+ (cdr (assoc 'compile-command file-local-variables-alist)))
 
 (autobuild-define-rule
  autobuild-translations
