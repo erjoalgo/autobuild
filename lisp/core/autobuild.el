@@ -195,21 +195,21 @@
     (let ((ansi-color-for-comint-mode t))
       (compile cmd))))
 
-(defun autobuild-file-local-compile-command ()
+(defun file-local-compile-command ()
   ;;(read-file-local-variable-value 'compile-command)
   ;;TODO read file local compile-command
   (cdr (assoc 'compile-command file-local-variables-alist)))
 
 (autobuild-define-rule
- ab-file-local-compile-command
+ autobuild-file-local-compile-command
  t
  ;; compile-command ;; this includes the default "make -k"
  "A rule that matches any buffer whose compile-command is set"
  ;; make sure there is a custom compile command
- (autobuild-file-local-compile-command))
+ (file-local-compile-command))
 
 (autobuild-define-rule
- ab-translations
+ autobuild-translations
  t
  (when (s-starts-with?
         (expand-file-name "~/git/translations")
@@ -219,32 +219,32 @@
        (call-interactively #'translation-publish-commit)))))
 
 (autobuild-define-rule
- ab-git-commit
+ autobuild-git-commit
  (fundamental-mode)
  (save-buffer)
  (server-edit))
 
 (autobuild-define-rule
- ab-run-executable
+ autobuild-run-executable
  t
  (when (buffer-file-name)
    (let ((fn (f-filename (buffer-file-name))))
      (if (and fn (file-executable-p fn))
          (format "./%s" fn)))))
 
-(autobuild-define-rule ab-dired-build-file-at-point
+(autobuild-define-rule autobuild-dired-build-file-at-point
                        (dired-mode)
                        (with-temporary-current-file
                         (dired-file-name-at-point)
                         (call-interactively 'erjoalgo-compile-compile)
                         '(abort)))
 
-(autobuild-define-rule ab-shell-script
+(autobuild-define-rule autobuild-shell-script
                        (sh-mode)
                        (let ((fn (f-filename (buffer-file-name))))
                          (format "bash %s" fn)))
 
-(autobuild-define-rule ab-java-mode
+(autobuild-define-rule autobuild-java-mode
                        (java-mode nxml-mode)
                        (when (or (eq 'java-mode major-mode)
                                  (and (buffer-file-name)
@@ -287,10 +287,10 @@
                                      (when (and (boundp 'mvn-extra-args)
                                                 mvn-extra-args) (concat mvn-extra-args " ")))))))
 
-(autobuild-define-rule ab-cl-slime-eval (lisp-mode)
+(autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
                        #'slime-compile-and-load-file)
 
-(autobuild-define-rule ab-cl-asdf (lisp-mode)
+(autobuild-define-rule autobuild-cl-asdf (lisp-mode)
                        (let ((filename (f-filename (buffer-file-name))))
                          (when (member (f-ext filename) '("asd" "asdf"))
                            (format "sbcl --load %s --eval \"(ql:quickload '%s)\""
@@ -298,26 +298,26 @@
                                    (f-base filename)))))
 
 
-(autobuild-define-rule ab-cl (lisp-mode) 'slime-compile-and-load-file)
+(autobuild-define-rule autobuild-cl (lisp-mode) 'slime-compile-and-load-file)
 
-(autobuild-define-rule ab-el-eval-buffer
+(autobuild-define-rule autobuild-el-eval-buffer
  (emacs-lisp-mode)
  (if (and (buffer-file-name)
           (s-ends-with-p "-tests.el" (buffer-file-name)))
      (lambda () (eval-buffer) (ert t))
    #'eval-buffer))
 
-(autobuild-define-rule ab-makefile
+(autobuild-define-rule autobuild-makefile
                        t
                        (when (file-exists-p "Makefile") "make"))
 
-(autobuild-define-rule ab-mpm t
+(autobuild-define-rule autobuild-mpm t
                        (when (equal "pkgdef" (f-ext (buffer-file-name (current-buffer))))
                          (format "mpm build --pkgdef_file=%s --alsologtostderr"
                                  (buffer-file-name (current-buffer)))))
 
 (autobuild-define-rule
- ab-c
+ autobuild-c
  (c-mode)
  (let ((fn (f-filename (buffer-file-name)))
        (pipe-in (if (file-exists-p "test.in") " < test.in" ""))
@@ -326,7 +326,7 @@
    (format "gcc %s -Wall -W -std=c99 -Wextra -lm %s && ./a.out %s"
            speed fn pipe-in)))
 
-(autobuild-define-rule ab-c++
+(autobuild-define-rule autobuild-c++
  (c++-mode)
  (let ((fn (f-filename (buffer-file-name)))
        (pipe-in (if (file-exists-p "test.in") " < test.in" "")))
@@ -334,47 +334,47 @@
            fn pipe-in)))
 
 (autobuild-define-rule
- ab-go
+ autobuild-go
  (go-mode)
  "go test")
 
-(autobuild-define-rule ab-latex
+(autobuild-define-rule autobuild-latex
                        (tex-mode latex-mode)
                        'latex-compile)
 
 (autobuild-define-rule
- ab-python-run
+ autobuild-python-run
  (python-mode)
  (format "python %s" (f-filename (buffer-file-name))))
 
-(autobuild-define-rule ab-git-finish
+(autobuild-define-rule autobuild-git-finish
  (git-rebase-mode text-mode)
  (progn
    (save-buffer)
    (with-editor-finish nil)))
 
-(autobuild-define-rule ab-diff
+(autobuild-define-rule autobuild-diff
  (diff-mode)
  (progn (save-buffer)
         (server-edit)))
 
-(autobuild-define-rule ab-clojure (clojure-mode) 'cider-load-buffer)
+(autobuild-define-rule autobuild-clojure (clojure-mode) 'cider-load-buffer)
 
-(autobuild-define-rule ab-send-message
+(autobuild-define-rule autobuild-send-message
                        (message-mode)
                        'message-send-and-exit)
 
-(autobuild-define-rule ab-org-export
+(autobuild-define-rule autobuild-org-export
                        (org-mode) 'org-export-mine)
 
-(autobuild-define-rule ab-octave-eval
+(autobuild-define-rule autobuild-octave-eval
                        (octave-mode)
                        (call-interactively
                         (if (region-active-p)
                             'octave-send-region
                           'octave-send-buffer)))
 
-(autobuild-define-rule ab-html-browse
+(autobuild-define-rule autobuild-html-browse
                        (html-mode mhtml-mode)
                        (let ((url
                               (->> (buffer-file-name)
@@ -382,23 +382,23 @@
                                    (format "file://%s"))))
                          (browser-new-tab url)))
 
-(autobuild-define-rule ab-node-run
+(autobuild-define-rule autobuild-node-run
  (js-mode)
  (let ((filename (-> (f-filename (buffer-file-name)) sanitize-filename)))
    (format "node %s" filename)))
 
-(autobuild-define-rule ab-cfboot
+(autobuild-define-rule autobuild-cfboot
  (js-mode)
  (let ((filename (-> (f-filename (buffer-file-name)) sanitize-filename)))
    (when (s-ends-with-p "-boot.json" filename)
      (format "cf-boot %s -i free-vars.json" filename))))
 
-(autobuild-define-rule ab-texinfo-build
+(autobuild-define-rule autobuild-texinfo-build
  (texinfo-mode)
  (concat "texi2any ${EMACS_COMPILATION_FILENAME}"
          " --html"
          " --no-number-sections"))
 
-(autobuild-define-rule ab-nginx-restart
+(autobuild-define-rule autobuild-nginx-restart
  (nginx-mode)
  (concat "sudo service nginx restart"))
