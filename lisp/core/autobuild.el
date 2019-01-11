@@ -72,7 +72,8 @@
 
 (defun autobuild-pipeline-continue-schedule (proc)
   ;; TODO use proc vars instead of buffer-local var
-  (message "scheduling remaining rules: %s" autobuild-rules-remaining-global)
+  (when autobuild-rules-remaining-global
+    (message "scheduling remaining rules: %s" autobuild-rules-remaining-global))
   (setq autobuild-rules-remaining autobuild-rules-remaining-global
         autobuild-rules-remaining-global nil))
 
