@@ -6,8 +6,7 @@
   ;; name
   major-modes
   nice
-  genaction
-  action-async-p)
+  genaction)
 
 (defvar autobuild-rules-alist nil)
 ;; (setq autobuild-rules-alist nil)
@@ -16,10 +15,8 @@
   ;; (assq-delete-all name autobuild-rules)
   (setf (alist-get name autobuild-rules-alist) rule))
 
-(defvar autobuild-directives '(autobuild-nice autobuild-async))
-
+(defvar autobuild-directives '(autobuild-nice))
 (defalias 'autobuild-nice #'ignore)
-(defalias 'autobuild-async #'ignore)
 
 (cl-defmacro autobuild-define-rule (name
                                     major-modes
@@ -35,49 +32,54 @@
                          (member (car top-level-form) autobuild-directives))
                collect (cons (car top-level-form)
                              (cadr top-level-form))))
-        (nice (or (alist-get 'autobuild-nice directives) 10))
-        (async (or (alist-get 'autobuild-async directives) t)))
+        (nice (or (alist-get 'autobuild-nice directives) 10)))
     `(autobuild-add-rule
       ',name
       (make-autobuild-rule
        ;; :name ',name
        :major-modes ',major-modes
        :nice ,nice
-       :genaction (defun ,name () ,@body)
-       :action-async-p ,async))))
+       :genaction (defun ,name () ,@body)))))
 
 
 (defvar autobuild-rules-remaining nil)
 (make-variable-buffer-local 'autobuild-rules-remaining)
-(defvar autobuild-rules-remaining-global nil)
 
-(defun autobuild-pipeline (rule-names)
-  (cl-loop for rules-remaining on rule-names
-           do
-           (destructuring-bind (buffer name) (car rules-remaining)
-             (with-current-buffer buffer
-               (let* ((rule (alist-get name autobuild-rules-alist))
-                      (action (funcall (autobuild-rule-genaction rule))))
-                 (assert action)
-                 ;; TODO fail early on non-zero exit, error
-                 ;; or ensure each action errs
-                 (if (and (cdr rules-remaining)
-                          (or (stringp action)
-                              (autobuild-rule-action-async-p rule)))
-                     (progn
-                       (setq autobuild-rules-remaining-global (cdr rules-remaining))
-                       (autobuild-run-action action)
-                       (return))
-                   (autobuild-run-action action)))))))
+(defmacro autobuild-pipeline (&rest buffer-rule-list)
+  `(lambda ()
+     (autobuild-pipeline-run
+      (list ,@(cl-loop for (buffer rule-name) in buffer-rule-list
+                       collect `(list ,buffer ,rule-name))))))
 
-(defun autobuild-pipeline-continue-schedule (proc)
+(defun autobuild-pipeline-run (rules-remaining)
+  (message "value of rules-remaining: %s" rules-remaining)
+  (when rules-remaining
+    (destructuring-bind (buffer name) (car rules-remaining)
+      (with-current-buffer buffer
+        (let* ((rule (alist-get name autobuild-rules-alist))
+               (action (funcall (autobuild-rule-genaction rule))))
+          (assert action)
+          (let ((result (autobuild-run-action action)))
+            (if (and (bufferp result)
+                     (eq 'compilation-mode (buffer-local-value 'major-mode result)))
+                (with-current-buffer result
+                  (setq autobuild-rules-remaining (cdr rules-remaining))
+                  (message "scheduling remaining rules: %s -> %s in %s"
+                           rules-remaining
+                           autobuild-rules-remaining
+                           result))
+              ;; TODO fail early on non-zero exit, error
+              ;; or ensure each action errs
+              (progn
+                (setq autobuild-rules-remaining (cdr rules-remaining))
+                (autobuild-pipeline-run (cdr rules-remaining))))))))))
+
+'(defun autobuild-pipeline-continue-schedule (proc)
   ;; TODO use proc vars instead of buffer-local var
-  (when autobuild-rules-remaining-global
-    (message "scheduling remaining rules: %s" autobuild-rules-remaining-global))
-  (setq autobuild-rules-remaining autobuild-rules-remaining-global
-        autobuild-rules-remaining-global nil))
+  (when autobuild-rules-remaining
+    (message "scheduling remaining rules: %s" autobuild-rules-remaining)))
 
-(add-hook 'compilation-start-hook #'autobuild-pipeline-continue-schedule)
+'(add-hook 'compilation-start-hook #'autobuild-pipeline-continue-schedule)
 
 (defun compilation-exited-abnormally-p (compilation-finished-message)
   (s-contains-p "abnormally" (s-trim compilation-finished-message)))
@@ -85,14 +87,16 @@
 (defun autobuild-pipeline-continue (compilation-buffer finish-state)
   ;; (edebug)
   (with-current-buffer compilation-buffer
-    (when autobuild-rules-remaining
+    (when (bound-and-true-p autobuild-rules-remaining)
       (if (compilation-exited-abnormally-p finish-state)
           (progn
             (message "aborting pipeline: %s" autobuild-rules-remaining)
             (setq autobuild-rules-remaining nil))
         (progn
-          (message "continuing with pipeline: %s" autobuild-rules-remaining)
-          (autobuild-pipeline autobuild-rules-remaining))))))
+          (message "continuing with pipeline: %s in %s"
+                   autobuild-rules-remaining
+                   compilation-buffer)
+          (autobuild-pipeline-run autobuild-rules-remaining))))))
 
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
