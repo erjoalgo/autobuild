@@ -187,6 +187,9 @@
     (let ((ansi-color-for-comint-mode t))
       (compile cmd))))
 
+(provide 'autobuild)
+
+;; default rules and examples
 (autobuild-define-rule
  autobuild-file-local-compile-command
  t
