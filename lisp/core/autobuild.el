@@ -52,7 +52,6 @@
                        collect `(list ,buffer ,rule-name))))))
 
 (defun autobuild-pipeline-run (rules-remaining)
-  (message "value of rules-remaining: %s" rules-remaining)
   (when rules-remaining
     (destructuring-bind (buffer name) (car rules-remaining)
       (with-current-buffer buffer
@@ -64,22 +63,13 @@
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
                 (with-current-buffer result
                   (setq autobuild-rules-remaining (cdr rules-remaining))
-                  (message "scheduling remaining rules: %s -> %s in %s"
-                           rules-remaining
-                           autobuild-rules-remaining
-                           result))
-              ;; TODO fail early on non-zero exit, error
-              ;; or ensure each action errs
+                  (message "scheduling remaining rules: %s" autobuild-rules-remaining))
               (progn
+                ;; TODO fail early on non-zero exit, error
+                ;; or ensure each action errs
                 (setq autobuild-rules-remaining (cdr rules-remaining))
                 (autobuild-pipeline-run (cdr rules-remaining))))))))))
 
-'(defun autobuild-pipeline-continue-schedule (proc)
-  ;; TODO use proc vars instead of buffer-local var
-  (when autobuild-rules-remaining
-    (message "scheduling remaining rules: %s" autobuild-rules-remaining)))
-
-'(add-hook 'compilation-start-hook #'autobuild-pipeline-continue-schedule)
 
 (defun compilation-exited-abnormally-p (compilation-finished-message)
   (s-contains-p "abnormally" (s-trim compilation-finished-message)))
@@ -93,9 +83,7 @@
             (message "aborting pipeline: %s" autobuild-rules-remaining)
             (setq autobuild-rules-remaining nil))
         (progn
-          (message "continuing with pipeline: %s in %s"
-                   autobuild-rules-remaining
-                   compilation-buffer)
+          (message "continuing with pipeline: %s" autobuild-rules-remaining)
           (autobuild-pipeline-run autobuild-rules-remaining))))))
 
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
