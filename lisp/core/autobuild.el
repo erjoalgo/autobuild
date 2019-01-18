@@ -234,6 +234,11 @@
                        (let ((fn (f-filename (buffer-file-name))))
                          (format "bash %s" fn)))
 
+(autobuild-define-rule autobuild-shell-script-syntax-check
+                       (sh-mode)
+                       (let ((fn (f-filename (buffer-file-name))))
+                         (format "bash -n %s" fn)))
+
 (autobuild-define-rule autobuild-java-mode
                        (java-mode nxml-mode)
                        (when (or (eq 'java-mode major-mode)
