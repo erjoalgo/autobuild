@@ -197,6 +197,7 @@
 
 (autobuild-define-rule autobuild-shell-script-syntax-check
                        (sh-mode)
+                       (autobuild-nice 15)
                        (let ((fn (f-filename (buffer-file-name))))
                          (format "bash -n %s" fn)))
 
