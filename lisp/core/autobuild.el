@@ -191,10 +191,11 @@
 
 (autobuild-define-rule autobuild-dired-build-file-at-point
                        (dired-mode)
-                       (with-temporary-current-file
-                        (dired-file-name-at-point)
-                        (call-interactively 'erjoalgo-compile-compile)
-                        '(abort)))
+                       (when (dired-file-name-at-point)
+                         (lambda ()
+                           (with-temporary-current-file
+                            (dired-file-name-at-point)
+                            (call-interactively #'autobuild-build)))))
 
 (autobuild-define-rule autobuild-shell-script
                        (sh-mode)
