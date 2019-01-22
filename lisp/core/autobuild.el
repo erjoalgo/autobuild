@@ -161,6 +161,7 @@
  ;; compile-command ;; this includes the default "make -k"
  "A rule that matches any buffer whose compile-command is set"
  ;; make sure there is a custom compile command
+ (autobuild-nice 9)
  (cdr (assoc 'compile-command file-local-variables-alist)))
 
 (autobuild-define-rule
@@ -182,6 +183,7 @@
 (autobuild-define-rule
  autobuild-run-executable
  t
+ (autobuild-nice 9)
  (when (buffer-file-name)
    (let ((fn (f-filename (buffer-file-name))))
      (if (and fn (file-executable-p fn))
