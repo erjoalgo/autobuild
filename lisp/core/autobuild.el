@@ -276,7 +276,8 @@
                        (when (file-exists-p "Makefile") "make"))
 
 (autobuild-define-rule autobuild-mpm t
-                       (when (equal "pkgdef" (f-ext (buffer-file-name (current-buffer))))
+                       (when (and (buffer-file-name)
+                                  (equal "pkgdef" (f-ext (buffer-file-name))))
                          (format "mpm build --pkgdef_file=%s --alsologtostderr"
                                  (buffer-file-name (current-buffer)))))
 
