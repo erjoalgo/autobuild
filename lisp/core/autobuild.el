@@ -345,7 +345,7 @@
                               (->> (buffer-file-name)
                                    (sanitize-filename)
                                    (format "file://%s"))))
-                         (browser-new-tab url)))
+                         (apply-partially #'browser-new-tab url)))
 
 (autobuild-define-rule autobuild-node-run
  (js-mode)
