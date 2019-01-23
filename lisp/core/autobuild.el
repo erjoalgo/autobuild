@@ -43,8 +43,7 @@
        :genaction (defun ,name () ,@body)))))
 
 
-(defvar autobuild-rules-remaining nil)
-(make-variable-buffer-local 'autobuild-rules-remaining)
+(defvar-local autobuild-rules-remaining nil)
 
 (defmacro autobuild-pipeline (&rest buffer-rule-list)
   `(lambda ()
@@ -111,9 +110,7 @@
 
 (global-set-key (kbd "M-c") #'autobuild-build)
 
-(defvar autobuild-last-rule nil)
-(make-variable-buffer-local 'autobuild-last-rule)
-;; (setq-default )
+(defvar-local autobuild-last-rule nil)
 
 (defun sort-by (key list)
   (sort list (lambda (a b) (< (funcall key a) (funcall key b)))))
@@ -142,11 +139,9 @@
    ((functionp action) (funcall action))
    (t (error "Action must be string or function, not %s" action))))
 
-(defvar autobuild-compilation-start-time nil)
-(make-variable-buffer-local 'autobuild-compilation-start-time)
+(defvar-local autobuild-compilation-start-time nil)
 
-(defvar autobuild-last-compilation-buffer nil)
-(make-variable-buffer-local 'autobuild-last-compilation-buffer)
+(defvar-local autobuild-last-compilation-buffer nil)
 
 (defun autobuild-run-string-command (cmd)
   (let ((emacs-filename-env-directive
