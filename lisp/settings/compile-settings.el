@@ -15,3 +15,11 @@
       (ansi-color-apply-on-region compilation-filter-start (point)))))
 
 (add-hook 'compilation-filter-hook 'maybe-colorize-compilation-buffer)
+
+(defadvice next-error-find-buffer (around prioritize-compilation-buffer activate)
+  (setq ad-return-value
+        (if (and (bound-and-true-p autobuild-last-compilation-buffer)
+                 (buffer-live-p autobuild-last-compilation-buffer))
+            (progn
+              autobuild-last-compilation-buffer)
+          ad-do-it)))
