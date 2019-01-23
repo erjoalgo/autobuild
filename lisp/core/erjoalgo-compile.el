@@ -1,13 +1,3 @@
-(defvar erjoalgo-compile-last-compilation-start-time nil
-  "The start time in seconds since epoch of the last compilation")
-
-(defvar erjoalgo-compile-command-queue nil
-  "Internal. Keep track of the next command in the global compilation pipeline")
-
-(defvar erjoalgo-compile-original-compile-buffer nil
-  "Internal. Keep track of the original buffer
-where the global compilation pipeline was invoked")
-
 (defun compilation-exited-abnormally-p (compilation-finished-message)
   (s-contains-p "abnormally" (s-trim compilation-finished-message)))
 
@@ -16,9 +6,8 @@ where the global compilation pipeline was invoked")
 
 (make-variable-buffer-local 'erjoalgo-compilation-next-buffer)
 
-(setf compilation-save-buffers-predicate (lambda () nil))
-
 (defvar-local compile-command-set-interactively nil)
+
 (defvar-local erjoalgo-compilation-next-buffer nil)
 
 (put 'compile-command 'safe-local-variable 'stringp)
@@ -46,22 +35,6 @@ where the global compilation pipeline was invoked")
   ;; (add-file-local-variable 'erjoalgo-compile-next-buffer next-buffer)
   (add-file-local-variable 'erjoalgo-compilation-next-buffer next-buffer)
   (setf erjoalgo-compilation-next-buffer next-buffer))
-
-(defun walk-up-directories (dir)
-  (loop with dir = default-directory
-	while dir
-	collect dir
-	do (setf dir (f-dirname dir))))
-
-
-;;taken from
-;;http://compgroups.net/comp.emacs/show-tail-of-compilation-buffer-by-auto-scrolling/111626
-(setq compilation-scroll-output t)
-(setf compilation-ask-about-save nil)
-(defun cc-goto-first-error (buffer exit-condition)
-  (with-current-buffer buffer
-    (goto-char (point-min))
-    (compilation-next-error 1)))
 
 ;;TODO autoload recompile
 (require 'compile)
