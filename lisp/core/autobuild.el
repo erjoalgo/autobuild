@@ -124,8 +124,10 @@
          (choice (if (and prompt)
                      (selcand-select cands "select build rule: "
                                             (lambda (name-rule-action)
-                                              (format "%s"
-                                                      (car name-rule-action))))
+                                              (format "%s (%s)"
+                                                      (car name-rule-action)
+                                                      (autobuild-rule-nice
+                                                       (cadr name-rule-action)))))
                    (or autobuild-last-rule (car cands)))))
     (if (null choice)
         (error "No build rules matched")
