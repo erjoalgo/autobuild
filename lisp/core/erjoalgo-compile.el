@@ -63,28 +63,5 @@ where the global compilation pipeline was invoked")
     (goto-char (point-min))
     (compilation-next-error 1)))
 
-;; (add-to-list 'compilation-finish-functions 'cc-goto-first-error)
-
-(defvar compilation-notify-send nil)
-(defun compilation-finished-notify (buff finish-description)
-  (with-current-buffer compilation-last-buffer
-    (set-face-background 'mode-line
-                         (if (s-contains-p "abnormally" finish-description)
-                             "orange"
-                           "sea green")))
-  (message "compilation finished")
-  (when compilation-notify-send
-    (call-process
-     "notify-send" nil 0 nil
-     (format "compilation: %s" finish-description))
-    (let ((current-hour
-	   (third (decode-time (current-time)))))
-      (unless (or (> current-hour 23)
-		  (< current-hour 9))
-	'(beeper-beep)))))
-
-(add-to-list 'compilation-finish-functions
-	     'compilation-finished-notify)
-
 ;;TODO autoload recompile
 (require 'compile)

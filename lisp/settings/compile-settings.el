@@ -1,30 +1,33 @@
-(defvar erjoalgo-compile-notify-min-compilation-duration 5
-  "if non-nil, notify that compilation ended unless compilation took less than
- ‘erjoalgo-compile-notify-threshold-secs' seconds")
+(defvar autobuild-notify-threshold-secs 10
+  "Mininum number of seconds that must have elapsed since compilation-start to issue a notification.
 
-(setf erjoalgo-compile-notify-min-compilation-duration 10)
+If nil, disable notifications.
+If t, always issue notifications.")
 
-(defun erjoalgo-compile-post-compile-message (compilation-buffer compilation-state)
+(setf autobuild-notify-threshold-secs t)
+
+(defun autobuild-notify (compilation-buffer compilation-state)
   ;; TODO try notify-send, xmessage, audible/visible beep...
-  (safe-wrap
-   (when compilation-state
-     (let ((msg (format "compilation %s: %s" (s-trim compilation-state)
-                        compile-command)))
-       (message "%s" msg)
-       (when (and
-              ;; no remaining cmds in the pieline
-              (null erjoalgo-compile-command-queue)
-              ;; this fails when emacs is not raised and therefore not visible...
-              ;; (not (frame-visible-p (selected-frame)))
-              erjoalgo-compile-notify-min-compilation-duration
-              (>= (- (time-to-seconds) erjoalgo-compile-last-compilation-start-time)
-                  erjoalgo-compile-notify-min-compilation-duration)
-              (not (member (emacs-pid) (stumpwm-visible-window-ids t))))
-         (let ((color (if (equal "finished" (s-trim compilation-state))
-                          'green 'red)))
-           (stumpwm-message msg color)))))))
+  ;; (safe-wrap
+  (when compilation-state
+    (with-current-buffer compilation-buffer
+      (let ((msg (format "compilation %s: %s"
+                         (s-trim compilation-state) compile-command)))
+        (message "%s" msg)
+        (when (and
+               ;; this fails when emacs is not raised and therefore not visible...
+               ;; (not (frame-visible-p (selected-frame)))
+               autobuild-notify-threshold-secs
+               (or (eq autobuild-notify-threshold-secs t)
+                   (>= (- (time-to-seconds)
+                          autobuild-compilation-start-time)
+                       autobuild-notify-threshold-secs))
+               (not (member (emacs-pid) (stumpwm-visible-window-ids t))))
+          (let ((color (if (equal "finished" (s-trim compilation-state))
+                           'green 'red)))
+            (stumpwm-message msg color)))))))
 
-(add-hook 'erjoalgo-compile-pipeline-finished-hook 'erjoalgo-compile-post-compile-message)
+(add-hook 'compilation-finish-functions 'autobuild-notify)
 
 (defun erjoalgo-compile-disable-query-on-proc-exit (proc)
   (set-process-query-on-exit-flag proc nil))
