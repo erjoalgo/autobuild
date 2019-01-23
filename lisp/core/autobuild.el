@@ -176,16 +176,6 @@
  (cdr (assoc 'compile-command file-local-variables-alist)))
 
 (autobuild-define-rule
- autobuild-translations
- t
- (when (s-starts-with?
-        (expand-file-name "~/git/translations")
-        (buffer-file-name))
-   (lambda ()
-     (when (translation-prepare)
-       (call-interactively #'translation-publish-commit)))))
-
-(autobuild-define-rule
  autobuild-git-commit
  (fundamental-mode)
  (save-buffer)
