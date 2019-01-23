@@ -227,12 +227,12 @@
 
                          (let ((f-no-ext
                                 (-> (buffer-file-name) (f-filename) (f-no-ext)))
-                               (pom-directory (cl-loop for dir in (walk-up-directories
-                                                                   default-directory)
+                               (pom-directory (cl-loop with dir =  default-directory
                                                        thereis (and
                                                                 (member "pom.xml"
                                                                         (directory-files dir))
-                                                                dir))))
+                                                                dir)
+                                                       while (setq dir (f-dirname dir)))))
                            (if (not pom-directory)
                                (format "javac %s.java && java %s" f-no-ext f-no-ext)
                              (concat "cd " pom-directory " && mvn "
