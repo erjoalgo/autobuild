@@ -62,9 +62,11 @@
           (let ((result (autobuild-run-action action)))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
-                (with-current-buffer result
-                  (setq autobuild-rules-remaining (cdr rules-remaining))
-                  (message "scheduling remaining rules: %s" autobuild-rules-remaining))
+                (progn
+                  (autobuild-compilation-buffer-setup result (current-buffer))
+                  (with-current-buffer result
+                    (setq autobuild-rules-remaining (cdr rules-remaining))
+                    (message "scheduling remaining rules: %s" autobuild-rules-remaining)))
               (progn
                 ;; TODO fail early on non-zero exit, error
                 ;; or ensure each action errs
@@ -141,16 +143,28 @@
 (defvar autobuild-compilation-start-time nil)
 (make-variable-buffer-local 'autobuild-compilation-start-time)
 
+(defvar autobuild-last-compilation-buffer nil)
+(make-variable-buffer-local 'autobuild-last-compilation-buffer)
+
 (defun autobuild-run-string-command (cmd)
   (let ((emacs-filename-env-directive
          ;; allow compile commands to use rename-proof filename
          (concat "AUTOBUILD_FILENAME=" (buffer-file-name (current-buffer)))))
     (push emacs-filename-env-directive process-environment)
     ;; TODO decouple this from autobuild
-    (let ((ansi-color-for-comint-mode t))
-      (with-current-buffer (compile cmd)
-        (setq autobuild-compilation-start-time (time-to-seconds)
-              compile-command cmd)))))
+    (let* ((ansi-color-for-comint-mode t)
+           (compilation-buffer (compile cmd)))
+      (autobuild-compilation-buffer-setup
+       compilation-buffer (current-buffer)))))
+
+(defun autobuild-compilation-buffer-setup (compilation-buffer &optional
+                                                              original-buffer cmd)
+  (when original-buffer
+    (with-current-buffer original-buffer
+      (setq autobuild-last-compilation-buffer compilation-buffer)))
+  (with-current-buffer compilation-buffer
+    (setq autobuild-compilation-start-time (time-to-seconds)
+          compile-command (or compile-command cmd))))
 
 (provide 'autobuild)
 
