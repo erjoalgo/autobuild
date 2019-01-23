@@ -138,15 +138,19 @@
    ((functionp action) (funcall action))
    (t (error "Action must be string or function, not %s" action))))
 
+(defvar autobuild-compilation-start-time nil)
+(make-variable-buffer-local 'autobuild-compilation-start-time)
+
 (defun autobuild-run-string-command (cmd)
-  (let ((compile-command cmd)
-        (emacs-filename-env-directive
+  (let ((emacs-filename-env-directive
          ;; allow compile commands to use rename-proof filename
          (concat "AUTOBUILD_FILENAME=" (buffer-file-name (current-buffer)))))
     (push emacs-filename-env-directive process-environment)
     ;; TODO decouple this from autobuild
     (let ((ansi-color-for-comint-mode t))
-      (compile cmd))))
+      (with-current-buffer (compile cmd)
+        (setq autobuild-compilation-start-time (time-to-seconds)
+              compile-command cmd)))))
 
 (provide 'autobuild)
 
