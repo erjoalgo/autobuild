@@ -127,7 +127,7 @@
       (with-current-buffer buffer
         (let* ((rule (alist-get name autobuild-rules-alist))
                (action (funcall (autobuild-rule-genaction rule))))
-          (assert action)
+          (cl-assert action)
           (let ((result (autobuild-run-action action)))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
@@ -177,7 +177,7 @@
                (eq t major-modes)
                (if (atom major-modes)
                    (eq major-mode major-modes)
-                 (find major-mode major-modes)))
+                 (cl-find major-mode major-modes)))
               (funcall genaction)))
            when action
            collect (list name rule action) into cands
@@ -222,13 +222,13 @@
                                                     (car name-rule-action)
                                                     (autobuild-rule-nice
                                                      (cadr name-rule-action)))))))))
-    (assert choice)
+    (cl-assert choice)
     (setq autobuild-last-rule-name choice)
     (autobuild-run-action (caddr choice))))
 
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
-  (assert action)
+  (cl-assert action)
   (cond
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
