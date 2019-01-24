@@ -62,6 +62,7 @@
 
 (defalias 'autobuild-nice #'ignore)
 
+;;;###autoload
 (cl-defmacro autobuild-define-rule (name
                                     major-modes
                                     &rest body)
@@ -98,6 +99,7 @@
 
 (defvar-local autobuild-rules-remaining nil)
 
+;;;###autoload
 (defmacro autobuild-pipeline (&rest buffer-rule-list)
   "Define a build pipeline.
 
@@ -191,6 +193,7 @@
   "Sort LIST by the key-function KEY."
   (sort list (lambda (a b) (< (funcall key a) (funcall key b)))))
 
+;;;###autoload
 (defun autobuild-build (&optional prompt)
   "Build the current buffer.
 
