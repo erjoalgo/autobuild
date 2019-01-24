@@ -61,11 +61,9 @@
           (let ((result (autobuild-run-action action)))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
-                (progn
-                  (autobuild-compilation-buffer-setup result (current-buffer))
-                  (with-current-buffer result
-                    (setq autobuild-rules-remaining (cdr rules-remaining))
-                    (message "scheduling remaining rules: %s" autobuild-rules-remaining)))
+                (with-current-buffer result
+                  (setq autobuild-rules-remaining (cdr rules-remaining))
+                  (message "scheduling remaining rules: %s" autobuild-rules-remaining))
               (progn
                 ;; TODO fail early on non-zero exit, error
                 ;; or ensure each action errs
@@ -149,10 +147,8 @@
          (concat "AUTOBUILD_FILENAME=" (buffer-file-name (current-buffer)))))
     (push emacs-filename-env-directive process-environment)
     ;; TODO decouple this from autobuild
-    (let* ((ansi-color-for-comint-mode t)
-           (compilation-buffer (compile cmd)))
-      (autobuild-compilation-buffer-setup
-       compilation-buffer (current-buffer)))))
+    (let* ((ansi-color-for-comint-mode t))
+      (compile cmd))))
 
 (defun autobuild-compilation-buffer-setup (compilation-buffer &optional
                                                               original-buffer cmd)
@@ -162,6 +158,15 @@
   (with-current-buffer compilation-buffer
     (setq autobuild-compilation-start-time (time-to-seconds)
           compile-command (or compile-command cmd))))
+
+(defadvice compilation-start (after
+                              autobuild-compilation-buffer-setup-advice
+                              ;; (command)
+                              activate)
+  (autobuild-compilation-buffer-setup
+   ad-return-value
+   (current-buffer)
+   (ad-get-arg 1)))
 
 (provide 'autobuild)
 
