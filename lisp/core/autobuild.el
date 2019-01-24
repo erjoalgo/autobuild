@@ -46,8 +46,6 @@
 
 (require 'cl-lib)
 (require 'selcand)
-(require 'cl-macs)
-;; (require 'eieio)
 
 (cl-defstruct autobuild-rule
   ;; name
