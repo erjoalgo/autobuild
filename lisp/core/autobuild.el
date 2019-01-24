@@ -62,7 +62,6 @@
   "Internal.  Add a rule RULE with NAME as the key."
   (setf (alist-get name autobuild-rules-alist) rule))
 
-(defvar autobuild-directives '(autobuild-nice))
 (defalias 'autobuild-nice #'ignore)
 
 (cl-defmacro autobuild-define-rule (name
@@ -80,9 +79,10 @@
   (cl-assert major-modes)
   (when (and (not (eq t major-modes))
              (member t major-modes))
-    (error "invalid major mode specification"))
-  (let* ((directives
-          (loop for top-level-form in body
+    (error "Invalid major mode specification"))
+  (let* ((autobuild-directives '(autobuild-nice))
+         (directives
+          (cl-loop for top-level-form in body
                 ;; TODO remove directives from body
                when (and (listp top-level-form)
                          (member (car top-level-form) autobuild-directives))
