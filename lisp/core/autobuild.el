@@ -205,7 +205,8 @@
   (interactive "P")
   (let* ((cands (or (and prompt
                          autobuild-last-rule-name
-                         (let* ((last-rule (alist-get autobuild-last-rule-name))
+                         (let* ((last-rule (alist-get autobuild-last-rule-name
+                                                      autobuild-rules-alist))
                                 (action (funcall (autobuild-rule-genaction last-rule))))
                            (when action
                              (list (list autobuild-last-rule-name
