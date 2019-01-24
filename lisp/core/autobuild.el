@@ -1,3 +1,49 @@
+;;; autobuild.el --- Define and execute build rules and compilation pipelines
+;;
+;; Filename: autobuild.el
+;; Description: Define and execute composable build rules and compilation pipelines
+;; Author: Ernesto Alfonso
+;; Maintainer: (concat "erjoalgo" "@" "gmail" ".com")
+
+;; Created: Wed Jan 23 20:45:01 2019 (-0800)
+;; Version: 0.0.1
+;; Package-Requires: ((cl-lib "0.3"))
+;; URL: http://github.com/erjoalgo/autobuild
+;; Keywords: compile, build, pipeline, autobuild
+;; Compatibility:
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Commentary:
+;; A framework for defining and executing composable build rules and
+;; synchronous or asynchronous compilation pipelines.
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Change Log:
+;;
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or (at
+;; your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Code:
+
+
 (require 'cl-lib)
 (require 'selcand)
 (require 'cl-macs)
@@ -13,7 +59,7 @@
 ;; (setq autobuild-rules-alist nil)
 
 (defun autobuild-add-rule (name rule)
-  ;; (assq-delete-all name autobuild-rules)
+  "Internal.  Add a rule RULE with NAME as the key."
   (setf (alist-get name autobuild-rules-alist) rule))
 
 (defvar autobuild-directives '(autobuild-nice))
@@ -22,6 +68,15 @@
 (cl-defmacro autobuild-define-rule (name
                                     major-modes
                                     &rest body)
+  "Define a build rule NAME.
+
+   When ‘major-mode' is in MAJOR-MODES, or when MAJOR-MODES is t,
+   the action-generator BODY is evaluated, which returns an action
+   which must be one of the following types:
+
+   nil if the generator doesn't know how to generate an action.
+   string is interpreted as a compile-command, which is executed via ‘compile'
+   function is executed via ‘funcall'"
   (cl-assert major-modes)
   (when (and (not (eq t major-modes))
              (member t major-modes))
@@ -46,14 +101,29 @@
 (defvar-local autobuild-rules-remaining nil)
 
 (defmacro autobuild-pipeline (&rest buffer-rule-list)
+  "Define a build pipeline.
+
+  Each entry in BUFFER-RULE-LIST has the form (BUFFER RULE),
+  where BUFFER is the next buffer in the pipeline, and RULE
+  is the rule to invoke within BUFFER to generate an action.
+
+  If ACTION is either a (compile command) string or a compilation buffer,
+  compilation is executed asynchronously and the pipeline is resumed
+  upon compilation finish.  Otherwise, ACTION is executed synchronously.
+
+  If any step in the compilation pipeline fails, via either an error or
+  an abnormal compilation finish state, any remaining steps in the pipeline
+  are aborted."
+
   `(lambda ()
      (autobuild-pipeline-run
       (list ,@(cl-loop for (buffer rule-name) in buffer-rule-list
                        collect `(list ,buffer ,rule-name))))))
 
 (defun autobuild-pipeline-run (rules-remaining)
+  "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
   (when rules-remaining
-    (destructuring-bind (buffer name) (car rules-remaining)
+    (cl-destructuring-bind (buffer name) (car rules-remaining)
       (with-current-buffer buffer
         (let* ((rule (alist-get name autobuild-rules-alist))
                (action (funcall (autobuild-rule-genaction rule))))
@@ -71,14 +141,18 @@
                 (autobuild-pipeline-run (cdr rules-remaining))))))))))
 
 
-(defun compilation-exited-abnormally-p (compilation-finished-message)
+(defun autobuild-compilation-exited-abnormally-p (compilation-finished-message)
+  "Determine from COMPILATION-FINISHED-MESSAGE whether compilation failed."
   (s-contains-p "abnormally" (s-trim compilation-finished-message)))
 
 (defun autobuild-pipeline-continue (compilation-buffer finish-state)
-  ;; (edebug)
+  "Internal.  Used to resume an asynchronous pipeline.
+
+   COMPILATION-BUFFER FINISH-STATE are the arguments passed
+   to functions in ‘compilation-finish-functions'."
   (with-current-buffer compilation-buffer
     (when (bound-and-true-p autobuild-rules-remaining)
-      (if (compilation-exited-abnormally-p finish-state)
+      (if (autobuild-compilation-exited-abnormally-p finish-state)
           (progn
             (message "aborting pipeline: %s" autobuild-rules-remaining)
             (setq autobuild-rules-remaining nil))
@@ -89,6 +163,11 @@
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
 (defun autobuild-current-build-actions ()
+  "Return a list of the currently applicable build actions.
+
+   A rule RULE is applicable if the current major mode is contained in the
+   rule's list of major modes, and if the rule generates a non-nil action."
+
   (cl-loop for (name . rule) in (reverse autobuild-rules-alist)
            as action =
            (let ((major-modes (autobuild-rule-major-modes rule))
@@ -102,7 +181,7 @@
               (funcall genaction)))
            when action
            collect (list name rule action) into cands
-           finally (return (sort-by (lambda (rule-action)
+           finally (return (autobuild-sort-by (lambda (rule-action)
                                       (autobuild-rule-nice (cadr rule-action)))
                                     cands))))
 
@@ -110,10 +189,19 @@
 
 (defvar-local autobuild-last-rule-name nil)
 
-(defun sort-by (key list)
+(defun autobuild-sort-by (key list)
+  "Sort LIST by the key-function KEY."
   (sort list (lambda (a b) (< (funcall key a) (funcall key b)))))
 
 (defun autobuild-build (&optional prompt)
+  "Build the current buffer.
+
+   If PROMPT is non-nil or if there is no known last rule for
+    the current buffer,
+   prompt for selection of one of the currently-applicable build rules.
+   Otherwise, chose the last-executed build rule, if known,
+   or the rule with the lowest NICE property (highest priority)."
+
   (interactive "P")
   (let* ((cands (or (and prompt
                          autobuild-last-rule-name
@@ -138,6 +226,7 @@
     (autobuild-run-action (caddr choice))))
 
 (defun autobuild-run-action (action)
+  "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
   (assert action)
   (cond
    ((stringp action) (autobuild-run-string-command action))
@@ -150,8 +239,9 @@
 (defvar-local autobuild-last-compilation-buffer nil)
 
 (defun autobuild-run-string-command (cmd)
+  "Execute CMD as an asynchronous command via ‘compile'."
   (let ((emacs-filename-env-directive
-         ;; allow compile commands to use rename-proof filename
+         ;; allow file-local compile commands to use rename-proof filename
          (concat "AUTOBUILD_FILENAME=" (buffer-file-name (current-buffer)))))
     (push emacs-filename-env-directive process-environment)
     ;; TODO decouple this from autobuild
@@ -160,17 +250,23 @@
 
 (defun autobuild-compilation-buffer-setup (compilation-buffer &optional
                                                               original-buffer cmd)
+  "Add information needed by autobuild on a new compilation.
+
+   COMPILATION-BUFFER points to the newly started compilation buffer,
+   ORIGINAL-BUFFER points to the buffer where the compilation originated, and
+   CMD should be the compilation command."
   (when original-buffer
     (with-current-buffer original-buffer
       (setq autobuild-last-compilation-buffer compilation-buffer)))
   (with-current-buffer compilation-buffer
+    ;; TODO check if this is already available in compile
     (setq autobuild-compilation-start-time (time-to-seconds)
           compile-command (or compile-command cmd))))
 
 (defadvice compilation-start (after
                               autobuild-compilation-buffer-setup-advice
-                              ;; (command)
                               activate)
+  "Around advice to invoke ‘autobuild-compilation-buffer-setup' on a new compilation."
   (autobuild-compilation-buffer-setup
    ad-return-value
    (current-buffer)
@@ -182,9 +278,7 @@
 (autobuild-define-rule
  autobuild-file-local-compile-command
  t
- ;; compile-command ;; this includes the default "make -k"
- "A rule that matches any buffer whose compile-command is set"
- ;; make sure there is a custom compile command
+ "A rule that matches any buffer whose file-local compile-command is set"
  (autobuild-nice 9)
  (cdr (assoc 'compile-command file-local-variables-alist)))
 
@@ -381,3 +475,6 @@
 (autobuild-define-rule autobuild-nginx-restart
  (nginx-mode)
  (concat "sudo service nginx restart"))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; autobuild.el ends here
