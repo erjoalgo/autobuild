@@ -45,7 +45,20 @@
 
 
 (require 'cl-lib)
-(require 'selcand)
+(unless (require 'selcand nil t)
+  (defun selcand-select (cands &optional prompt stringify)
+    "Use PROMPT to prompt for a selection from CANDS candidates."
+    (let* ((stringify (or stringify #'prin1-to-string))
+           (prompt (or prompt "select candidate: "))
+           (hints-cands
+            (cl-loop for cand in cands
+                     as string = (funcall stringify cand)
+                     collect (cons string cand)))
+           (choice (completing-read prompt (mapcar #'car hints-cands)
+                                    nil
+                                    t))
+           (cand (alist-get choice hints-cands nil nil #'equal)))
+      cand)))
 
 (cl-defstruct autobuild-rule
   major-modes
