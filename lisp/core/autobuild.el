@@ -48,7 +48,6 @@
 (require 'selcand)
 
 (cl-defstruct autobuild-rule
-  ;; name
   major-modes
   nice
   genaction)
