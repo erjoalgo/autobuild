@@ -89,7 +89,7 @@
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
 (defun autobuild-current-build-actions ()
-  (cl-loop for (name . rule) in autobuild-rules-alist
+  (cl-loop for (name . rule) in (reverse autobuild-rules-alist)
            as action =
            (let ((major-modes (autobuild-rule-major-modes rule))
                  (genaction (autobuild-rule-genaction rule)))
