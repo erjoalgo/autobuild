@@ -128,10 +128,10 @@
                        ((null (cdr cands)) (car cands))
                        (t (selcand-select cands "select build rule: "
                                           ;; TODO sort vertically
-                                            (lambda (name-rule-action)
-                                              (format "%s (%s)"
-                                                      (car name-rule-action)
-                                                      (autobuild-rule-nice
+                                          (lambda (name-rule-action)
+                                            (format "%s (%s)"
+                                                    (car name-rule-action)
+                                                    (autobuild-rule-nice
                                                      (cadr name-rule-action)))))))))
     (assert choice)
     (setq autobuild-last-rule-name choice)
