@@ -143,7 +143,7 @@
 
 (defun autobuild-compilation-exited-abnormally-p (compilation-finished-message)
   "Determine from COMPILATION-FINISHED-MESSAGE whether compilation failed."
-  (s-contains-p "abnormally" (s-trim compilation-finished-message)))
+  (string-match-p ".*abnormally.*" compilation-finished-message))
 
 (defun autobuild-pipeline-continue (compilation-buffer finish-state)
   "Internal.  Used to resume an asynchronous pipeline.
