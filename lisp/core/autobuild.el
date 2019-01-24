@@ -108,26 +108,34 @@
 
 (global-set-key (kbd "M-c") #'autobuild-build)
 
-(defvar-local autobuild-last-rule nil)
+(defvar-local autobuild-last-rule-name nil)
 
 (defun sort-by (key list)
   (sort list (lambda (a b) (< (funcall key a) (funcall key b)))))
 
 (defun autobuild-build (&optional prompt)
   (interactive "P")
-  (let* ((cands (autobuild-current-build-actions))
-         (choice (if (and prompt)
-                     (selcand-select cands "select build rule: "
+  (let* ((cands (or (and prompt
+                         autobuild-last-rule-name
+                         (let* ((last-rule (alist-get autobuild-last-rule-name))
+                                (action (funcall (autobuild-rule-genaction last-rule))))
+                           (when action
+                             (list (list autobuild-last-rule-name
+                                         last-rule
+                                         action)))))
+                    (autobuild-current-build-actions)))
+         (choice (cond ((null cands) (error "No build rules matched"))
+                       ((null (cdr cands)) (car cands))
+                       (t (selcand-select cands "select build rule: "
+                                          ;; TODO sort vertically
                                             (lambda (name-rule-action)
                                               (format "%s (%s)"
                                                       (car name-rule-action)
                                                       (autobuild-rule-nice
-                                                       (cadr name-rule-action)))))
-                   (or autobuild-last-rule (car cands)))))
-    (if (null choice)
-        (error "No build rules matched")
-      (setq autobuild-last-rule choice)
-      (autobuild-run-action (caddr choice)))))
+                                                     (cadr name-rule-action)))))))))
+    (assert choice)
+    (setq autobuild-last-rule-name choice)
+    (autobuild-run-action (caddr choice))))
 
 (defun autobuild-run-action (action)
   (assert action)
