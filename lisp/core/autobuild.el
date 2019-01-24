@@ -152,9 +152,11 @@
 
 (defun autobuild-compilation-buffer-setup (compilation-buffer &optional
                                                               original-buffer cmd)
-  (when original-buffer
+  (if original-buffer
     (with-current-buffer original-buffer
-      (setq autobuild-last-compilation-buffer compilation-buffer)))
+      (setq autobuild-last-compilation-buffer compilation-buffer))
+    (progn (warn "not setting autobuild-last-compilation-buffer")
+           (edebug)))
   (with-current-buffer compilation-buffer
     (setq autobuild-compilation-start-time (time-to-seconds)
           compile-command (or compile-command cmd))))
