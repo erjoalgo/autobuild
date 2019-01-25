@@ -303,6 +303,59 @@
    (current-buffer)
    (ad-get-arg 1)))
 
+(defcustom autobuild-notify-threshold-secs 10
+  "Min seconds elapsed since compilation start before a notification is issued.
+
+  If nil, disable notifications.
+  If t, always issue notifications."
+  :type 'number
+  :group 'autobuild)
+
+(defcustom autobuild-notification-function
+  #'autobuild-notification-default-function
+  "Function used to issue compilation notifications.
+
+   It is called with the same arguments as those in ‘compilation-finish-functions'"
+  :type 'function
+  :group 'autobuild)
+
+(defun autobuild-notification-default-function (_ compilation-state)
+  "Default, simple autobuild notification function.
+
+   This may be redefined with a more fancy notification mechanism,
+   e.g. notify-send desktop notifications, audible beep, etc.
+
+   COMPILATION-STATE is as described in ‘compilation-finish-functions'"
+  (message "compilation %s: %s"
+           (replace-regexp-in-string "\n" " " compilation-state)
+           compile-command))
+
+(defun autobuild-notify (compilation-buffer compilation-state)
+  "Hook function called to possibly issue compilation state notifications.
+
+   COMPILATION-BUFFER, COMPILATION-STATE are as described in ‘compilation-finish-functions'"
+  (condition-case ex
+      (when compilation-state
+        (with-current-buffer compilation-buffer
+          (when (and
+                 ;; this fails when emacs is not raised and therefore not visible...
+                 ;; (not (frame-visible-p (selected-frame)))
+                 autobuild-notify-threshold-secs
+                 (or (eq autobuild-notify-threshold-secs t)
+                     (>= (- (time-to-seconds)
+                            autobuild-compilation-start-time)
+                         autobuild-notify-threshold-secs)))
+            (funcall autobuild-notification-function
+             compilation-buffer compilation-state))))
+    (error
+     ;; avoid interrupting compilation-finish-functions due to
+     ;; errors in potentially user-provided ‘autobuild-notification-function'
+     (message (format "Error in autobuild-notify: %s" ex)))))
+
+
+;; TODO use pipeline hook, not compilation hook
+(add-hook 'compilation-finish-functions 'autobuild-notify)
+
 (provide 'autobuild)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild.el ends here
