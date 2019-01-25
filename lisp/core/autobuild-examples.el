@@ -194,14 +194,16 @@
 
 (autobuild-define-rule autobuild-git-finish
                        (git-rebase-mode text-mode)
-                       (progn
+                       (lambda ()
+                         (progn
                          (save-buffer)
-                         (with-editor-finish nil)))
+                         (with-editor-finish nil))))
 
 (autobuild-define-rule autobuild-diff
                        (diff-mode)
-                       (progn (save-buffer)
-                              (server-edit)))
+                       (lambda ()
+                         (progn (save-buffer)
+                              (server-edit))))
 
 (autobuild-define-rule autobuild-clojure (clojure-mode) 'cider-load-buffer)
 
