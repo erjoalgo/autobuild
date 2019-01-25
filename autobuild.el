@@ -7,7 +7,7 @@
 
 ;; Created: Wed Jan 23 20:45:01 2019 (-0800)
 ;; Version: 0.0.1
-;; Package-Requires: ((cl-lib "0.3"))
+;; Package-Requires: ((cl-lib "0.3") (emacs "25"))
 ;; URL: http://github.com/erjoalgo/autobuild
 ;; Keywords: compile, build, pipeline, autobuild
 ;; Compatibility:
