@@ -134,14 +134,22 @@
       (list ,@(cl-loop for (buffer rule-name) in buffer-rule-list
                        collect `(list ,buffer ,rule-name))))))
 
+(defun autobuild-rule-action (rule)
+  "Generate an action for rule RULE."
+  (let ((original-buffer (current-buffer)))
+    (prog1
+        (funcall (autobuild-rule-genaction rule))
+      (unless (eq (current-buffer) original-buffer)
+        (error "‘genaction' of rule %s should not change buffers or have side effects"
+               rule)))))
+
 (defun autobuild-pipeline-run (rules-remaining)
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
   (when rules-remaining
     (cl-destructuring-bind (buffer name) (car rules-remaining)
       (with-current-buffer buffer
         (let* ((rule (alist-get name autobuild-rules-alist))
-               (action (funcall (autobuild-rule-genaction rule))))
-          (cl-assert action)
+               (action (autobuild-rule-action rule)))
           (let ((result (autobuild-run-action action)))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
@@ -184,15 +192,14 @@
 
   (cl-loop for (name . rule) in (reverse autobuild-rules-alist)
            as action =
-           (let ((major-modes (autobuild-rule-major-modes rule))
-                 (genaction (autobuild-rule-genaction rule)))
+           (let ((major-modes (autobuild-rule-major-modes rule)))
              (and
               (or
                (eq t major-modes)
                (if (atom major-modes)
                    (eq major-mode major-modes)
                  (cl-find major-mode major-modes)))
-              (funcall genaction)))
+              (autobuild-rule-action rule)))
            when action
            collect (list name rule action) into cands
            finally (return (autobuild-sort-by (lambda (rule-action)
