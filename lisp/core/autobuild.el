@@ -68,7 +68,6 @@
   genaction)
 
 (defvar autobuild-rules-alist nil)
-;; (setq autobuild-rules-alist nil)
 
 (defun autobuild-add-rule (name rule)
   "Internal.  Add a rule RULE with NAME as the key."
@@ -120,9 +119,10 @@
   where BUFFER is the next buffer in the pipeline, and RULE
   is the rule to invoke within BUFFER to generate an action.
 
-  If ACTION is either a (compile command) string or a compilation buffer,
-  compilation is executed asynchronously and the pipeline is resumed
-  upon compilation finish.  Otherwise, ACTION is executed synchronously.
+  If ACTION is either a (compile command) string or a function that
+  returns a compilation buffer,compilation is executed asynchronously
+  and the pipeline is resumed upon compilation finish.  Otherwise, ACTION
+  is executed synchronously.
 
   If any step in the compilation pipeline fails, via either an error or
   an abnormal compilation finish state, any remaining steps in the pipeline
@@ -236,7 +236,7 @@
                                          action)))))
                     (autobuild-current-build-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
-                       ((or (not prompt) (null (cdr cands))) (car cands))
+                       ((and (not prompt) (null (cdr cands))) (car cands))
                        (t (selcand-select cands "select build rule: "
                                           ;; TODO sort vertically
                                           (lambda (name-rule-action)
