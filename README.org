@@ -91,7 +91,7 @@
    "A rule that matches any buffer whose file-local compile-command is set"
    (autobuild-nice 9)
    (when (buffer-file-name)
-     (cdr (assoc 'compile-command file-local-variables-alist))))
+     (alist-get 'compile-command file-local-variables-alist)))
 
   (autobuild-define-rule autobuild-shell-script-syntax-check (sh-mode)
    "Syntax-check a bash script without running it"
