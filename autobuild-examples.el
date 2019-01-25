@@ -56,7 +56,8 @@
  nil
  "A rule that matches any buffer whose file-local compile-command is set"
  (autobuild-nice 9)
- (cdr (assoc 'compile-command file-local-variables-alist)))
+ (when (buffer-file-name)
+   (cdr (assoc 'compile-command file-local-variables-alist))))
 
 (autobuild-define-rule
  autobuild-editor-done
