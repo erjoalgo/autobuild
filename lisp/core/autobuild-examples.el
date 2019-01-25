@@ -58,8 +58,8 @@
  (cdr (assoc 'compile-command file-local-variables-alist)))
 
 (autobuild-define-rule
- autobuild-git-commit
- (fundamental-mode)
+ autobuild-editor-done
+ (text-mode fundamental-mode)
  (lambda ()
    (save-buffer)
    (server-edit)))
@@ -194,7 +194,7 @@
  (format "python %s" (f-filename (buffer-file-name))))
 
 (autobuild-define-rule autobuild-git-finish
-                       (git-rebase-mode text-mode)
+                       (git-rebase-mode)
                        (lambda ()
                          (progn
                          (save-buffer)
