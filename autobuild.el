@@ -95,12 +95,12 @@
   (let* ((autobuild-directives '(autobuild-nice))
          (directives
           (cl-loop for top-level-form in body
-                ;; TODO remove directives from body
-               when (and (listp top-level-form)
-                         (member (car top-level-form) autobuild-directives))
-               collect (cons (car top-level-form)
-                             (cadr top-level-form))))
-        (nice (or (alist-get 'autobuild-nice directives) 10)))
+                   ;; TODO remove directives from body
+                   when (and (listp top-level-form)
+                             (member (car top-level-form) autobuild-directives))
+                   collect (cons (car top-level-form)
+                                 (cadr top-level-form))))
+         (nice (or (alist-get 'autobuild-nice directives) 10)))
     `(autobuild-add-rule
       ',name
       (make-autobuild-rule
@@ -207,8 +207,8 @@
            when action
            collect (list name rule action) into cands
            finally (return (autobuild-sort-by (lambda (rule-action)
-                                      (autobuild-rule-nice (cadr rule-action)))
-                                    cands))))
+                                                (autobuild-rule-nice (cadr rule-action)))
+                                              cands))))
 
 (global-set-key (kbd "M-c") #'autobuild-build)
 
@@ -346,7 +346,7 @@
                             autobuild-compilation-start-time)
                          autobuild-notify-threshold-secs)))
             (funcall autobuild-notification-function
-             compilation-buffer compilation-state))))
+                     compilation-buffer compilation-state))))
     (error
      ;; avoid interrupting compilation-finish-functions due to
      ;; errors in potentially user-provided ‘autobuild-notification-function'
