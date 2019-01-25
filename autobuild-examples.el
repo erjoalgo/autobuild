@@ -70,10 +70,10 @@
  autobuild-run-executable
  nil
  (autobuild-nice 9)
- (when (buffer-file-name)
-   (let ((fn (f-filename (buffer-file-name))))
-     (if (and fn (file-executable-p fn))
-         (format "./%s" fn)))))
+ (let ((filename (buffer-file-name)))
+   (when (and filename
+              (file-executable-p filename))
+     (format "./%s" (f-filename filename)))))
 
 (autobuild-define-rule autobuild-dired-build-file-at-point
                        (dired-mode)
