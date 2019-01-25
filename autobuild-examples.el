@@ -254,5 +254,18 @@
                        (nginx-mode)
                        "sudo service nginx restart")
 
+(autobuild-define-rule
+ autobuild-file-local-compile-command-set
+ t
+ "Set and run the file-local compile command"
+ (lambda ()
+   (autobuild-nice 12)
+   (let ((command
+          (read-shell-command "enter compile command: "
+                              (alist-get 'compile-command file-local-variables-alist))))
+     (add-file-local-variable 'compile-command command)
+     (setq compile-command command)
+     (compile compile-command))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild-examples.el ends here
