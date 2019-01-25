@@ -225,7 +225,7 @@
    or the rule with the lowest NICE property (highest priority)."
 
   (interactive "P")
-  (let* ((cands (or (and prompt
+  (let* ((cands (or (and (not prompt)
                          autobuild-last-rule-name
                          (let* ((last-rule (alist-get autobuild-last-rule-name
                                                       autobuild-rules-alist))
@@ -236,7 +236,7 @@
                                          action)))))
                     (autobuild-current-build-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
-                       ((null (cdr cands)) (car cands))
+                       ((or (not prompt) (null (cdr cands))) (car cands))
                        (t (selcand-select cands "select build rule: "
                                           ;; TODO sort vertically
                                           (lambda (name-rule-action)
