@@ -54,9 +54,11 @@
             (cl-loop for cand in cands
                      as string = (funcall stringify cand)
                      collect (cons string cand)))
-           (choice (completing-read prompt (mapcar #'car hints-cands)
-                                    nil
-                                    t))
+           (choice (minibuffer-with-setup-hook
+                       #'minibuffer-completion-help
+                     (completing-read prompt (mapcar #'car hints-cands)
+                                      nil
+                                      t)))
            (cand (alist-get choice hints-cands nil nil #'equal)))
       cand)))
 
