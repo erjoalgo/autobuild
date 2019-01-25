@@ -163,6 +163,10 @@
                 (setq autobuild-rules-remaining (cdr rules-remaining))
                 (autobuild-pipeline-run (cdr rules-remaining))))))))))
 
+;; TODO
+(defvar autobuild-pipeline-finish-hook nil
+  "Hook called when the entire pipeline has finished.")
+
 (defun autobuild-compilation-exited-abnormally-p (compilation-finished-message)
   "Determine from COMPILATION-FINISHED-MESSAGE whether compilation failed."
   (string-match-p ".*abnormally.*" compilation-finished-message))

@@ -1,9 +1,3 @@
-(defun compilation-exited-abnormally-p (compilation-finished-message)
-  (s-contains-p "abnormally" (s-trim compilation-finished-message)))
-
-(defvar erjoalgo-compile-pipeline-finished-hook nil
-  "Hook called when the entire compilation pipeline has completed")
-
 (make-variable-buffer-local 'erjoalgo-compilation-next-buffer)
 
 (defvar-local erjoalgo-compilation-next-buffer nil)
