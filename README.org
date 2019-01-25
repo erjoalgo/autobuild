@@ -65,9 +65,7 @@
 
   (global-set-key (kbd "M-c" #'autobuild-build))
 
-  (autobuild-define-rule
-   autobuild-file-local-compile-command
-   nil
+  (autobuild-define-rule autobuild-file-local-compile-command nil
    "A rule that matches any buffer whose file-local compile-command is set"
    (autobuild-nice 9)
    (when (buffer-file-name)
@@ -87,10 +85,8 @@
       (let ((url (format "file://%s" (buffer-file-name))))
             (browse-url url))))
 
-  (autobuild-define-rule
+  (autobuild-define-rule autobuild-run-executable nil
    "Execute the current executable file."
-   autobuild-run-executable
-   nil
    (autobuild-nice 9)
    (let ((filename (buffer-file-name)))
      (when (and filename
