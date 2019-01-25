@@ -47,6 +47,7 @@
 
 
 (require 'autobuild)
+(require 'cl-lib)
 (require 'f)
 (require 's)
 
@@ -75,13 +76,15 @@
 
 (autobuild-define-rule autobuild-dired-build-file-at-point
                        (dired-mode)
+                       "Build the file at point"
                        (when (dired-file-name-at-point)
                          (lambda ()
-                           (with-temporary-current-file
-                            (dired-file-name-at-point)
-                            (call-interactively #'autobuild-build)))))
+                           (save-excursion
+                             (with-current-buffer
+                                 (find-file-noselect (dired-file-name-at-point))
+                               (call-interactively #'autobuild-build))))))
 
-(autobuild-define-rule autobuild-shell-script
+(autobuild-define-rule autobuild-shell-script-run
                        (sh-mode)
                        (let ((fn (f-filename (buffer-file-name))))
                          (format "bash %s" fn)))
@@ -97,7 +100,6 @@
                        (when (or (eq 'java-mode major-mode)
                                  (and (buffer-file-name)
                                       (equal (f-filename (buffer-file-name)) "pom.xml")))
-
                          (let ((f-no-ext
                                 (-> (buffer-file-name) (f-filename) (f-no-ext)))
                                (pom-directory (cl-loop with dir =  default-directory
@@ -110,7 +112,7 @@
                                (format "javac %s.java && java %s" f-no-ext f-no-ext)
                              (concat "cd " pom-directory " && mvn "
                                      ;;maybe add offline flag
-                                     (when (and (boundp 'mvn-offline-p) mvn-offline-p) "-o ")
+                                     (when (bound-and-true-p mvn-offline-p) "-o ")
                                      ;;always clean
                                      "clean "
                                      ;; verify or install
@@ -118,7 +120,7 @@
                                       ((s-ends-with-p "IT" f-no-ext) "verify ")
                                       (t "install "))
                                      ;;maybe add -s *_settings.xml
-                                     (let* ((mvn-settings (remove-if-not
+                                     (let* ((mvn-settings (cl-remove-if-not
                                                            (lambda (filename)
                                                              (s-ends-with-p "settings.xml" filename))
                                                            (directory-files pom-directory)))
@@ -132,8 +134,7 @@
                                                           ""))))
                                        (when jvm-proxy (concat jvm-proxy " ")))
 
-                                     (when (and (boundp 'mvn-extra-args)
-                                                mvn-extra-args) (concat mvn-extra-args " ")))))))
+                                     (when (bound-and-true-p mvn-extra-args) (concat mvn-extra-args " ")))))))
 
 (autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
                        #'slime-compile-and-load-file)
@@ -167,7 +168,7 @@
  (c-mode)
  (let ((fn (f-filename (buffer-file-name)))
        (pipe-in (if (file-exists-p "test.in") " < test.in" ""))
-       (speed (if (and (boundp 'c-ofast-compilation) c-ofast-compilation)
+       (speed (if (bound-and-true-p c-ofast-compilation)
                   "-Ofast" "-g")))
    (format "gcc %s -Wall -W -std=c99 -Wextra -lm %s && ./a.out %s"
            speed fn pipe-in)))
@@ -206,50 +207,52 @@
                          (progn (save-buffer)
                               (server-edit))))
 
-(autobuild-define-rule autobuild-clojure (clojure-mode) 'cider-load-buffer)
+(autobuild-define-rule autobuild-clojure (clojure-mode) #'cider-load-buffer)
 
 (autobuild-define-rule autobuild-send-message
                        (message-mode)
-                       'message-send-and-exit)
+                       #'message-send-and-exit)
 
 (autobuild-define-rule autobuild-org-export
-                       (org-mode) 'org-export-mine)
+                       (org-mode)
+                       (lambda ()
+                         (let* ((fn (org-html-export-to-html))
+	                        (url (format "file://%s" (f-full fn)))
+	                        (org-exporting-mine t))
+                           (browse-url url))))
 
 (autobuild-define-rule autobuild-octave-eval
                        (octave-mode)
                        (call-interactively
                         (if (region-active-p)
-                            'octave-send-region
-                          'octave-send-buffer)))
+                            #'octave-send-region
+                          #'octave-send-buffer)))
 
 (autobuild-define-rule autobuild-html-browse
                        (html-mode mhtml-mode)
-                       (let ((url
-                              (->> (buffer-file-name)
-                                   (sanitize-filename)
-                                   (format "file://%s"))))
-                         (apply-partially #'browser-new-tab url)))
+                       (let ((url (format "file://%s" (buffer-file-name))))
+                         (apply-partially #'browse-url url)))
 
 (autobuild-define-rule autobuild-node-run
                        (js-mode)
-                       (let ((filename (-> (f-filename (buffer-file-name)) sanitize-filename)))
+                       (let ((filename (f-filename (buffer-file-name))))
                          (format "node %s" filename)))
 
 (autobuild-define-rule autobuild-cfboot
                        (js-mode)
-                       (let ((filename (-> (f-filename (buffer-file-name)) sanitize-filename)))
+                       (let ((filename (f-filename (buffer-file-name))))
                          (when (s-ends-with-p "-boot.json" filename)
                            (format "cf-boot %s -i free-vars.json" filename))))
 
 (autobuild-define-rule autobuild-texinfo-build
                        (texinfo-mode)
-                       (concat "texi2any ${EMACS_COMPILATION_FILENAME}"
+                       (concat "texi2any " (buffer-file-name)
                                " --html"
                                " --no-number-sections"))
 
 (autobuild-define-rule autobuild-nginx-restart
                        (nginx-mode)
-                       (concat "sudo service nginx restart"))
+                       "sudo service nginx restart")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild-examples.el ends here
