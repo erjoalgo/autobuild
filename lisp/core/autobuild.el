@@ -150,6 +150,8 @@
       (with-current-buffer buffer
         (let* ((rule (alist-get name autobuild-rules-alist))
                (action (autobuild-rule-action rule)))
+          (unless action
+            (error "Rule %s in pipeline did not generate an action" rule))
           (let ((result (autobuild-run-action action)))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
