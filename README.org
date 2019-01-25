@@ -1,0 +1,117 @@
+* Overview
+  Autobuild is a framework for defining and executing build rules of any kind.
+  Rules generate actions which may range from simple compile-command strings, to
+  emacs-lisp functions, to asynchrousl build pipelines that chain simpler
+  build rules together to form more complex compilation processes
+  across one or several emacs buffers.
+
+* Index
+** ~autobuild-define-rule~
+   Autobuild rules are zero-ary named functions that contain knowledge about
+   what "compile" means under a specific context. A context may involve the current
+   buffer's major-mode, the name of the current file,
+   the presence of other files in the current directory, or any predicate expressible
+   in emacs lisp.
+
+   Because most build rules are limited to certain major modes, all rules must
+   specify a list of major modes within which they may be applicable. Rules that may
+   be applicable across any major mode may use use ~nil~ as their ~major-mode-filter~.
+
+   If a rule knows how to "compile" in the current context, it must return a
+   non-nil build action, which is appended to a list of currently applicable actions for
+   the user to select. Otherwise, it must reutrn ~nil~.
+
+   An action may be either a string, which is executed with ~compile~, or a zero-ary function,
+   which is ~funcall~-ed.
+
+** ~autobuild-build~
+   This is the main user-facing command entry-point. ~autobuild-build~ obtains a list of the
+   currently-applicable build rule actions and executes the one with highest priority,
+   unless a prefix argument is used to request prompting for a selection.
+
+   autobuild-build remembers the last rule selected at the buffer-local level, which,
+   if non-nil, is always re-executed until the user explicitly requests prompting to switch
+   to another build rule.
+
+** Rule priorities
+   Rule priorities may be specified via an ~(autobuild-nice N)~ top-level directive within a rule's body,
+   with lower nice values denoting higher priority. This mechanism may be adjusted in the future,
+   for example to support a more dynamic rebinding of a rule's priority.
+
+** ~autobuild-pipeline~
+   Several build rules may be chained together to form compilation-pipelines. TODO example
+   Within a piepile, if a rule's action is either a string (denoting a compile-command)
+   or a function whose value is a compilation buffer, the action, the action is considered
+   to be asynchronous, and any remaining steps in a compilation pipeline are not resumed
+   before the currently executing compile command finishes.
+
+** ~autobuild-notification-function~
+   This function is invoked when an asynchronous compilation command or pipeline has completed.
+   It is subject to ~autobuild-notify-threshold-secs~. It may be used to notify the user
+   in a custom way, for example via notify-send "desktop" notifications, beeps, etc.
+
+* Installation and sample usage
+
+  - Add autobuild to the load path, or simply load the file.
+
+  - Add a keybinding to ~#'autobuild-build~ as desired.
+
+  - Define appropriate rules.
+
+  - Invoke ~autobuild-build~ to build in the current context.
+
+  #+BEGIN_SRC emacs-lisp
+  (require 'autobuild)
+
+  (global-set-key (kbd "M-c" #'autobuild-build))
+
+  (autobuild-define-rule
+   autobuild-file-local-compile-command
+   nil
+   "A rule that matches any buffer whose file-local compile-command is set"
+   (autobuild-nice 9)
+   (when (buffer-file-name)
+     (cdr (assoc 'compile-command file-local-variables-alist))))
+
+  (autobuild-define-rule autobuild-el-eval-buffer (emacs-lisp-mode)
+   "Evaluate the current emacs-lisp buffer"
+    #'eval-buffer)
+
+  (autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
+   "Evaluate the current lisp buffer"
+    #'slime-compile-and-load-file)
+
+  (autobuild-define-rule autobuild-html-browse (html-mode mhtml-mode)
+   "Open the current html file in the browser"
+   (lambda ()
+      (let ((url (format "file://%s" (buffer-file-name))))
+            (browse-url url))))
+
+  (autobuild-define-rule
+   "Execute the current executable file."
+   autobuild-run-executable
+   nil
+   (autobuild-nice 9)
+   (let ((filename (buffer-file-name)))
+     (when (and filename
+                (file-executable-p filename))
+       (format "./%s" (f-filename filename)))))
+
+  (autobuild-define-rule autobuild-shell-script-syntax-check (sh-mode)
+   "Syntax-check a bash script without running it"
+                       (let ((fn (f-filename (buffer-file-name))))
+                         (format "bash -n %s" fn)))           
+
+  (autobuild-define-rule autobuild-makefile nil
+   "Run make"
+   (when (file-exists-p "Makefile") "make"))
+
+   (autobuild-define-rule autobuild-makefile (text-mode)
+   "Do a spell check"
+   #'ispell)
+
+                       
+  #+END_SRC
+
+* More Examples
+  [[./autobuild-examples.el][Example rule definitions]]
