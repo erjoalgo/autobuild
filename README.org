@@ -63,7 +63,7 @@
   #+BEGIN_SRC emacs-lisp
   (require 'autobuild)
 
-  (global-set-key (kbd "M-c" #'autobuild-build))
+  (global-set-key (kbd "M-c") #'autobuild-build)
 
   (autobuild-define-rule autobuild-file-local-compile-command nil
    "A rule that matches any buffer whose file-local compile-command is set"
