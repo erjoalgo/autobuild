@@ -65,12 +65,6 @@
 
   (global-set-key (kbd "M-c") #'autobuild-build)
 
-  (autobuild-define-rule autobuild-file-local-compile-command nil
-   "A rule that matches any buffer whose file-local compile-command is set"
-   (autobuild-nice 9)
-   (when (buffer-file-name)
-     (cdr (assoc 'compile-command file-local-variables-alist))))
-
   (autobuild-define-rule autobuild-el-eval-buffer (emacs-lisp-mode)
    "Evaluate the current emacs-lisp buffer"
     #'eval-buffer)
@@ -86,12 +80,18 @@
            (browse-url url))))
 
   (autobuild-define-rule autobuild-run-executable nil
-   "Execute the current executable file."
+   "Execute the current file if it is executable."
    (autobuild-nice 9)
    (let ((filename (buffer-file-name)))
      (when (and filename
                 (file-executable-p filename))
        (format "./%s" (f-filename filename)))))
+
+  (autobuild-define-rule autobuild-file-local-compile-command nil
+   "A rule that matches any buffer whose file-local compile-command is set"
+   (autobuild-nice 9)
+   (when (buffer-file-name)
+     (cdr (assoc 'compile-command file-local-variables-alist))))
 
   (autobuild-define-rule autobuild-shell-script-syntax-check (sh-mode)
    "Syntax-check a bash script without running it"
@@ -106,7 +106,7 @@
    "Do a spell check"
    #'ispell)
 
-                       
+
   #+END_SRC
 
 * More Examples
