@@ -1,7 +1,7 @@
 * Overview
   Autobuild is a framework for defining and executing build rules of any kind.
   Rules generate actions which may range from simple compile-command strings, to
-  emacs-lisp functions, to asynchrousl build pipelines that chain simpler
+  emacs-lisp functions, to asynchronous build pipelines that chain simpler
   build rules together to form more complex compilation processes
   across one or several emacs buffers.
 
@@ -19,7 +19,7 @@
 
    If a rule knows how to "compile" in the current context, it must return a
    non-nil build action, which is appended to a list of currently applicable actions for
-   the user to select. Otherwise, it must reutrn ~nil~.
+   the user to select. Otherwise, it must return ~nil~.
 
    An action may be either a string, which is executed with ~compile~, or a zero-ary function,
    which is ~funcall~-ed.
@@ -40,7 +40,7 @@
 
 ** ~autobuild-pipeline~
    Several build rules may be chained together to form compilation-pipelines. TODO example
-   Within a piepile, if a rule's action is either a string (denoting a compile-command)
+   Within a pipeline, if a rule's action is either a string (denoting a compile-command)
    or a function whose value is a compilation buffer, the action, the action is considered
    to be asynchronous, and any remaining steps in a compilation pipeline are not resumed
    before the currently executing compile command finishes.
