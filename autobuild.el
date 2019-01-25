@@ -207,8 +207,6 @@
                                                 (autobuild-rule-nice (cadr rule-action)))
                                               cands))))
 
-(global-set-key (kbd "M-c") #'autobuild-build)
-
 (defvar-local autobuild-last-rule-name nil)
 
 (defun autobuild-sort-by (key list)
