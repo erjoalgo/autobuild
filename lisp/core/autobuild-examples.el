@@ -60,8 +60,9 @@
 (autobuild-define-rule
  autobuild-git-commit
  (fundamental-mode)
- (save-buffer)
- (server-edit))
+ (lambda ()
+   (save-buffer)
+   (server-edit)))
 
 (autobuild-define-rule
  autobuild-run-executable
