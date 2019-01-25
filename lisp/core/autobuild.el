@@ -240,7 +240,7 @@
                                            action))))))
                     (autobuild-current-build-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
-                       ((and (not prompt) (null (cdr cands))) (car cands))
+                       ((not prompt) (car cands))
                        (t (selcand-select cands "select build rule: "
                                           ;; TODO sort vertically
                                           (lambda (name-rule-action)
