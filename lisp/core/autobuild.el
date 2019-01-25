@@ -229,11 +229,15 @@
                          autobuild-last-rule-name
                          (let* ((last-rule (alist-get autobuild-last-rule-name
                                                       autobuild-rules-alist))
-                                (action (funcall (autobuild-rule-genaction last-rule))))
-                           (when action
-                             (list (list autobuild-last-rule-name
-                                         last-rule
-                                         action)))))
+                                action)
+                           (if (null last-rule)
+                               (progn (warn "rule no longer exists: %s" autobuild-last-rule-name)
+                                      nil)
+                             (when (setq action
+                                         (funcall (autobuild-rule-genaction last-rule)))
+                               (list (list autobuild-last-rule-name
+                                           last-rule
+                                           action))))))
                     (autobuild-current-build-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
                        ((and (not prompt) (null (cdr cands))) (car cands))
