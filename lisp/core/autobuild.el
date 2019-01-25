@@ -136,7 +136,6 @@
 (defun autobuild-rule-action (rule)
   "Generate an action for rule RULE."
   (let ((original-buffer (current-buffer)))
-    (message "genaction for rule %s %s" rule (current-buffer))
     (prog1
         (funcall (autobuild-rule-genaction rule))
       (unless (eq (current-buffer) original-buffer)
@@ -247,7 +246,6 @@
                                                      (cadr name-rule-action)))))))))
     (cl-assert choice)
     (setq autobuild-last-rule-name (car choice))
-    (message "value of autobuild-last-rule-name: %s" autobuild-last-rule-name)
     (autobuild-run-action (caddr choice))))
 
 (defun autobuild-run-action (action)
