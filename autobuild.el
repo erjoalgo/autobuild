@@ -356,6 +356,8 @@
 ;; TODO use pipeline hook, not compilation hook
 (add-hook 'compilation-finish-functions 'autobuild-notify)
 
+;; TODO support autobuild-next-buffer and defining one-off pipelines interactively
+
 (provide 'autobuild)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild.el ends here
