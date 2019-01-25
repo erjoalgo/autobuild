@@ -53,7 +53,7 @@
 
 (autobuild-define-rule
  autobuild-file-local-compile-command
- t
+ nil
  "A rule that matches any buffer whose file-local compile-command is set"
  (autobuild-nice 9)
  (cdr (assoc 'compile-command file-local-variables-alist)))
@@ -67,7 +67,7 @@
 
 (autobuild-define-rule
  autobuild-run-executable
- t
+ nil
  (autobuild-nice 9)
  (when (buffer-file-name)
    (let ((fn (f-filename (buffer-file-name))))
@@ -154,10 +154,10 @@
                          #'eval-buffer))
 
 (autobuild-define-rule autobuild-makefile
-                       t
+                       nil
                        (when (file-exists-p "Makefile") "make"))
 
-(autobuild-define-rule autobuild-mpm t
+(autobuild-define-rule autobuild-mpm nil
                        (when (and (buffer-file-name)
                                   (equal "pkgdef" (f-ext (buffer-file-name))))
                          (format "mpm build --pkgdef_file=%s --alsologtostderr"
@@ -195,7 +195,7 @@
  (format "python %s" (f-filename (buffer-file-name))))
 
 (autobuild-define-rule autobuild-git-finish
-                       t
+                       nil
                        (when (or (eq major-mode 'git-rebase-mode)
                                  (and (eq major-mode 'text-mode)
                                       (equal (f-filename (buffer-file-name)) "COMMIT_EDITMSG")))
@@ -259,7 +259,7 @@
 
 (autobuild-define-rule
  autobuild-file-local-compile-command-set
- t
+ nil
  "Set and run the file-local compile command"
  (lambda ()
    (autobuild-nice 12)

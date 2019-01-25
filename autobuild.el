@@ -63,7 +63,7 @@
       cand)))
 
 (cl-defstruct autobuild-rule
-  major-modes
+  major-mode-filter
   nice
   genaction)
 
@@ -77,20 +77,18 @@
 
 ;;;###autoload
 (cl-defmacro autobuild-define-rule (name
-                                    major-modes
+                                    major-mode-filter
                                     &rest body)
   "Define a build rule NAME.
 
-   When ‘major-mode' is in MAJOR-MODES, or when MAJOR-MODES is t,
+   When ‘major-mode' is in MAJOR-MODE-FILTER, or when MAJOR-MODE-FILTER is nil,
    the action-generator BODY is evaluated, which returns an action
    which must be one of the following types:
 
    nil if the generator doesn't know how to generate an action.
    string is interpreted as a compile-command, which is executed via ‘compile'
    function is executed via ‘funcall'"
-  (cl-assert major-modes)
-  (when (and (not (eq t major-modes))
-             (member t major-modes))
+  (unless (listp major-mode-filter)
     (error "Invalid major mode specification"))
   (let* ((autobuild-directives '(autobuild-nice))
          (directives
@@ -105,7 +103,7 @@
       ',name
       (make-autobuild-rule
        ;; :name ',name
-       :major-modes ',major-modes
+       :major-mode-filter ',major-mode-filter
        :nice ,nice
        :genaction (defun ,name () ,@body)))))
 
@@ -188,6 +186,12 @@
 
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
+(defun autobuild-rule-applicable-p (rule mode)
+  "Determine whether RULE is applicable in major mode MODE."
+  (let ((major-mode-filter (autobuild-rule-major-mode-filter rule)))
+    (or (null major-mode-filter)
+        (cl-find major-mode major-mode-filter))))
+
 (defun autobuild-current-build-actions ()
   "Return a list of the currently applicable build actions.
 
@@ -195,15 +199,8 @@
    rule's list of major modes, and if the rule generates a non-nil action."
 
   (cl-loop for (name . rule) in (reverse autobuild-rules-alist)
-           as action =
-           (let ((major-modes (autobuild-rule-major-modes rule)))
-             (and
-              (or
-               (eq t major-modes)
-               (if (atom major-modes)
-                   (eq major-mode major-modes)
-                 (cl-find major-mode major-modes)))
-              (autobuild-rule-action rule)))
+           as action = (when (autobuild-rule-applicable-p rule major-mode)
+                         (autobuild-rule-action rule))
            when action
            collect (list name rule action) into cands
            finally (return (autobuild-sort-by (lambda (rule-action)
