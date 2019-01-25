@@ -35,8 +35,8 @@
 
 ** Rule priorities
    Rule priorities may be specified via an ~(autobuild-nice N)~ top-level directive within a rule's body,
-   with lower nice values denoting higher priority. This mechanism may be adjusted in the future,
-   for example to support a more dynamic rebinding of a rule's priority.
+   with lower nice values denoting higher priority. (This mechanism may slightly change in the future,
+   for example to support a more dynamic rebinding of a rule's priority.)
 
 ** ~autobuild-pipeline~
    Several build rules may be chained together to form compilation-pipelines. TODO example
