@@ -60,7 +60,7 @@
 
 (autobuild-define-rule
  autobuild-editor-done
- (text-mode fundamental-mode)
+ (fundamental-mode)
  (lambda ()
    (save-buffer)
    (server-edit)))
@@ -195,17 +195,20 @@
  (format "python %s" (f-filename (buffer-file-name))))
 
 (autobuild-define-rule autobuild-git-finish
-                       (git-rebase-mode)
-                       (lambda ()
-                         (progn
-                         (save-buffer)
-                         (with-editor-finish nil))))
+                       t
+                       (when (or (eq major-mode 'git-rebase-mode)
+                                 (and (eq major-mode 'text-mode)
+                                      (equal (f-filename (buffer-file-name)) "COMMIT_EDITMSG")))
+                         (lambda ()
+                           (progn
+                             (save-buffer)
+                             (with-editor-finish nil)))))
 
 (autobuild-define-rule autobuild-diff
                        (diff-mode)
                        (lambda ()
                          (progn (save-buffer)
-                              (server-edit))))
+                                (server-edit))))
 
 (autobuild-define-rule autobuild-clojure (clojure-mode) #'cider-load-buffer)
 
