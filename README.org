@@ -82,8 +82,8 @@
   (autobuild-define-rule autobuild-html-browse (html-mode mhtml-mode)
    "Open the current html file in the browser"
    (lambda ()
-      (let ((url (format "file://%s" (buffer-file-name))))
-            (browse-url url))))
+     (let ((url (format "file://%s" (buffer-file-name))))
+           (browse-url url))))
 
   (autobuild-define-rule autobuild-run-executable nil
    "Execute the current executable file."
@@ -95,8 +95,8 @@
 
   (autobuild-define-rule autobuild-shell-script-syntax-check (sh-mode)
    "Syntax-check a bash script without running it"
-                       (let ((fn (f-filename (buffer-file-name))))
-                         (format "bash -n %s" fn)))           
+    (let ((fn (f-filename (buffer-file-name))))
+      (format "bash -n %s" fn)))
 
   (autobuild-define-rule autobuild-makefile nil
    "Run make"
