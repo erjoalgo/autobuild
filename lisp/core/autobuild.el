@@ -245,7 +245,7 @@
                                                     (autobuild-rule-nice
                                                      (cadr name-rule-action)))))))))
     (cl-assert choice)
-    (setq autobuild-last-rule-name choice)
+    (setq autobuild-last-rule-name (car choice))
     (autobuild-run-action (caddr choice))))
 
 (defun autobuild-run-action (action)
