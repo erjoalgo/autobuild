@@ -110,7 +110,6 @@
        :nice ,nice
        :genaction (defun ,name () ,@body)))))
 
-
 (defvar-local autobuild-rules-remaining nil)
 
 ;;;###autoload
@@ -163,7 +162,6 @@
                 ;; or ensure each action errs
                 (setq autobuild-rules-remaining (cdr rules-remaining))
                 (autobuild-pipeline-run (cdr rules-remaining))))))))))
-
 
 (defun autobuild-compilation-exited-abnormally-p (compilation-finished-message)
   "Determine from COMPILATION-FINISHED-MESSAGE whether compilation failed."
