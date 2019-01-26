@@ -107,7 +107,7 @@
        :nice ,nice
        :genaction (defun ,name () ,@body)))))
 
-(defvar-local autobuild-rules-remaining nil)
+(defvar-local autobuild-pipeline-rules-remaining nil)
 
 ;;;###autoload
 (defmacro autobuild-pipeline (&rest buffer-rule-list)
@@ -118,7 +118,7 @@
   is the rule to invoke within BUFFER to generate an action.
 
   If ACTION is either a (compile command) string or a function that
-  returns a compilation buffer,compilation is executed asynchronously
+  returns a compilation buffer, compilation is executed asynchronously
   and the pipeline is resumed upon compilation finish.  Otherwise, ACTION
   is executed synchronously.
 
@@ -153,12 +153,12 @@
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
                 (with-current-buffer result
-                  (setq autobuild-rules-remaining (cdr rules-remaining))
-                  (message "scheduling remaining rules: %s" autobuild-rules-remaining))
+                  (setq autobuild-pipeline-rules-remaining (cdr rules-remaining))
+                  (message "scheduling remaining rules: %s" autobuild-pipeline-rules-remaining))
               (progn
                 ;; TODO fail early on non-zero exit, error
                 ;; or ensure each action errs
-                (setq autobuild-rules-remaining (cdr rules-remaining))
+                (setq autobuild-pipeline-rules-remaining (cdr rules-remaining))
                 (autobuild-pipeline-run (cdr rules-remaining))))))))))
 
 ;; TODO
@@ -175,14 +175,14 @@
    COMPILATION-BUFFER FINISH-STATE are the arguments passed
    to functions in ‘compilation-finish-functions'."
   (with-current-buffer compilation-buffer
-    (when (bound-and-true-p autobuild-rules-remaining)
+    (when (bound-and-true-p autobuild-pipeline-rules-remaining)
       (if (autobuild-compilation-exited-abnormally-p finish-state)
           (progn
-            (message "aborting pipeline: %s" autobuild-rules-remaining)
-            (setq autobuild-rules-remaining nil))
+            (message "aborting pipeline: %s" autobuild-pipeline-rules-remaining)
+            (setq autobuild-pipeline-rules-remaining nil))
         (progn
-          (message "continuing with pipeline: %s" autobuild-rules-remaining)
-          (autobuild-pipeline-run autobuild-rules-remaining))))))
+          (message "continuing with pipeline: %s" autobuild-pipeline-rules-remaining)
+          (autobuild-pipeline-run autobuild-pipeline-rules-remaining))))))
 
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
