@@ -143,7 +143,9 @@
 (defun autobuild-pipeline-run (rules-remaining)
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
   (when rules-remaining
-    (cl-destructuring-bind (buffer name) (car rules-remaining)
+    (cl-destructuring-bind (buffer rule-or-action) (car rules-remaining)
+      (unless buffer
+        (error "No buffer for rule %s" rule-or-action))
       (with-current-buffer buffer
         (let* ((rule (alist-get name autobuild-rules-alist))
                (action (autobuild-rule-action rule)))
