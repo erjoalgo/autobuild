@@ -162,6 +162,22 @@
    "Run make clean"
    (when (file-exists-p "Makefile") "make clean"))
 
+(autobuild-define-rule autobuild-configure-make-install
+                       nil
+                       (lexical-let ((autogen
+                                      (when (file-exists-p "autogen.sh")
+                                        (find-file-noselect "autogen.sh")))
+                                     (configure
+                                      (when (file-exists-p "configure")
+                                        (find-file-noselect "configure"))))
+                         (when (or (file-exists-p "autogen")
+                                   (file-exists-p "configure"))
+                           (autobuild-pipeline
+                            (autogen "./autogen.sh")
+                            (configure "./configure")
+                            ((find-file-noselect "Makefile") "make")
+                            ((find-file-noselect "Makefile") "sudo make install")))))
+
 (autobuild-define-rule autobuild-mpm nil
                        (when (and (buffer-file-name)
                                   (equal "pkgdef" (f-ext (buffer-file-name))))
