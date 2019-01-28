@@ -23,6 +23,47 @@
 
    An action may be either a string, which is executed with ~compile~, or a zero-ary function,
    which is ~funcall~-ed.
+*** Examples
+
+    #+BEGIN_SRC emacs-lisp
+    (autobuild-define-rule autobuild-el-eval-buffer (emacs-lisp-mode)
+     "Evaluate the current emacs-lisp buffer"
+     #'eval-buffer)
+
+    (autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
+     "Evaluate the current lisp buffer"
+      #'slime-compile-and-load-file)
+
+    (autobuild-define-rule autobuild-html-browse (html-mode mhtml-mode)
+      "Open the current html file in the browser"
+      (lambda ()
+        (let ((url (format "file://%s" (buffer-file-name))))
+              (browse-url url))))
+
+    (autobuild-define-rule autobuild-run-executable nil
+     "Execute the current file if it is executable."
+     (autobuild-nice 9)
+     (let ((filename (buffer-file-name)))
+       (when (and filename
+                  (file-executable-p filename))
+         (format "./%s" (f-filename filename)))))
+
+    (autobuild-define-rule autobuild-shell-script-syntax-check (sh-mode)
+     "Syntax-check a bash script without running it"
+      (let ((fn (f-filename (buffer-file-name))))
+        (format "bash -n %s" fn)))
+
+    (autobuild-define-rule autobuild-file-local-compile-command nil
+     "A rule that matches any buffer whose file-local compile-command is defined"
+     (autobuild-nice 9)
+     (when (buffer-file-name)
+       (alist-get 'compile-command file-local-variables-alist)))
+
+    (autobuild-define-rule autobuild-makefile (text-mode)
+       "Do a spell check"
+       #'ispell)
+
+     #+END_SRC
 
 ** ~autobuild-build~
    This is the main user-facing command entry-point. ~autobuild-build~ obtains a list of the
@@ -65,46 +106,14 @@
 
   (global-set-key (kbd "M-c") #'autobuild-build)
 
-  (autobuild-define-rule autobuild-el-eval-buffer (emacs-lisp-mode)
-   "Evaluate the current emacs-lisp buffer"
-    #'eval-buffer)
 
-  (autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
-   "Evaluate the current lisp buffer"
-    #'slime-compile-and-load-file)
 
-  (autobuild-define-rule autobuild-html-browse (html-mode mhtml-mode)
-   "Open the current html file in the browser"
-   (lambda ()
-     (let ((url (format "file://%s" (buffer-file-name))))
-           (browse-url url))))
-
-  (autobuild-define-rule autobuild-run-executable nil
-   "Execute the current file if it is executable."
-   (autobuild-nice 9)
-   (let ((filename (buffer-file-name)))
-     (when (and filename
-                (file-executable-p filename))
-       (format "./%s" (f-filename filename)))))
-
-  (autobuild-define-rule autobuild-file-local-compile-command nil
-   "A rule that matches any buffer whose file-local compile-command is set"
-   (autobuild-nice 9)
-   (when (buffer-file-name)
-     (alist-get 'compile-command file-local-variables-alist)))
-
-  (autobuild-define-rule autobuild-shell-script-syntax-check (sh-mode)
-   "Syntax-check a bash script without running it"
-    (let ((fn (f-filename (buffer-file-name))))
-      (format "bash -n %s" fn)))
 
   (autobuild-define-rule autobuild-makefile nil
    "Run make"
    (when (file-exists-p "Makefile") "make"))
 
-   (autobuild-define-rule autobuild-makefile (text-mode)
-   "Do a spell check"
-   #'ispell)
+
 
 
   #+END_SRC
