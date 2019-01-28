@@ -147,10 +147,19 @@
       (unless buffer
         (error "No buffer for rule %s" rule-or-action))
       (with-current-buffer buffer
-        (let* ((rule (alist-get name autobuild-rules-alist))
-               (action (autobuild-rule-action rule)))
+        (let* ((action
+                (cl-typecase rule-or-action
+                  (symbol
+                   (let ((rule (or
+                                (alist-get rule-or-action autobuild-rules-alist)
+                                (and (functionp rule-or-action)
+                                     rule-or-action))))
+                     (unless rule
+                       (error "Unknown rule with name %s" rule-or-action))
+                     (autobuild-rule-action rule)))
+                  (string rule-or-action))))
           (unless action
-            (error "Rule %s in pipeline did not generate an action" rule))
+            (error "Rule %s in pipeline did not generate an action" rule-or-action))
           (let ((result (autobuild-run-action action)))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
