@@ -154,9 +154,13 @@
                            (lambda () (eval-buffer) (ert t))
                          #'eval-buffer))
 
-(autobuild-define-rule autobuild-makefile
-                       nil
-                       (when (file-exists-p "Makefile") "make"))
+(autobuild-define-rule autobuild-makefile-make nil
+   "Run make"
+   (when (file-exists-p "Makefile") "make"))
+
+(autobuild-define-rule autobuild-makefile-make-clean nil
+   "Run make clean"
+   (when (file-exists-p "Makefile") "make clean"))
 
 (autobuild-define-rule autobuild-mpm nil
                        (when (and (buffer-file-name)
