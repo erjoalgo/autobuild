@@ -149,7 +149,7 @@
       (with-current-buffer buffer
         (let* ((action rule-or-action))
           (unless action
-            (error "Rule %s in pipeline did not generate an action" rule-or-action))
+            (error "Rule %s in pipeline should have generated an action" rule-or-action))
           (let ((result (autobuild-run-action action)))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
