@@ -96,8 +96,7 @@
                    ;; TODO remove directives from body
                    when (and (listp top-level-form)
                              (member (car top-level-form) autobuild-directives))
-                   collect (cons (car top-level-form)
-                                 (cadr top-level-form))))
+                   collect top-level-form))
          (nice (or (alist-get 'autobuild-nice directives) 10)))
     `(autobuild-add-rule
       ',name
@@ -205,7 +204,7 @@
            when action
            collect (list name rule action) into cands
            finally (return (autobuild-sort-by (lambda (rule-action)
-                                                (autobuild-rule-nice (cadr rule-action)))
+                                                (autobuild-rule-nice (cl-second rule-action)))
                                               cands))))
 
 (defvar-local autobuild-last-rule-name nil)
@@ -247,10 +246,10 @@
                                             (format "%s (%s)"
                                                     (car name-rule-action)
                                                     (autobuild-rule-nice
-                                                     (cadr name-rule-action)))))))))
+                                                     (cl-second name-rule-action)))))))))
     (cl-assert choice)
     (setq autobuild-last-rule-name (car choice))
-    (autobuild-run-action (caddr choice))))
+    (autobuild-run-action (cl-third choice))))
 
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
