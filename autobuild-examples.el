@@ -149,13 +149,14 @@
                                    filename
                                    (f-base filename)))))
 
-(autobuild-define-rule autobuild-el-eval-buffer
+(autobuild-define-rule autobuild-el-eval-buffer (emacs-lisp-mode)
                        "Evaluate the current emacs-lisp buffer"
+                       #'eval-buffer)
+
+(autobuild-define-rule autobuild-el-run-tests
+                       "Run emacs lisp tests."
                        (emacs-lisp-mode)
-                       (if (and (buffer-file-name)
-                                (s-ends-with-p "-tests.el" (buffer-file-name)))
-                           (lambda () (eval-buffer) (ert t))
-                         #'eval-buffer))
+                       (lambda () (eval-buffer) (ert t)))
 
 (autobuild-define-rule autobuild-makefile-make nil
    "Run make"
