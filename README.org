@@ -106,6 +106,7 @@
 
   #+BEGIN_SRC emacs-lisp
   (require 'autobuild)
+  (require 'autobuild-examples)
 
   (global-set-key (kbd "M-c") #'autobuild-build)
 

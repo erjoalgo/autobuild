@@ -273,5 +273,7 @@
   "Do a spell check"
   #'ispell)
 
+(provide 'autobuild-examples)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild-examples.el ends here
