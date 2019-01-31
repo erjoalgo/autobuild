@@ -74,20 +74,20 @@
    With a prefix argument, the user is prompted to explicitly select a build rule.
 
    ~autobuild-build~ remembers the last rule executed at the buffer-local level, and
-   it re-executes the last rule if it is known and prompting is not requested.
+   it re-executes it if it is known and if prompting was not requested.
 
 ** ~autobuild-nice~
    Rule priorities may be specified via an ~(autobuild-nice N)~ top-level directive within a rule's body,
    with lower nice values denoting higher priority. A rule priority controls the default rule selected by
-   ~autobuild-build~. Rules that are less specific should have lower priorities with respect to more specific rules. \\
+   ~autobuild-build~. Rules that are less specific should have lower priorities than more specific rules. \\
    The exact mechanism for specifying rule priorities may in the future.
 
 ** ~autobuild-pipeline~
    Several build rules may be chained together to form compilation-pipelines. (TODO example)
    Within a pipeline, if a rule's action is either a string (which denotes a compile-command)
    or a function whose value is a compilation buffer, the action is considered
-   to be asynchronous, and any remaining steps in a compilation pipeline are only resumed
-   after the currently executing compile command has completed.
+   to be an asynchronous ~compile~ command, and any remaining steps in a compilation pipeline
+   are only resumed after the currently executing compile command in the pipeline has completed.
 
 ** ~autobuild-notification-function~
    This function is invoked when an asynchronous compilation command or pipeline has completed.
