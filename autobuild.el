@@ -96,7 +96,7 @@
                    ;; TODO remove directives from body
                    when (and (listp top-level-form)
                              (member (car top-level-form) autobuild-directives))
-                   collect top-level-form))
+                   collect (cons (car top-level-form) (cadr top-level-form))))
          (nice (or (alist-get 'autobuild-nice directives) 10)))
     `(autobuild-add-rule
       ',name
