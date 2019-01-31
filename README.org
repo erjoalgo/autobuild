@@ -1,7 +1,7 @@
 * Overview
   Autobuild is a framework for defining and executing build rules of any kind.
-  Rules generate actions which may range from simple compile-command strings, to
-  emacs-lisp functions, to asynchronous build pipelines that chain simpler
+  Autobuild rules generate actions which may range from simple compile-command strings, to
+  emacs-lisp functions, to asynchronous build pipelines that chain multiple
   build rules together to form more complex compilation processes
   across one or several emacs buffers.
 
@@ -9,87 +9,90 @@
 ** ~autobuild-define-rule~
    Autobuild rules are zero-ary named functions that contain knowledge about
    what "compile" means under a specific context. A context may involve the current
-   buffer's major-mode, the name of the current file,
-   the presence of other files in the current directory, or any predicate expressible
-   in emacs lisp.
+   buffer's major-mode, the name of the current file, the presence of other files in the
+   current directory, or any other emacs lisp expression.
 
    Because most build rules are limited to certain major modes, all rules must
-   specify a list of major modes within which they may be applicable. Rules that may
+   specify a list ~major-mode-filter~ of major modes within which they may be applicable. Rules that may
    be applicable across any major mode may use use ~nil~ as their ~major-mode-filter~.
 
    If a rule knows how to "compile" in the current context, it must return a
-   non-nil build action, which is appended to a list of currently applicable actions for
-   the user to select. Otherwise, it must return ~nil~.
+   non-nil build action. Otherwise, it must return ~nil~.
 
-   An action may be either a string, which is executed with ~compile~, or a zero-ary function,
-   which is ~funcall~-ed.
+   An action may be either a string, which is executed with ~compile~, or a zero-ary function.
 *** Examples
 
     #+BEGIN_SRC emacs-lisp
     (autobuild-define-rule autobuild-el-eval-buffer (emacs-lisp-mode)
-     "Evaluate the current emacs-lisp buffer"
-     #'eval-buffer)
+      "Evaluate the current emacs-lisp buffer"
+      #'eval-buffer)
 
     (autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
-     "Evaluate the current lisp buffer"
+      "Evaluate the current lisp buffer"
       #'slime-compile-and-load-file)
 
     (autobuild-define-rule autobuild-html-browse (html-mode mhtml-mode)
       "Open the current html file in the browser"
-      (lambda ()
-        (let ((url (format "file://%s" (buffer-file-name))))
-              (browse-url url))))
+      (let ((url (format "file://%s" (buffer-file-name))))
+        (apply-partially #'browse-url url)))
 
     (autobuild-define-rule autobuild-run-executable nil
-     "Execute the current file if it is executable."
-     (autobuild-nice 9)
-     (let ((filename (buffer-file-name)))
-       (when (and filename
-                  (file-executable-p filename))
-         (format "./%s" (f-filename filename)))))
+      (autobuild-nice 9)
+      (let ((filename (buffer-file-name)))
+        (when (and filename
+                   (file-executable-p filename))
+          (format "./%s" (f-filename filename)))))
 
     (autobuild-define-rule autobuild-shell-script-syntax-check (sh-mode)
-     "Syntax-check a bash script without running it"
+      "Syntax-check a bash script without running it"
+      (autobuild-nice 15)
       (let ((fn (f-filename (buffer-file-name))))
         (format "bash -n %s" fn)))
 
-    (autobuild-define-rule autobuild-file-local-compile-command nil
-     "A rule that matches any buffer whose file-local compile-command is defined"
-     (autobuild-nice 9)
-     (when (buffer-file-name)
-       (alist-get 'compile-command file-local-variables-alist)))
+    (autobuild-define-rule autobuild-file-local-compile-command-set nil
+      "Set and run the file-local compile command"
+      (lambda ()
+        (autobuild-nice 12)
+        (let ((command
+               (read-shell-command "enter compile command: "
+                                   (alist-get 'compile-command file-local-variables-alist))))
+          (add-file-local-variable 'compile-command command)
+          (setq compile-command command)
+          (compile compile-command))))
 
-    (autobuild-define-rule autobuild-makefile (text-mode)
-       "Do a spell check"
-       #'ispell)
-
+    (autobuild-define-rule autobuild-ispell (text-mode)
+      "Do a spell check"
+      #'ispell)
      #+END_SRC
 
 ** ~autobuild-build~
-   This is the main user-facing command entry-point. ~autobuild-build~ obtains a list of the
-   currently-applicable build rule actions and executes the one with highest priority,
-   unless a prefix argument is used to request prompting for a selection.
+   This is the main user-facing command entry-point, and should be bound to a keybinding.
 
-   autobuild-build remembers the last rule selected at the buffer-local level, which,
-   if non-nil, is always re-executed until the user explicitly requests prompting to switch
-   to another build rule.
+   ~autobuild-build~ obtains a list of the currently-applicable build rule actions and
+   executes the one with highest priority.
 
-** Rule priorities
+   With a prefix argument, the user is prompted to explicitly select a build rule.
+
+   ~autobuild-build~ remembers the last rule executed at the buffer-local level, and
+   it re-executes the last rule if it is known and prompting is not requested.
+
+** ~autobuild-nice~
    Rule priorities may be specified via an ~(autobuild-nice N)~ top-level directive within a rule's body,
-   with lower nice values denoting higher priority. (This mechanism may slightly change in the future,
-   for example to support a more dynamic rebinding of a rule's priority.)
+   with lower nice values denoting higher priority. A rule priority controls the default rule selected by
+   ~autobuild-build~. Rules that are less specific should have lower priorities with respect to more specific rules. \\
+   The exact mechanism for specifying rule priorities may in the future.
 
 ** ~autobuild-pipeline~
    Several build rules may be chained together to form compilation-pipelines. (TODO example)
-   Within a pipeline, if a rule's action is either a string (denoting a compile-command)
-   or a function whose value is a compilation buffer, the action, the action is considered
-   to be asynchronous, and any remaining steps in a compilation pipeline are not resumed
-   before the currently executing compile command has completed.
+   Within a pipeline, if a rule's action is either a string (which denotes a compile-command)
+   or a function whose value is a compilation buffer, the action is considered
+   to be asynchronous, and any remaining steps in a compilation pipeline are only resumed
+   after the currently executing compile command has completed.
 
 ** ~autobuild-notification-function~
    This function is invoked when an asynchronous compilation command or pipeline has completed.
    It is subject to ~autobuild-notify-threshold-secs~. It may be used to notify the user
-   in a custom way, for example via notify-send "desktop" notifications, beeps, etc.
+   in custom ways, for example via notify-send "desktop" notifications, beeps, etc.
 
 * Installation and sample usage
 
@@ -106,16 +109,9 @@
 
   (global-set-key (kbd "M-c") #'autobuild-build)
 
-
-
-
   (autobuild-define-rule autobuild-makefile nil
    "Run make"
    (when (file-exists-p "Makefile") "make"))
-
-
-
-
   #+END_SRC
 
 * More Examples
