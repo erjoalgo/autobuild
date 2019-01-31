@@ -66,7 +66,7 @@
      #+END_SRC
 
 ** ~autobuild-build~
-   This is the main user-facing command entry-point, and should be bound to a keybinding.
+   This is the main user-facing command entry-point, and should be bound to a key.
 
    ~autobuild-build~ obtains a list of the currently-applicable build rule actions and
    executes the one with highest priority.
@@ -98,7 +98,7 @@
 
   - Add autobuild to the load path, or simply load the file.
 
-  - Add a keybinding to ~#'autobuild-build~ as desired.
+  - Bind ~#'autobuild-build~ to a key.
 
   - Define appropriate rules.
 
