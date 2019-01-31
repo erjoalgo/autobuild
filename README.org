@@ -110,9 +110,6 @@
 
   (global-set-key (kbd "M-c") #'autobuild-build)
 
-  (autobuild-define-rule autobuild-makefile nil
-   "Run make"
-   (when (file-exists-p "Makefile") "make"))
   #+END_SRC
 
 * More Examples
