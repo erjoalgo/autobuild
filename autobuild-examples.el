@@ -301,5 +301,9 @@
      (setq compile-command command)
      (compile compile-command))))
 
+(autobuild-define-rule autobuild-ispell (text-mode)
+  "Do a spell check"
+  #'ispell)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild-examples.el ends here
