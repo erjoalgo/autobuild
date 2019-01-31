@@ -54,7 +54,7 @@
 (autobuild-define-rule
  autobuild-file-local-compile-command
  nil
- "A rule that matches any buffer whose file-local compile-command is set"
+ "A rule that matches any buffer whose file-local compile-command is defined"
  (autobuild-nice 9)
  (when (buffer-file-name)
    (cdr (assoc 'compile-command file-local-variables-alist))))
@@ -92,6 +92,7 @@
 
 (autobuild-define-rule autobuild-shell-script-syntax-check
                        (sh-mode)
+                       "Syntax-check a bash script without running it"
                        (autobuild-nice 15)
                        (let ((fn (f-filename (buffer-file-name))))
                          (format "bash -n %s" fn)))
@@ -138,6 +139,7 @@
                                      (when (bound-and-true-p mvn-extra-args) (concat mvn-extra-args " ")))))))
 
 (autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
+     "Evaluate the current lisp buffer"
                        #'slime-compile-and-load-file)
 
 (autobuild-define-rule autobuild-cl-asdf (lisp-mode)
@@ -148,6 +150,7 @@
                                    (f-base filename)))))
 
 (autobuild-define-rule autobuild-el-eval-buffer
+                       "Evaluate the current emacs-lisp buffer"
                        (emacs-lisp-mode)
                        (if (and (buffer-file-name)
                                 (s-ends-with-p "-tests.el" (buffer-file-name)))
@@ -258,6 +261,7 @@
                           #'octave-send-buffer)))
 
 (autobuild-define-rule autobuild-html-browse
+                       "Open the current html file in the browser"
                        (html-mode mhtml-mode)
                        (let ((url (format "file://%s" (buffer-file-name))))
                          (apply-partially #'browse-url url)))
