@@ -88,6 +88,7 @@
    nil if the generator doesn't know how to generate an action.
    string is interpreted as a compile-command, which is executed via ‘compile'
    function is executed via ‘funcall'"
+  (declare (indent defun))
   (unless (listp major-mode-filter)
     (error "Invalid major mode specification"))
   (let* ((autobuild-directives '(autobuild-nice))
