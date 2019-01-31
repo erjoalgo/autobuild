@@ -139,6 +139,9 @@
         (error "‘genaction' of rule %s should not change buffers or have side effects"
                rule)))))
 
+(defun autobuild-rule-find (name)
+  (alist-get name autobuild-rules-alist))
+
 (defun autobuild-pipeline-run (rules-remaining)
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
   (when rules-remaining
@@ -226,8 +229,7 @@
   (interactive "P")
   (let* ((cands (or (and (not prompt)
                          autobuild-last-rule-name
-                         (let* ((last-rule (alist-get autobuild-last-rule-name
-                                                      autobuild-rules-alist))
+                         (let* ((last-rule (autobuild-rule-find autobuild-last-rule-name))
                                 action)
                            (if (null last-rule)
                                (progn (warn "rule no longer exists: %s" autobuild-last-rule-name)
