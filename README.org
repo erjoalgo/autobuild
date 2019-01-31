@@ -1,23 +1,30 @@
 * Overview
-  Autobuild is a framework for defining and executing build rules of any kind.
-  Autobuild rules generate actions which may range from simple compile-command strings, to
-  emacs-lisp functions, to asynchronous build pipelines that chain multiple
-  build rules together to form more complex compilation processes
-  across one or several emacs buffers.
+  Autobuild is a framework for defining and executing rules for what it means to "build"
+  in emacs under various contexts.
+
+  Autobuild rules contain knowledge about how to carry out a certain type of build
+  under specific circumstances.
+
+  When an autobuild rule is applicable under the current context in emacs,
+  it generates an action which details how to carry out the build.
+
+  Autobuild rule actions may range from simple compile-command strings, to
+  emacs-lisp functions, to pipelines that chain multiple build rules together to form longer build
+  processes, whose individual steps may be synchronous or asynchronous.
 
 * Index
 ** ~autobuild-define-rule~
    Autobuild rules are zero-ary named functions that contain knowledge about
-   what "compile" means under a specific context. A context may involve the current
+   what "build" means under a specific context. A context may involve the current
    buffer's major-mode, the name of the current file, the presence of other files in the
-   current directory, or any other emacs lisp expression.
+   current directory (for example, "Makefile" or "BUILD"), or any other emacs lisp predicate.
 
    Because most build rules are limited to certain major modes, all rules must
-   specify a list ~major-mode-filter~ of major modes within which they may be applicable. Rules that may
-   be applicable across any major mode may use use ~nil~ as their ~major-mode-filter~.
+   specify a list ~major-mode-filter~, which, if non-nil,
+   restricts the applicability of the rule to the major modes listed.
 
-   If a rule knows how to "compile" in the current context, it must return a
-   non-nil build action. Otherwise, it must return ~nil~.
+   When a rule generates a non-nil action, it communicates that it
+   knows how to "build" in the current context, and specifies how to do so as part of the action.
 
    An action may be either a string, which is executed with ~compile~, or a zero-ary function.
 *** Examples
@@ -37,6 +44,7 @@
         (apply-partially #'browse-url url)))
 
     (autobuild-define-rule autobuild-run-executable nil
+      "Run the current buffer's underlying file as an executable if possible."
       (autobuild-nice 9)
       (let ((filename (buffer-file-name)))
         (when (and filename
@@ -71,23 +79,25 @@
    ~autobuild-build~ obtains a list of the currently-applicable build rule actions and
    executes the one with highest priority.
 
-   With a prefix argument, the user is prompted to explicitly select a build rule.
+   With a prefix argument, the user is prompted to explicitly select a build rule
+   or to change the current one.
 
    ~autobuild-build~ remembers the last rule executed at the buffer-local level, and
-   it re-executes it if it is known and if prompting was not requested.
+   re-executes it if it is known and if prompting was not requested.
 
 ** ~autobuild-nice~
-   Rule priorities may be specified via an ~(autobuild-nice N)~ top-level directive within a rule's body,
+   Rule priorities may be specified via a top-level directive ~(autobuild-nice N)~ within a rule's body,
    with lower nice values denoting higher priority. A rule priority controls the default rule selected by
-   ~autobuild-build~. Rules that are less specific should have lower priorities than more specific rules. \\
-   The exact mechanism for specifying rule priorities may in the future.
+   ~autobuild-build~. The most specific rule under a certain context should strive to have the highest priority
+   in order for ~autobuild-build~ to select it as the default. \\
+   The exact mechanism for specifying rule priorities may change in the future.
 
 ** ~autobuild-pipeline~
    Several build rules may be chained together to form compilation-pipelines. (TODO example)
-   Within a pipeline, if a rule's action is either a string (which denotes a compile-command)
+   Within a pipeline, if a rule's action is either a string, which denotes a compile-command,
    or a function whose value is a compilation buffer, the action is considered
    to be an asynchronous ~compile~ command, and any remaining steps in a compilation pipeline
-   are only resumed after the currently executing compile command in the pipeline has completed.
+   are only resumed after this command has succeeded.
 
 ** ~autobuild-notification-function~
    This function is invoked when an asynchronous compilation command or pipeline has completed.
@@ -96,11 +106,10 @@
 
 * Installation and sample usage
 
-  - Add autobuild to the load path, or simply load the file.
-
+  - Add autobuild to the load path and require it, or simply load the file.
   - Bind ~#'autobuild-build~ to a key.
-
   - Define appropriate rules.
+    - Optionally, require ~autobuild-examples~ to obtain a few commonly-applicable build rules.
 
   - Invoke ~autobuild-build~ to build in the current context.
 
