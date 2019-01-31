@@ -154,8 +154,8 @@
                        #'eval-buffer)
 
 (autobuild-define-rule autobuild-el-run-tests
-                       "Run emacs lisp tests."
                        (emacs-lisp-mode)
+                       "Run emacs lisp tests."
                        (lambda () (eval-buffer) (ert t)))
 
 (autobuild-define-rule autobuild-makefile-make nil
@@ -262,8 +262,8 @@
                           #'octave-send-buffer)))
 
 (autobuild-define-rule autobuild-html-browse
-                       "Open the current html file in the browser"
                        (html-mode mhtml-mode)
+                       "Open the current html file in the browser"
                        (let ((url (format "file://%s" (buffer-file-name))))
                          (apply-partially #'browse-url url)))
 
