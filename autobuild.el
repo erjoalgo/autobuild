@@ -73,8 +73,6 @@
   "Internal.  Add a rule RULE with NAME as the key."
   (setf (alist-get name autobuild-rules-alist) rule))
 
-(defalias 'autobuild-nice #'ignore)
-
 ;;;###autoload
 (cl-defmacro autobuild-define-rule (name
                                     major-mode-filter
@@ -92,20 +90,23 @@
   (unless (listp major-mode-filter)
     (error "Invalid major mode specification"))
   (let* ((autobuild-directives '(autobuild-nice))
-         (directives
+         form-directives
+         (body-no-directives
           (cl-loop for top-level-form in body
                    ;; TODO remove directives from body
-                   when (and (listp top-level-form)
-                             (member (car top-level-form) autobuild-directives))
-                   collect (cons (car top-level-form) (cadr top-level-form))))
-         (nice (or (alist-get 'autobuild-nice directives) 10)))
+                   if (and (listp top-level-form)
+                           (member (car top-level-form) autobuild-directives))
+                   do (push (apply #'cons top-level-form) form-directives)
+                   else
+                   collect top-level-form))
+         (nice (or (alist-get 'autobuild-nice form-directives) 10)))
     `(autobuild-add-rule
       ',name
       (make-autobuild-rule
        ;; :name ',name
        :major-mode-filter ',major-mode-filter
        :nice ,nice
-       :genaction (defun ,name () ,@body)))))
+       :genaction (defun ,name () ,@body-no-directives)))))
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
 
