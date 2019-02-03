@@ -51,11 +51,21 @@
 (require 'f)
 (require 's)
 
+
 (autobuild-define-rule autobuild-file-local-compile-command nil
-  "A rule that matches any buffer whose file-local compile-command is defined"
-  (autobuild-nice 9)
+  "Set and run the file-local compile command"
+  (autobuild-nice 12)
   (when (buffer-file-name)
-    (cdr (assoc 'compile-command file-local-variables-alist))))
+    (lambda ()
+      (let ((command
+             (if (and (bound-and-true-p compile-command)
+                      (not current-prefix-arg))
+                 compile-command
+               (read-shell-command "enter compile command: "
+                                   (alist-get 'compile-command file-local-variables-alist)))))
+        (add-file-local-variable 'compile-command command)
+        (setq compile-command command)
+        (compile compile-command)))))
 
 (autobuild-define-rule autobuild-editor-done (fundamental-mode)
   (lambda ()
@@ -257,20 +267,6 @@
 
 (autobuild-define-rule autobuild-nginx-restart (nginx-mode)
   "sudo service nginx restart")
-
-(autobuild-define-rule autobuild-file-local-compile-command nil
-  "Set and run the file-local compile command"
-  (autobuild-nice 12)
-  (lambda ()
-    (let ((command
-           (read-shell-command "enter compile command: "
-                               (if (and (bound-and-true-p compile-command)
-                                        (not current-prefix-arg))
-                                   compile-command
-                                 (alist-get 'compile-command file-local-variables-alist)))))
-      (add-file-local-variable 'compile-command command)
-      (setq compile-command command)
-      (compile compile-command))))
 
 (autobuild-define-rule autobuild-ispell (text-mode)
   "Do a spell check"
