@@ -258,13 +258,16 @@
 (autobuild-define-rule autobuild-nginx-restart (nginx-mode)
   "sudo service nginx restart")
 
-(autobuild-define-rule autobuild-file-local-compile-command-set nil
+(autobuild-define-rule autobuild-file-local-compile-command nil
   "Set and run the file-local compile command"
+  (autobuild-nice 12)
   (lambda ()
-    (autobuild-nice 12)
     (let ((command
            (read-shell-command "enter compile command: "
-                               (alist-get 'compile-command file-local-variables-alist))))
+                               (if (and (bound-and-true-p compile-command)
+                                        (not current-prefix-arg))
+                                   compile-command
+                                 (alist-get 'compile-command file-local-variables-alist)))))
       (add-file-local-variable 'compile-command command)
       (setq compile-command command)
       (compile compile-command))))
