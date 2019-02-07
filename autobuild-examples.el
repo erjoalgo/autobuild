@@ -272,6 +272,13 @@
   "Do a spell check"
   #'ispell)
 
+(autobuild-define-rule autobuild-json-syntax-check (js-mode)
+  "Check the syntax of a json file"
+  ;; ensure we are in a JSON file
+  (when (and (buffer-file-name)
+             (equal "json" (f-ext (buffer-file-name))))
+    (format "python -m json.tool < %s" (f-filename (buffer-file-name)))))
+
 (provide 'autobuild-examples)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
