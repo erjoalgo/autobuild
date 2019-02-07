@@ -240,7 +240,7 @@
                                (progn (warn "rule no longer exists: %s" autobuild-last-rule-name)
                                       nil)
                              (when (setq action
-                                         (funcall (autobuild-rule-genaction last-rule)))
+                                         (autobuild-rule-action last-rule))
                                (list (list autobuild-last-rule-name
                                            last-rule
                                            action))))))
