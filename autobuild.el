@@ -136,7 +136,10 @@
   "Generate an action for rule RULE."
   (let ((original-buffer (current-buffer)))
     (prog1
-        (funcall (autobuild-rule-genaction rule))
+        (condition-case ex
+            (funcall (autobuild-rule-genaction rule))
+          (error
+           (error "Error while generating action for rule %s: %s" rule ex)))
       (unless (eq (current-buffer) original-buffer)
         (error "‘genaction' of rule %s should not change buffers or have side effects"
                rule)))))
