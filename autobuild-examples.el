@@ -57,14 +57,16 @@
   (autobuild-nice 12)
   (when (buffer-file-name)
     (lambda ()
-      (let ((command
-             (if (and (bound-and-true-p compile-command)
-                      (not current-prefix-arg))
-                 compile-command
-               (read-shell-command "enter compile command: "
-                                   (alist-get 'compile-command file-local-variables-alist)))))
-        (add-file-local-variable 'compile-command command)
-        (setq compile-command command)
+      (let* ((command
+              (if (and (bound-and-true-p compile-command)
+                       (not current-prefix-arg))
+                  compile-command
+                (read-shell-command "enter compile command: "
+                                    (when (bound-and-true-p compile-command)
+                                      compile-command)))))
+        (unless (equal command compile-command)
+          (add-file-local-variable 'compile-command command)
+          (setq compile-command command))
         (compile compile-command)))))
 
 (autobuild-define-rule autobuild-editor-done (fundamental-mode)
