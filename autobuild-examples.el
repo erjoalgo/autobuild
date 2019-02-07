@@ -281,6 +281,13 @@
              (equal "json" (f-ext (buffer-file-name))))
     (format "python -m json.tool < %s" (f-filename (buffer-file-name)))))
 
+(autobuild-define-rule autobuild-python-setupy-install (python-mode)
+  "Run setup.py install"
+  (when (and (buffer-file-name)
+             (equal "setup.py"
+                    (f-filename (buffer-file-name))))
+    (format "python %s install --user" (f-filename (buffer-file-name)))))
+
 (provide 'autobuild-examples)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
