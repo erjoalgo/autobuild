@@ -288,6 +288,14 @@
                     (f-filename (buffer-file-name))))
     (format "python %s install --user" (f-filename (buffer-file-name)))))
 
+(autobuild-define-rule autobuild-xmodmap (conf-unix-mode)
+  "run xmodmap on a file"
+  (autobuild-nice 9)
+  (when (and (buffer-file-name)
+             (equal "xmodmap"
+                    (f-ext (buffer-file-name))))
+    (format "xmodmap %s -verbose" (f-filename (buffer-file-name)))))
+
 (provide 'autobuild-examples)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
