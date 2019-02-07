@@ -294,7 +294,7 @@
   (when (and (buffer-file-name)
              (equal "xmodmap"
                     (f-ext (buffer-file-name))))
-    (format "xmodmap %s -verbose" (f-filename (buffer-file-name)))))
+    (format "xmodmap -verbose %s" (f-filename (buffer-file-name)))))
 
 (provide 'autobuild-examples)
 
