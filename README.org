@@ -20,7 +20,7 @@
    current directory (for example, "Makefile" or "BUILD"), or any other emacs lisp predicate.
 
    Because most build rules are limited to certain major modes, all rules must
-   specify a list ~major-mode-filter~, which, if non-nil,
+   specify a list ~mode-filter~, which, if non-nil,
    restricts the applicability of the rule to the major modes listed.
 
    When a rule generates a non-nil action, it communicates that it

@@ -63,7 +63,7 @@
       cand)))
 
 (cl-defstruct autobuild-rule
-  major-mode-filter
+  mode-filter
   nice
   genaction)
 
@@ -75,11 +75,11 @@
 
 ;;;###autoload
 (cl-defmacro autobuild-define-rule (name
-                                    major-mode-filter
+                                    mode-filter
                                     &rest body)
   "Define a build rule NAME.
 
-   When ‘major-mode' is in MAJOR-MODE-FILTER, or when MAJOR-MODE-FILTER is nil,
+   When ‘major-mode' is in MODE-FILTER, or when MODE-FILTER is nil,
    the action-generator BODY is evaluated, which returns an action
    which must be one of the following types:
 
@@ -87,7 +87,7 @@
    string is interpreted as a compile-command, which is executed via ‘compile'
    function is executed via ‘funcall'"
   (declare (indent defun))
-  (unless (listp major-mode-filter)
+  (unless (listp mode-filter)
     (error "Invalid major mode specification"))
   (let* ((autobuild-directives '(autobuild-nice))
          form-directives
@@ -104,7 +104,7 @@
       ',name
       (make-autobuild-rule
        ;; :name ',name
-       :major-mode-filter ',major-mode-filter
+       :mode-filter ',mode-filter
        :nice ,nice
        :genaction (defun ,name () ,@body-no-directives)))))
 
@@ -196,11 +196,11 @@
 
 (defun autobuild-rule-applicable-p (rule mode)
   "Determine whether RULE is applicable in major mode MODE."
-  (let ((major-mode-filter (autobuild-rule-major-mode-filter rule)))
-    (or (null major-mode-filter)
-        (cl-find major-mode major-mode-filter)
-        ;; (intersection major-mode-filter minor-mode-list)
-        (cl-loop for mode in major-mode-filter
+  (let ((mode-filter (autobuild-rule-mode-filter rule)))
+    (or (null mode-filter)
+        (cl-find major-mode mode-filter)
+        ;; (intersection mode-filter minor-mode-list)
+        (cl-loop for mode in mode-filter
                  thereis (cl-find mode minor-mode-list)))))
 
 (defun autobuild-current-build-actions ()
