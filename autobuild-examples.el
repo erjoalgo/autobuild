@@ -296,6 +296,10 @@
                     (f-ext (buffer-file-name))))
     (format "xmodmap -verbose %s" (f-filename (buffer-file-name)))))
 
+(autobuild-define-rule autobuild-message-send (message-mode)
+  "Send an email in gnus message-mode"
+  #'message-send-and-exit)
+
 (provide 'autobuild-examples)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
