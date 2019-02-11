@@ -9,7 +9,7 @@
 
   Autobuild rule actions may range from simple compile-command strings, to
   emacs-lisp functions, to pipelines that chain multiple build rules together to
-  create more comprehensive build processes, with individual steps that
+  create more complete build processes, with individual steps that
   may be either synchronous or asynchronous.
 
 * Index
