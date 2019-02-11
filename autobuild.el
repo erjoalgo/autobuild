@@ -145,6 +145,7 @@
                rule)))))
 
 (defun autobuild-rule-find (name)
+  "Find an autobuild rule by symbol NAME."
   (alist-get name autobuild-rules-alist))
 
 (defun autobuild-pipeline-run (rules-remaining)
@@ -274,13 +275,14 @@
    (t (error "Action must be string or function, not %s" action))))
 
 (defun autobuild-rebuild-last-action ()
+  "Rerun the last autobuild action."
   (interactive)
   (if (not autobuild-last-executed-action)
-      (error "no last known action")
+      (error "No last known action")
     (destructuring-bind (action . buffer)
         autobuild-last-executed-action
       (if (not (buffer-live-p buffer))
-          (error "buffer not live: %s" buffer)
+          (error "Buffer not live: %s" buffer)
         (with-current-buffer buffer
           (autobuild-run-action action))))))
 
