@@ -198,7 +198,10 @@
   "Determine whether RULE is applicable in major mode MODE."
   (let ((major-mode-filter (autobuild-rule-major-mode-filter rule)))
     (or (null major-mode-filter)
-        (cl-find major-mode major-mode-filter))))
+        (cl-find major-mode major-mode-filter)
+        ;; (intersection major-mode-filter minor-mode-list)
+        (cl-loop for mode in major-mode-filter
+                 thereis (cl-find mode minor-mode-list)))))
 
 (defun autobuild-current-build-actions ()
   "Return a list of the currently applicable build actions.
