@@ -261,14 +261,28 @@
     (setq autobuild-last-rule-name (car choice))
     (autobuild-run-action (cl-third choice))))
 
+(defvar autobuild-last-executed-action nil)
+
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
   (cl-assert action)
+  (setq autobuild-last-executed-action (cons action (current-buffer)))
   (cond
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
    ((functionp action) (funcall action))
    (t (error "Action must be string or function, not %s" action))))
+
+(defun autobuild-rebuild-last-action ()
+  (interactive)
+  (if (not autobuild-last-executed-action)
+      (error "no last known action")
+    (destructuring-bind (action . buffer)
+        autobuild-last-executed-action
+      (if (not (buffer-live-p buffer))
+          (error "buffer not live: %s" buffer)
+        (with-current-buffer buffer
+          (autobuild-run-action action))))))
 
 (defvar-local autobuild-compilation-start-time nil)
 
