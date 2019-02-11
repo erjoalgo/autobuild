@@ -194,8 +194,11 @@
         (pipe-in (if (file-exists-p "test.in") " < test.in" ""))
         (speed (if (bound-and-true-p c-ofast-compilation)
                    "-Ofast" "-g")))
-    (format "gcc %s -Wall -W -std=c99 -Wextra -lm %s && ./a.out %s"
-            speed fn pipe-in)))
+    (format "gcc %s -Wall -W -std=c99 -Wextra -lm %s && ./a.out %s %s"
+            speed fn
+            (if (bound-and-true-p executable-args)
+                executable-args "")
+            pipe-in)))
 
 (autobuild-define-rule autobuild-c++ (c++-mode)
   (let ((fn (f-filename (buffer-file-name)))
