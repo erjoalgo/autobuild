@@ -303,6 +303,13 @@
   "Send an email in gnus message-mode"
   #'message-send-and-exit)
 
+(autobuild-define-rule autobuild-dot-to-ps (graphviz-dot-mode)
+  "Convert a .dot file to ps."
+  (when-let ((buffer-file-name)
+             (file (f-filename buffer-file-name)))
+    (format "dot -Tps %s -o %s.ps"
+            file file)))
+
 (provide 'autobuild-examples)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
