@@ -148,7 +148,6 @@
   "Find an autobuild rule by symbol NAME."
   (alist-get name autobuild-rules-alist))
 
-;; TODO(ejalfonso) fix nested pipeline clobbering remaining rules
 ;; TODO(ejalfonso) support supressing intermediate pipeline step notifications
 ;; TODO(ejalfonso) rename "rules" to actions
 
