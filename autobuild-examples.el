@@ -183,6 +183,14 @@
        ((find-file-noselect "Makefile") "make")
        ((find-file-noselect "Makefile") "sudo make install")))))
 
+(autobuild-define-rule autobuild-configure-make-install-hola
+  nil
+  (when (or (file-exists-p "autogen")
+            (file-exists-p "configure"))
+    (autobuild-pipeline
+     ((current-buffer) (autobuild-rule-find #'autobuild-configure-make-install))
+     ((current-buffer) "echo hola"))))
+
 (autobuild-define-rule autobuild-mpm nil
   (when (and (buffer-file-name)
              (equal "pkgdef" (f-ext (buffer-file-name))))
