@@ -158,7 +158,9 @@
       (unless buffer
         (error "No buffer for rule %s" rule-or-action))
       (with-current-buffer buffer
-        (let* ((action rule-or-action))
+        (let* ((action (if (autobuild-rule-p rule-or-action)
+                           (autobuild-rule-action rule-or-action)
+                           rule-or-action)))
           (unless action
             (error "Rule %s in pipeline should have generated an action" rule-or-action))
           (let ((result (autobuild-run-action action)))
