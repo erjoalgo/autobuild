@@ -150,6 +150,7 @@
 
 ;; TODO(ejalfonso) fix nested pipeline clobbering remaining rules
 ;; TODO(ejalfonso) support supressing intermediate pipeline step notifications
+;; TODO(ejalfonso) rename "rules" to actions
 
 (defun autobuild-pipeline-run (rules)
   "Run the RULES of an autobuild pipeline.  See ‘autobuild-pipeline'.
