@@ -148,6 +148,9 @@
   "Find an autobuild rule by symbol NAME."
   (alist-get name autobuild-rules-alist))
 
+;; TODO(ejalfonso) fix nested pipeline clobbering remaining rules
+;; TODO(ejalfonso) support supressing intermediate pipeline step notifications
+
 (defun autobuild-pipeline-run (rules-remaining)
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
   (when rules-remaining
