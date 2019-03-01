@@ -158,49 +158,32 @@
    RULES-REMAINING-VAR is a temporary var used internally to track the rules
    remaining for a pipeline invocation, which may be asynchronous and
    and span multiple buffers."
-  ;; (assert (xor rules autobuild-pipeline-rules-remaining-var))
   (let* ((var
          (or autobuild-pipeline-rules-remaining-var
              (gentemp "autobuild-pipeline-rules-")))
         (rules
          (append rules (when (boundp var) (symbol-value var)))))
 
-  ;; (assert autobuild-pipeline-rules-remaining-var)
   (when rules
     (cl-destructuring-bind (buffer rule-or-action) (car rules)
       (unless buffer (error "No buffer for rule %s" rule-or-action))
       (with-current-buffer buffer
         (setq autobuild-pipeline-rules-remaining-var var)
-        (assert autobuild-pipeline-rules-remaining-var)
         (set autobuild-pipeline-rules-remaining-var (cdr rules))
-        (format "setting %s to %s" autobuild-pipeline-rules-remaining-var
-          (symbol-value autobuild-pipeline-rules-remaining-var))
         (let* ((action (if (autobuild-rule-p rule-or-action)
                            (autobuild-rule-action rule-or-action)
                          rule-or-action)))
-          (message "action: value of autobuild-pipeline-rules-remaining-var: %s" autobuild-pipeline-rules-remaining-var)
-          (message "action: value of (symbol-value autobuild-pipeline-rules-remaining-var): %s"
-           (symbol-value autobuild-pipeline-rules-remaining-var))
           (unless action
             (error "Rule %s in pipeline should have generated an action" rule-or-action))
-          (let* ((autobuild-pipeline-rules-remaining-var
+          (let ((autobuild-pipeline-rules-remaining-var
                   autobuild-pipeline-rules-remaining-var)
-                 (oldvar autobuild-pipeline-rules-remaining-var)
                  (result (autobuild-run-action action)))
-
-            (message "post action: value of autobuild-pipeline-rules-remaining-var: %s"
-                     autobuild-pipeline-rules-remaining-var)
-            (message "post action: value of (symbol-value autobuild-pipeline-rules-remaining-var): %s"
-                     (symbol-value autobuild-pipeline-rules-remaining-var))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
                 (progn
                   (setf (buffer-local-value 'autobuild-pipeline-rules-remaining-var result)
                                           autobuild-pipeline-rules-remaining-var)
-                  (message "scheduling remaining rules: %s in %s (%s). buffer-local: %s. expected %s" rules result
-                           (buffer-local-value 'compile-command result)
-                           (buffer-local-value 'autobuild-pipeline-rules-remaining-var result)
-                           autobuild-pipeline-rules-remaining-var)
+                  (message "scheduling remaining rules: %s" rules)
                   result)
               (progn
                 ;; TODO fail early on non-zero exit, error
@@ -221,8 +204,6 @@
    COMPILATION-BUFFER FINISH-STATE are the arguments passed
    to functions in ‘compilation-finish-functions'."
   (with-current-buffer compilation-buffer
-    (message "value of autobuild-pipeline-rules-remaining-var in continue: %s %s"
-             autobuild-pipeline-rules-remaining-var compile-command)
     (when (bound-and-true-p autobuild-pipeline-rules-remaining-var)
       (let ((rules (symbol-value autobuild-pipeline-rules-remaining-var)))
       (if (autobuild-compilation-exited-abnormally-p finish-state)
