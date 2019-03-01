@@ -174,9 +174,9 @@
                            rule-or-action)))
             (unless action
               (error "Rule %s in pipeline should have generated an action" rule-or-action))
-            (let ((autobuild-pipeline-rules-remaining-var
-                   autobuild-pipeline-rules-remaining-var)
-                  (result (autobuild-run-action action)))
+            (let* ((autobuild-pipeline-rules-remaining-var
+                    autobuild-pipeline-rules-remaining-var)
+                   (result (autobuild-run-action action)))
               (if (and (bufferp result)
                        (eq 'compilation-mode (buffer-local-value 'major-mode result)))
                   (progn
