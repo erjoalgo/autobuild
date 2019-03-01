@@ -159,36 +159,36 @@
    remaining for a pipeline invocation, which may be asynchronous and
    and span multiple buffers."
   (let* ((var
-         (or autobuild-pipeline-rules-remaining-var
-             (gentemp "autobuild-pipeline-rules-")))
-        (rules
-         (append rules (when (boundp var) (symbol-value var)))))
+          (or autobuild-pipeline-rules-remaining-var
+              (gentemp "autobuild-pipeline-rules-")))
+         (rules
+          (append rules (when (boundp var) (symbol-value var)))))
 
-  (when rules
-    (cl-destructuring-bind (buffer rule-or-action) (car rules)
-      (unless buffer (error "No buffer for rule %s" rule-or-action))
-      (with-current-buffer buffer
-        (setq autobuild-pipeline-rules-remaining-var var)
-        (set autobuild-pipeline-rules-remaining-var (cdr rules))
-        (let* ((action (if (autobuild-rule-p rule-or-action)
-                           (autobuild-rule-action rule-or-action)
-                         rule-or-action)))
-          (unless action
-            (error "Rule %s in pipeline should have generated an action" rule-or-action))
-          (let ((autobuild-pipeline-rules-remaining-var
-                  autobuild-pipeline-rules-remaining-var)
-                 (result (autobuild-run-action action)))
-            (if (and (bufferp result)
-                     (eq 'compilation-mode (buffer-local-value 'major-mode result)))
+    (when rules
+      (cl-destructuring-bind (buffer rule-or-action) (car rules)
+        (unless buffer (error "No buffer for rule %s" rule-or-action))
+        (with-current-buffer buffer
+          (setq autobuild-pipeline-rules-remaining-var var)
+          (set autobuild-pipeline-rules-remaining-var (cdr rules))
+          (let* ((action (if (autobuild-rule-p rule-or-action)
+                             (autobuild-rule-action rule-or-action)
+                           rule-or-action)))
+            (unless action
+              (error "Rule %s in pipeline should have generated an action" rule-or-action))
+            (let ((autobuild-pipeline-rules-remaining-var
+                   autobuild-pipeline-rules-remaining-var)
+                  (result (autobuild-run-action action)))
+              (if (and (bufferp result)
+                       (eq 'compilation-mode (buffer-local-value 'major-mode result)))
+                  (progn
+                    (setf (buffer-local-value 'autobuild-pipeline-rules-remaining-var result)
+                          autobuild-pipeline-rules-remaining-var)
+                    (message "scheduling remaining rules: %s" rules)
+                    result)
                 (progn
-                  (setf (buffer-local-value 'autobuild-pipeline-rules-remaining-var result)
-                                          autobuild-pipeline-rules-remaining-var)
-                  (message "scheduling remaining rules: %s" rules)
-                  result)
-              (progn
-                ;; TODO fail early on non-zero exit, error
-                ;; or ensure each action errs
-                (autobuild-pipeline-run nil))))))))))
+                  ;; TODO fail early on non-zero exit, error
+                  ;; or ensure each action errs
+                  (autobuild-pipeline-run nil))))))))))
 
 ;; TODO
 (defvar autobuild-pipeline-finish-hook nil
@@ -206,13 +206,13 @@
   (with-current-buffer compilation-buffer
     (when (bound-and-true-p autobuild-pipeline-rules-remaining-var)
       (let ((rules (symbol-value autobuild-pipeline-rules-remaining-var)))
-      (if (autobuild-compilation-exited-abnormally-p finish-state)
+        (if (autobuild-compilation-exited-abnormally-p finish-state)
+            (progn
+              (message "aborting pipeline: %s" rules)
+              (set autobuild-pipeline-rules-remaining-var nil))
           (progn
-            (message "aborting pipeline: %s" rules)
-            (set autobuild-pipeline-rules-remaining-var nil))
-        (progn
-          (message "continuing with pipeline: %s" rules)
-          (autobuild-pipeline-run nil)))))))
+            (message "continuing with pipeline: %s" rules)
+            (autobuild-pipeline-run nil)))))))
 
 
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
