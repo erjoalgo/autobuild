@@ -196,9 +196,6 @@
   (when (bound-and-true-p autobuild-pipeline-rules-remaining-vvar)
     (autobuild-process-add-sentinel
      proc
-     ;; TODO(ejalfonso) don't use lexical-let
-     ;; (let ((autobuild-pipeline-rules-remaining-vvar
-     ;;                autobuild-pipeline-rules-remaining-vvar))
      `(lambda (buffer state)
         (defvar autobuild-pipeline-rules-remaining-vvar)
         (let ((autobuild-pipeline-rules-remaining-vvar
@@ -213,10 +210,6 @@
 
    COMPILATION-BUFFER FINISH-STATE are the arguments passed
    to functions in ‘compilation-finish-functions'."
-  ;; (defvar autobuild-pipeline-rules-remaining-vvar)
-  ;; (message "DEBUG autobuild-pipeline-rules-remaining-vvar (in finish-hook): %s"
-  ;;          autobuild-pipeline-rules-remaining-vvar)
-  ;; (assert (bound-and-true-p autobuild-pipeline-rules-remaining-vvar))
   (when rules
     (if (autobuild-compilation-exited-abnormally-p finish-state)
         (progn
