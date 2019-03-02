@@ -159,29 +159,30 @@
    and span multiple buffers."
   (defvar autobuild-pipeline-rules-remaining)
   (let ((rules (append rules (bound-and-true-p autobuild-pipeline-rules-remaining))))
+    (message "DEBUG rules (in run): %s"rules)
     (when rules
       (assert (null (cddar rules)))
       (cl-destructuring-bind (buffer rule-or-action) (car rules)
         (unless buffer (error "No buffer for rule %s" rule-or-action))
         (with-current-buffer buffer
-          (setq autobuild-pipeline-rules-remaining (cdr rules))
           (let* ((action (if (autobuild-rule-p rule-or-action)
                              (autobuild-rule-action rule-or-action)
                            rule-or-action)))
             (unless action
               (error "Rule %s in pipeline should have generated an action" rule-or-action))
-            (let* ((lexical-binding nil)
-                   (autobuild-pipeline-rules-remaining
-                    autobuild-pipeline-rules-remaining)
-                   ;; this should be a dynamic binding
-                   (result (autobuild-run-action action)))
-              (if (and (bufferp result)
-                       (eq 'compilation-mode (buffer-local-value 'major-mode result)))
-                  (progn result)
-                (progn
-                  ;; TODO fail early on non-zero exit, error
-                  ;; or ensure each action errs
-                  (autobuild-pipeline-run nil))))))))))
+            (let* ((autobuild-pipeline-rules-remaining (cdr rules)))
+              (defvar autobuild-pipeline-rules-remaining)
+              ;; this should be a dynamic binding
+              (let ((result (autobuild-run-action action)))
+                (message "DEBUG autobuild-pipeline-rules-remaining (in run): %s"
+                         autobuild-pipeline-rules-remaining)
+                (if (and (bufferp result)
+                         (eq 'compilation-mode (buffer-local-value 'major-mode result)))
+                    (progn result)
+                  (progn
+                    ;; TODO fail early on non-zero exit, error
+                    ;; or ensure each action errs
+                    (autobuild-pipeline-run nil)))))))))))
 
 ;; TODO
 (defvar autobuild-pipeline-finish-hook nil
@@ -193,13 +194,19 @@
 
 (defun autobuild-pipeline-setup-continuation (proc)
   (defvar autobuild-pipeline-rules-remaining)
+  (message "DEBUG autobuild-pipeline-rules-remaining (in sentinel setup): %s"
+           autobuild-pipeline-rules-remaining)
+  (edebug)
   (when (bound-and-true-p autobuild-pipeline-rules-remaining)
+    (message "on sentinel setup: true")
     (autobuild-process-add-sentinel
      proc
      `(lambda (buffer state)
         (defvar autobuild-pipeline-rules-remaining)
         (let ((autobuild-pipeline-rules-remaining
                ',autobuild-pipeline-rules-remaining))
+          (message "DEBUG autobuild-pipeline-rules-remaining (in sentinel): %s"
+                   autobuild-pipeline-rules-remaining)
           (autobuild-pipeline-continue
            buffer
            state
