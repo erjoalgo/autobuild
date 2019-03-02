@@ -396,6 +396,11 @@
   :type 'number
   :group 'autobuild)
 
+(defcustom autobuild-notify-silence-intermediate-pipeline-steps t
+  "Do not display autobuild notifications for all but the last step in a pipeline."
+  :type 'boolean
+  :group 'autobuild)
+
 (defcustom autobuild-notification-function
   #'autobuild-notification-default-function
   "Function used to issue compilation notifications.
@@ -429,7 +434,9 @@
                  (or (eq autobuild-notify-threshold-secs t)
                      (>= (- (time-to-seconds)
                             autobuild-compilation-start-time)
-                         autobuild-notify-threshold-secs)))
+                         autobuild-notify-threshold-secs))
+                 (or (not autobuild-notify-silence-intermediate-pipeline-steps)
+                     (null autobuild-pipeline-rules-remaining-vvar)))
             (funcall autobuild-notification-function
                      compilation-buffer compilation-state))))
     (error
