@@ -157,7 +157,7 @@
 
 (autobuild-define-rule autobuild-el-run-tests (emacs-lisp-mode)
   "Run emacs lisp tests."
-  (lambda () (eval-buffer) (ert t)))
+  (lambda () (eval-buffer) (ert (regexp-quote (f-base buffer-file-name)))))
 
 (autobuild-define-rule autobuild-makefile-make nil
   "Run make"
