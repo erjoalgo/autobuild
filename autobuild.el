@@ -196,17 +196,28 @@
   (when (bound-and-true-p autobuild-pipeline-rules-remaining-vvar)
     (autobuild-process-add-sentinel
      proc
-     `(lambda (proc finish-state)
+     `(lambda (buffer state)
         (defvar autobuild-pipeline-rules-remaining-vvar)
         (let ((autobuild-pipeline-rules-remaining-vvar
                ',autobuild-pipeline-rules-remaining-vvar))
-          (when rules
-            (if (autobuild-compilation-exited-abnormally-p finish-state)
-                (progn
-                  (message "aborting pipeline: %s" rules))
-              (progn
-                (message "continuing with pipeline: %s" rules)
-                (autobuild-pipeline-run nil)))))))))
+          (autobuild-pipeline-continue
+           buffer
+           state
+           autobuild-pipeline-rules-remaining-vvar))))))
+
+(defun autobuild-pipeline-continue (proc finish-state rules)
+  "Internal.  Used to resume an asynchronous pipeline.
+
+   COMPILATION-BUFFER FINISH-STATE are the arguments passed
+   to functions in ‘compilation-finish-functions'."
+  (when rules
+    (if (autobuild-compilation-exited-abnormally-p finish-state)
+        (progn
+          (message "aborting pipeline: %s" rules))
+      (progn
+        (message "continuing with pipeline: %s" rules)
+        (autobuild-pipeline-run nil)))))
+
 
 (add-hook 'compilation-start-hook #'autobuild-pipeline-setup-continuation)
 
