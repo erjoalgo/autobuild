@@ -46,7 +46,6 @@
 
 (require 'cl-lib)
 (eval-when-compile (require 'subr-x))
-(eval-when-compile (require 'cl))
 
 (unless (require 'selcand nil t)
   (defun selcand-select (cands &optional prompt stringify)
