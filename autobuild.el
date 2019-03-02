@@ -157,22 +157,22 @@
    RULES-REMAINING-VAR is a temporary var used internally to track the rules
    remaining for a pipeline invocation, which may be asynchronous and
    and span multiple buffers."
-  (defvar autobuild-pipeline-rules-remaining-vvar)
-  (let ((rules (append rules (bound-and-true-p autobuild-pipeline-rules-remaining-vvar))))
+  (defvar autobuild-pipeline-rules-remaining)
+  (let ((rules (append rules (bound-and-true-p autobuild-pipeline-rules-remaining))))
     (when rules
       (assert (null (cddar rules)))
       (cl-destructuring-bind (buffer rule-or-action) (car rules)
         (unless buffer (error "No buffer for rule %s" rule-or-action))
         (with-current-buffer buffer
-          (setq autobuild-pipeline-rules-remaining-vvar (cdr rules))
+          (setq autobuild-pipeline-rules-remaining (cdr rules))
           (let* ((action (if (autobuild-rule-p rule-or-action)
                              (autobuild-rule-action rule-or-action)
                            rule-or-action)))
             (unless action
               (error "Rule %s in pipeline should have generated an action" rule-or-action))
             (let* ((lexical-binding nil)
-                   (autobuild-pipeline-rules-remaining-vvar
-                    autobuild-pipeline-rules-remaining-vvar)
+                   (autobuild-pipeline-rules-remaining
+                    autobuild-pipeline-rules-remaining)
                    ;; this should be a dynamic binding
                    (result (autobuild-run-action action)))
               (if (and (bufferp result)
@@ -192,14 +192,14 @@
   (string-match-p ".*abnormally.*" compilation-finished-message))
 
 (defun autobuild-pipeline-setup-continuation (proc)
-  (defvar autobuild-pipeline-rules-remaining-vvar)
-  (when (bound-and-true-p autobuild-pipeline-rules-remaining-vvar)
+  (defvar autobuild-pipeline-rules-remaining)
+  (when (bound-and-true-p autobuild-pipeline-rules-remaining)
     (autobuild-process-add-sentinel
      proc
      `(lambda (proc finish-state)
-        (defvar autobuild-pipeline-rules-remaining-vvar)
-        (let ((autobuild-pipeline-rules-remaining-vvar
-               ',autobuild-pipeline-rules-remaining-vvar))
+        (defvar autobuild-pipeline-rules-remaining)
+        (let ((autobuild-pipeline-rules-remaining
+               ',autobuild-pipeline-rules-remaining))
           (when rules
             (if (autobuild-compilation-exited-abnormally-p finish-state)
                 (progn
@@ -399,7 +399,7 @@
                             autobuild-compilation-start-time)
                          autobuild-notify-threshold-secs))
                  (or (not autobuild-notify-silence-intermediate-pipeline-steps)
-                     (null autobuild-pipeline-rules-remaining-vvar)))
+                     (null autobuild-pipeline-rules-remaining)))
             (funcall autobuild-notification-function
                      compilation-buffer compilation-state))))
     (error
