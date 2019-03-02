@@ -158,17 +158,14 @@
    RULES-REMAINING-VAR is a temporary var used internally to track the rules
    remaining for a pipeline invocation, which may be asynchronous and
    and span multiple buffers."
-  (let (_)
   (defvar autobuild-pipeline-rules-remaining-vvar)
   (let ((rules (append rules (bound-and-true-p autobuild-pipeline-rules-remaining-vvar))))
-    (message "DEBUG rules (in pipeline-run): %s" rules)
     (when rules
       (assert (null (cddar rules)))
       (cl-destructuring-bind (buffer rule-or-action) (car rules)
         (unless buffer (error "No buffer for rule %s" rule-or-action))
         (with-current-buffer buffer
           (setq autobuild-pipeline-rules-remaining-vvar (cdr rules))
-          (message "DEBUG rules (in run): %s"rules)
           (let* ((action (if (autobuild-rule-p rule-or-action)
                              (autobuild-rule-action rule-or-action)
                            rule-or-action)))
@@ -185,7 +182,7 @@
                 (progn
                   ;; TODO fail early on non-zero exit, error
                   ;; or ensure each action errs
-                  (autobuild-pipeline-run nil)))))))))))
+                  (autobuild-pipeline-run nil))))))))))
 
 ;; TODO
 (defvar autobuild-pipeline-finish-hook nil
@@ -197,30 +194,20 @@
 
 (defun autobuild-pipeline-setup-continuation (proc)
   (defvar autobuild-pipeline-rules-remaining-vvar)
-  (message "DEBUG autobuild-pipeline-rules-remaining-vvar (in start-hook): %s"
-           autobuild-pipeline-rules-remaining-vvar)
   (when (bound-and-true-p autobuild-pipeline-rules-remaining-vvar)
-    (format "setting up continuation")
     (autobuild-process-add-sentinel
      proc
      ;; TODO(ejalfonso) don't use lexical-let
      ;; (let ((autobuild-pipeline-rules-remaining-vvar
      ;;                autobuild-pipeline-rules-remaining-vvar))
-       `(lambda (buffer state)
-         (message "DEBUG autobuild-pipeline-rules-remaining-vvar (in sentinel): %s"
-                  autobuild-pipeline-rules-remaining-vvar)
-         (message "DEBUG buffer (in sentinel): %s" buffer)
-         (message "DEBUG state (in sentinel): %s" state)
-         (message "DEBUG autobuild-pipeline-rules-remaining-vvar (in sentinel let): %s"
-                  autobuild-pipeline-rules-remaining-vvar)
-         (let (_)
-           (defvar autobuild-pipeline-rules-remaining-vvar)
-           (let ((autobuild-pipeline-rules-remaining-vvar
-                  ',autobuild-pipeline-rules-remaining-vvar))
-             (autobuild-pipeline-continue
-              buffer
-              state
-              autobuild-pipeline-rules-remaining-vvar)))))))
+     `(lambda (buffer state)
+        (defvar autobuild-pipeline-rules-remaining-vvar)
+        (let ((autobuild-pipeline-rules-remaining-vvar
+               ',autobuild-pipeline-rules-remaining-vvar))
+          (autobuild-pipeline-continue
+           buffer
+           state
+           autobuild-pipeline-rules-remaining-vvar))))))
 
 (defun autobuild-pipeline-continue (proc finish-state rules)
   "Internal.  Used to resume an asynchronous pipeline.
@@ -234,18 +221,13 @@
   (when rules
     (if (autobuild-compilation-exited-abnormally-p finish-state)
         (progn
-          (message "aborting pipeline: %s" rules)
-          (setq autobuild-pipeline-rules-remaining-vvar nil))
+          (message "aborting pipeline: %s" rules))
       (progn
         (message "continuing with pipeline: %s" rules)
         (autobuild-pipeline-run nil)))))
 
 
 (add-hook 'compilation-start-hook #'autobuild-pipeline-setup-continuation)
-
-;; (add-hook ' compilation-finish-functions #'autobuild-pipeline-continue)
-
-;; (setq compilation-finish-functions nil)
 
 (defun autobuild-process-add-sentinel (proc sentinel)
   "Add a process sentinel SENTINEL to PROC."
