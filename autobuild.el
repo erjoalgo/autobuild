@@ -1,4 +1,4 @@
-;;; autobuild.el --- Define and execute build rules and compilation pipelines
+;;; autobuild.el --- Define and execute build rules and compilation pipelines -*- lexical-binding: t; -*-
 ;;
 ;; Filename: autobuild.el
 ;; Description: Define and execute composable build rules and compilation pipelines
@@ -45,6 +45,9 @@
 
 
 (require 'cl-lib)
+(eval-when-compile (require 'subr-x))
+(eval-when-compile (require 'cl))
+
 (unless (require 'selcand nil t)
   (defun selcand-select (cands &optional prompt stringify)
     "Use PROMPT to prompt for a selection from CANDS candidates."
@@ -108,8 +111,6 @@
        :nice ,nice
        :genaction (defun ,name () ,@body-no-directives)))))
 
-(defvar-local autobuild-pipeline-rules-remaining-var nil)
-
 ;;;###autoload
 (defmacro autobuild-pipeline (&rest buffer-rule-list)
   "Define a build pipeline.
@@ -157,37 +158,34 @@
    RULES-REMAINING-VAR is a temporary var used internally to track the rules
    remaining for a pipeline invocation, which may be asynchronous and
    and span multiple buffers."
-  (let* ((var
-          (or autobuild-pipeline-rules-remaining-var
-              (gentemp "autobuild-pipeline-rules-")))
-         (rules
-          (append rules (when (boundp var) (symbol-value var)))))
-
+  (let (_)
+  (defvar autobuild-pipeline-rules-remaining-vvar)
+  (let ((rules (append rules (bound-and-true-p autobuild-pipeline-rules-remaining-vvar))))
+    (message "DEBUG rules (in pipeline-run): %s" rules)
     (when rules
+      (assert (null (cddar rules)))
       (cl-destructuring-bind (buffer rule-or-action) (car rules)
         (unless buffer (error "No buffer for rule %s" rule-or-action))
         (with-current-buffer buffer
-          (setq autobuild-pipeline-rules-remaining-var var)
-          (set autobuild-pipeline-rules-remaining-var (cdr rules))
+          (setq autobuild-pipeline-rules-remaining-vvar (cdr rules))
+          (message "DEBUG rules (in run): %s"rules)
           (let* ((action (if (autobuild-rule-p rule-or-action)
                              (autobuild-rule-action rule-or-action)
                            rule-or-action)))
             (unless action
               (error "Rule %s in pipeline should have generated an action" rule-or-action))
-            (let* ((autobuild-pipeline-rules-remaining-var
-                    autobuild-pipeline-rules-remaining-var)
+            (let* ((lexical-binding nil)
+                   (autobuild-pipeline-rules-remaining-vvar
+                    autobuild-pipeline-rules-remaining-vvar)
+                   ;; this should be a dynamic binding
                    (result (autobuild-run-action action)))
               (if (and (bufferp result)
                        (eq 'compilation-mode (buffer-local-value 'major-mode result)))
-                  (progn
-                    (setf (buffer-local-value 'autobuild-pipeline-rules-remaining-var result)
-                          autobuild-pipeline-rules-remaining-var)
-                    (message "scheduling remaining rules: %s" rules)
-                    result)
+                  (progn result)
                 (progn
                   ;; TODO fail early on non-zero exit, error
                   ;; or ensure each action errs
-                  (autobuild-pipeline-run nil))))))))))
+                  (autobuild-pipeline-run nil)))))))))))
 
 ;; TODO
 (defvar autobuild-pipeline-finish-hook nil
@@ -197,24 +195,69 @@
   "Determine from COMPILATION-FINISHED-MESSAGE whether compilation failed."
   (string-match-p ".*abnormally.*" compilation-finished-message))
 
-(defun autobuild-pipeline-continue (compilation-buffer finish-state)
+(defun autobuild-pipeline-setup-continuation (proc)
+  (defvar autobuild-pipeline-rules-remaining-vvar)
+  (message "DEBUG autobuild-pipeline-rules-remaining-vvar (in start-hook): %s"
+           autobuild-pipeline-rules-remaining-vvar)
+  (when (bound-and-true-p autobuild-pipeline-rules-remaining-vvar)
+    (format "setting up continuation")
+    (autobuild-process-add-sentinel
+     proc
+     ;; TODO(ejalfonso) don't use lexical-let
+     ;; (let ((autobuild-pipeline-rules-remaining-vvar
+     ;;                autobuild-pipeline-rules-remaining-vvar))
+       `(lambda (buffer state)
+         (message "DEBUG autobuild-pipeline-rules-remaining-vvar (in sentinel): %s"
+                  autobuild-pipeline-rules-remaining-vvar)
+         (message "DEBUG buffer (in sentinel): %s" buffer)
+         (message "DEBUG state (in sentinel): %s" state)
+         (message "DEBUG autobuild-pipeline-rules-remaining-vvar (in sentinel let): %s"
+                  autobuild-pipeline-rules-remaining-vvar)
+         (let (_)
+           (defvar autobuild-pipeline-rules-remaining-vvar)
+           (let ((autobuild-pipeline-rules-remaining-vvar
+                  ',autobuild-pipeline-rules-remaining-vvar))
+             (autobuild-pipeline-continue
+              buffer
+              state
+              autobuild-pipeline-rules-remaining-vvar)))))))
+
+(defun autobuild-pipeline-continue (proc finish-state rules)
   "Internal.  Used to resume an asynchronous pipeline.
 
    COMPILATION-BUFFER FINISH-STATE are the arguments passed
    to functions in ‘compilation-finish-functions'."
-  (with-current-buffer compilation-buffer
-    (when (bound-and-true-p autobuild-pipeline-rules-remaining-var)
-      (let ((rules (symbol-value autobuild-pipeline-rules-remaining-var)))
-        (if (autobuild-compilation-exited-abnormally-p finish-state)
-            (progn
-              (message "aborting pipeline: %s" rules)
-              (set autobuild-pipeline-rules-remaining-var nil))
-          (progn
-            (message "continuing with pipeline: %s" rules)
-            (autobuild-pipeline-run nil)))))))
+  ;; (defvar autobuild-pipeline-rules-remaining-vvar)
+  ;; (message "DEBUG autobuild-pipeline-rules-remaining-vvar (in finish-hook): %s"
+  ;;          autobuild-pipeline-rules-remaining-vvar)
+  ;; (assert (bound-and-true-p autobuild-pipeline-rules-remaining-vvar))
+  (when rules
+    (if (autobuild-compilation-exited-abnormally-p finish-state)
+        (progn
+          (message "aborting pipeline: %s" rules)
+          (setq autobuild-pipeline-rules-remaining-vvar nil))
+      (progn
+        (message "continuing with pipeline: %s" rules)
+        (autobuild-pipeline-run nil)))))
 
 
-(add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
+(add-hook 'compilation-start-hook #'autobuild-pipeline-setup-continuation)
+
+;; (add-hook ' compilation-finish-functions #'autobuild-pipeline-continue)
+
+;; (setq compilation-finish-functions nil)
+
+(defun autobuild-process-add-sentinel (proc sentinel)
+  "Add a process sentinel SENTINEL to PROC."
+  (if-let ((orig (process-sentinel proc)))
+      (set-process-sentinel proc
+                            (let ((new sentinel) (orig orig))
+                              ;; this is lexical-let
+                              (lambda (proc change)
+                                (prog1
+                                    (funcall orig proc change)
+                                  (funcall new proc change)))))
+    (set-process-sentinel proc sentinel)))
 
 (defun autobuild-rule-applicable-p (rule mode)
   "Determine whether RULE is applicable in major mode MODE."
