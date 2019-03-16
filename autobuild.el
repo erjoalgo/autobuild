@@ -206,7 +206,7 @@
         (cl-find major-mode mode-filter)
         ;; (intersection mode-filter minor-mode-list)
         (cl-loop for mode in mode-filter
-                 thereis (cl-find mode minor-mode-list)))))
+                 thereis (bound-and-true-p translation-mode)))))
 
 (defun autobuild-current-build-actions ()
   "Return a list of the currently applicable build actions.
