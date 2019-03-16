@@ -178,9 +178,9 @@
 (defvar autobuild-pipeline-finish-hook nil
   "Hook called when the entire pipeline has finished.")
 
-(defun autobuild-compilation-exited-abnormally-p (compilation-finished-message)
+(defun autobuild-compilation-succeeded-p (compilation-finished-message)
   "Determine from COMPILATION-FINISHED-MESSAGE whether compilation failed."
-  (string-match-p ".*abnormally.*" compilation-finished-message))
+  (equal "finished\n" compilation-finished-message))
 
 (defun autobuild-pipeline-continue (compilation-buffer finish-state)
   "Internal.  Used to resume an asynchronous pipeline.
