@@ -238,12 +238,20 @@
 (autobuild-define-rule autobuild-send-message (message-mode)
   #'message-send-and-exit)
 
-(autobuild-define-rule autobuild-org-export (org-mode)
+(autobuild-define-rule autobuild-org-export-html (org-mode)
   (lambda ()
     (let* ((fn (org-html-export-to-html))
 	   (url (format "file://%s" (f-full fn)))
 	   (org-exporting-mine t))
       (browse-url url))))
+
+(autobuild-define-rule autobuild-org-export-pdf (org-mode)
+  (autobuild-nice 11)
+  #'org-latex-export-to-pdf)
+
+(autobuild-define-rule autobuild-org-export-odt (org-mode)
+  (autobuild-nice 11)
+  #'org-odt-export-to-odt)
 
 (autobuild-define-rule autobuild-octave-eval (octave-mode)
   (call-interactively
