@@ -45,7 +45,9 @@
 
 
 (require 'cl-lib)
-(unless (require 'selcand nil t)
+(require 'selcand nil t)
+
+(unless (fboundp #'selcand-select)
   (defun selcand-select (cands &optional prompt stringify)
     "Use PROMPT to prompt for a selection from CANDS candidates."
     (let* ((stringify (or stringify #'prin1-to-string))
