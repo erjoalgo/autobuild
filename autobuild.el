@@ -192,7 +192,7 @@
    to functions in ‘compilation-finish-functions'."
   (with-current-buffer compilation-buffer
     (when (bound-and-true-p autobuild-pipeline-rules-remaining)
-      (if (autobuild-compilation-exited-abnormally-p finish-state)
+      (if (not (autobuild-compilation-succeeded-p finish-state))
           (progn
             (message "aborting pipeline: %s" autobuild-pipeline-rules-remaining)
             (setq autobuild-pipeline-rules-remaining nil))
