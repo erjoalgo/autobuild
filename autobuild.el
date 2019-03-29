@@ -286,7 +286,7 @@
   (interactive)
   (if (not autobuild-last-executed-action)
       (error "No last known action")
-    (destructuring-bind (action . buffer)
+    (cl-destructuring-bind (action . buffer)
         autobuild-last-executed-action
       (if (not (buffer-live-p buffer))
           (error "Buffer not live: %s" buffer)
