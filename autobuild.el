@@ -155,6 +155,9 @@
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
   (when rules-remaining
     (cl-destructuring-bind (buffer rule-or-action) (car rules-remaining)
+      (unless rule-or-action
+        ;; TODO use dynamic var to get name of pipeline
+        (error "Null rule in piepine"))
       (unless buffer (setq buffer (current-buffer)))
       (with-current-buffer buffer
         (let* ((action (if (autobuild-rule-p rule-or-action)
