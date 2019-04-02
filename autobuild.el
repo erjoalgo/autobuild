@@ -209,9 +209,9 @@
   (let ((mode-filter (autobuild-rule-mode-filter rule)))
     (or (null mode-filter)
         (cl-find major-mode mode-filter)
-        ;; (intersection mode-filter minor-mode-list)
         (cl-loop for mode in mode-filter
-                 thereis (bound-and-true-p translation-mode)))))
+                 thereis (and (boundp mode)
+                              (symbol-value mode))))))
 
 (defun autobuild-current-build-actions ()
   "Return a list of the currently applicable build actions.
