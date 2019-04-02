@@ -388,6 +388,15 @@
 ;; TODO use pipeline hook, not compilation hook
 (add-hook 'compilation-finish-functions 'autobuild-notify)
 
+(defun autobuild-delete-rule (rule)
+  "Delete the RULE from the autobuild rules registry."
+  (interactive
+   (list (selcand-select (mapcar #'car autobuild-rules-alist)
+                         "select rule to delete: ")))
+  (cl-assert (assoc rule autobuild-rules-alist))
+  (setq autobuild-rules-alist
+        (assq-delete-all rule autobuild-rules-alist)))
+
 ;; TODO support autobuild-next-buffer and defining one-off pipelines interactively
 
 (provide 'autobuild)
