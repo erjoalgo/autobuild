@@ -358,6 +358,8 @@
    COMPILATION-STATE is as described in ‘compilation-finish-functions'"
   (message "compilation %s: %s"
            (replace-regexp-in-string "\n" " " compilation-state)
+           ;; TODO this is a global. this may fail if
+           ;; compilation-command is not updated, e.g. build-cleaner
            compile-command))
 
 (defun autobuild-notify (compilation-buffer compilation-state)
