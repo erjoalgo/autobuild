@@ -46,6 +46,7 @@
 
 (require 'cl-lib)
 (require 'selcand nil t)
+(eval-when-compile (require 'subr-x))
 
 (unless (fboundp #'selcand-select)
   (defun selcand-select (cands &optional prompt stringify)
@@ -64,21 +65,25 @@
            (cand (alist-get choice hints-cands nil nil #'equal)))
       cand)))
 
-(cl-defstruct autobuild-rule
-  mode-filter
-  nice
-  genaction)
+(defvar autobuild-rules-alist nil "A list of all known autobuild rules.")
 
-(defvar autobuild-rules-alist nil)
+(defun autobuild-rule-p (rule)
+  "Return non-nil if RULE has been registered as an autobuild rule."
+  (and (functionp rule)
+       (cl-find rule autobuild-rules-alist)))
 
-(defun autobuild-add-rule (name rule)
-  "Internal.  Add a rule RULE with NAME as the key."
-  (setf (alist-get name autobuild-rules-alist) rule))
+(defvar autobuild-nice 10
+  "Dynamic var which the currently executing rule may setq when generating an action.")
+
+(defconst autobuild-nice-default 10
+  "Default nice value for rules which do not setq autobuild-nice explicitly.")
+
+(defun autobuild-nice (nice)
+  "A wrapper for a rule to set the current action's NICE value."
+  (setq autobuild-nice nice))
 
 ;;;###autoload
-(cl-defmacro autobuild-define-rule (name
-                                    mode-filter
-                                    &rest body)
+(cl-defmacro autobuild-define-rule (name mode-filter &rest body)
   "Define a build rule NAME.
 
    When ‘major-mode' is in MODE-FILTER, or when MODE-FILTER is nil,
@@ -91,24 +96,11 @@
   (declare (indent defun))
   (unless (listp mode-filter)
     (error "Invalid major mode specification"))
-  (let* ((autobuild-directives '(autobuild-nice))
-         form-directives
-         (body-no-directives
-          (cl-loop for top-level-form in body
-                   ;; TODO remove directives from body
-                   if (and (listp top-level-form)
-                           (member (car top-level-form) autobuild-directives))
-                   do (push (apply #'cons top-level-form) form-directives)
-                   else
-                   collect top-level-form))
-         (nice (or (alist-get 'autobuild-nice form-directives) 10)))
-    `(autobuild-add-rule
-      ',name
-      (make-autobuild-rule
-       ;; :name ',name
-       :mode-filter ',mode-filter
-       :nice ,nice
-       :genaction (defun ,name () ,@body-no-directives)))))
+  `(progn
+     (defun ,name ()
+       (when (autobuild-mode-filer-applicable-p ',mode-filter)
+         ,@body))
+     (pushnew ',name autobuild-rules-alist)))
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
 
@@ -135,20 +127,16 @@
                        collect `(list ,buffer ,rule-name))))))
 
 (defun autobuild-rule-action (rule)
-  "Generate an action for rule RULE."
+  "Funcall wrapper to safely obtain an action for rule RULE."
+  (assert (functionp rule))
   (let ((original-buffer (current-buffer)))
     (prog1
-        (condition-case ex
-            (funcall (autobuild-rule-genaction rule))
+        (condition-case ex (funcall rule)
           (error
            (error "Error while generating action for rule %s: %s" rule ex)))
       (unless (eq (current-buffer) original-buffer)
         (error "‘genaction' of rule %s should not change buffers or have side effects"
                rule)))))
-
-(defun autobuild-rule-find (name)
-  "Find an autobuild rule by symbol NAME."
-  (alist-get name autobuild-rules-alist))
 
 ;; TODO(ejalfonso) fix nested pipeline clobbering remaining rules
 ;; TODO(ejalfonso) support supressing intermediate pipeline step notifications
@@ -164,7 +152,7 @@
       (with-current-buffer buffer
         (let* ((action (if (autobuild-rule-p rule-or-action)
                            (autobuild-rule-action rule-or-action)
-                           rule-or-action)))
+                         rule-or-action)))
           (unless action
             (error "Rule %s in pipeline should have generated an action" rule-or-action))
           (let ((result (autobuild-run-action action)))
@@ -204,33 +192,33 @@
 
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
-(defun autobuild-rule-applicable-p (rule mode)
-  "Determine whether RULE is applicable in major mode MODE."
-  (let ((mode-filter (autobuild-rule-mode-filter rule)))
-    (or (null mode-filter)
-        (cl-find major-mode mode-filter)
-        (cl-loop for mode in mode-filter
-                 thereis (and (boundp mode)
-                              (symbol-value mode))))))
+(defun autobuild-mode-filer-applicable-p (mode-filter)
+  "Determine whether mode-filter MODE-FILTER is currently applicable."
+  (or (null mode-filter)
+      (cl-find major-mode mode-filter)
+      (cl-loop for mode in mode-filter
+               thereis (and (boundp mode)
+                            (symbol-value mode)))))
 
 (defun autobuild-current-build-actions ()
   "Return a list of the currently applicable build actions.
 
    A rule RULE is applicable if the current major mode is contained in the
    rule's list of major modes, and if the rule generates a non-nil action."
+  (cl-loop for rule in (reverse autobuild-rules-alist)
+           as action-nice = (if-let* ((autobuild-nice autobuild-nice-default)
+                                      (action (autobuild-rule-action rule)))
+                                (cons action autobuild-nice))
+           when action-nice
+           collect (cl-destructuring-bind (action . nice) action-nice
+                     (list rule action nice))
+           into name-action-nice-list
+           finally (return (autobuild--sort-by #'cl-third name-action-nice-list))))
 
-  (cl-loop for (name . rule) in (reverse autobuild-rules-alist)
-           as action = (when (autobuild-rule-applicable-p rule major-mode)
-                         (autobuild-rule-action rule))
-           when action
-           collect (list name rule action) into cands
-           finally (return (autobuild-sort-by (lambda (rule-action)
-                                                (autobuild-rule-nice (cl-second rule-action)))
-                                              cands))))
-
+;; TODO rename to autobuild-last-rule
 (defvar-local autobuild-last-rule-name nil)
 
-(defun autobuild-sort-by (key list)
+(defun autobuild--sort-by (key list)
   "Sort LIST by the key-function KEY."
   (sort list (lambda (a b) (< (funcall key a) (funcall key b)))))
 
@@ -247,7 +235,7 @@
   (interactive "P")
   (let* ((cands (or (and (not prompt)
                          autobuild-last-rule-name
-                         (let* ((last-rule (autobuild-rule-find autobuild-last-rule-name))
+                         (let* ((last-rule autobuild-last-rule-name)
                                 action)
                            (if (null last-rule)
                                (progn (warn "rule no longer exists: %s" autobuild-last-rule-name)
@@ -262,14 +250,14 @@
                        ((not prompt) (car cands))
                        (t (selcand-select cands "select build rule: "
                                           ;; TODO sort vertically
-                                          (lambda (name-rule-action)
-                                            (format "%s (%s)"
-                                                    (car name-rule-action)
-                                                    (autobuild-rule-nice
-                                                     (cl-second name-rule-action)))))))))
+                                          (lambda (rule-action-nice)
+                                            (cl-destructuring-bind (rule _action nice)
+                                                rule-action-nice
+                                              (format "%s (%s)" rule nice))))))))
     (cl-assert choice)
     (setq autobuild-last-rule-name (car choice))
-    (autobuild-run-action (cl-third choice))))
+    (cl-destructuring-bind (_rule action _nice) choice
+      (autobuild-run-action (cl-second choice)))))
 
 (defvar autobuild-last-executed-action nil)
 
