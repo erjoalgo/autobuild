@@ -65,12 +65,12 @@
            (cand (alist-get choice hints-cands nil nil #'equal)))
       cand)))
 
-(defvar autobuild-rules-alist nil "A list of all known autobuild rules.")
+(defvar autobuild-rules-list nil "A list of all known autobuild rules.")
 
 (defun autobuild-rule-p (rule)
   "Return non-nil if RULE has been registered as an autobuild rule."
   (and (functionp rule)
-       (cl-find rule autobuild-rules-alist)))
+       (cl-find rule autobuild-rules-list)))
 
 (defvar autobuild-nice 10
   "Dynamic var which the currently executing rule may setq when generating an action.")
@@ -100,7 +100,7 @@
      (defun ,name ()
        (when (autobuild-mode-filer-applicable-p ',mode-filter)
          ,@body))
-     (pushnew ',name autobuild-rules-alist)))
+     (pushnew ',name autobuild-rules-list)))
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
 
@@ -205,7 +205,7 @@
 
    A rule RULE is applicable if the current major mode is contained in the
    rule's list of major modes, and if the rule generates a non-nil action."
-  (cl-loop for rule in (reverse autobuild-rules-alist)
+  (cl-loop for rule in (reverse autobuild-rules-list)
            as action-nice = (if-let* ((autobuild-nice autobuild-nice-default)
                                       (action (autobuild-rule-action rule)))
                                 (cons action autobuild-nice))
@@ -379,11 +379,11 @@
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
   (interactive
-   (list (selcand-select (mapcar #'car autobuild-rules-alist)
+   (list (selcand-select (mapcar #'car autobuild-rules-list)
                          "select rule to delete: ")))
-  (cl-assert (assoc rule autobuild-rules-alist))
-  (setq autobuild-rules-alist
-        (assq-delete-all rule autobuild-rules-alist)))
+  (cl-assert (assoc rule autobuild-rules-list))
+  (setq autobuild-rules-list
+        (assq-delete-all rule autobuild-rules-list)))
 
 ;; TODO support autobuild-next-buffer and defining one-off pipelines interactively
 
