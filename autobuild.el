@@ -387,6 +387,10 @@
 
 ;; TODO support autobuild-next-buffer and defining one-off pipelines interactively
 
+(autobuild-define-rule autobuild-emacs-lisp-eval-buffer (emacs-lisp-mode)
+  "Evaluate the current emacs-lisp buffer"
+  #'eval-buffer)
+
 (provide 'autobuild)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild.el ends here

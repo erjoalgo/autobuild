@@ -151,10 +151,6 @@
               filename
               (f-base filename)))))
 
-(autobuild-define-rule autobuild-el-eval-buffer (emacs-lisp-mode)
-  "Evaluate the current emacs-lisp buffer"
-  #'eval-buffer)
-
 (autobuild-define-rule autobuild-el-run-tests (emacs-lisp-mode)
   "Run emacs lisp tests."
   (lambda () (eval-buffer) (ert (regexp-quote (f-base buffer-file-name)))))
