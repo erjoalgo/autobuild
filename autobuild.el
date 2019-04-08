@@ -79,7 +79,7 @@
   "Default nice value for rules which do not setq autobuild-nice explicitly.")
 
 (defun autobuild-nice (nice)
-  "A wrapper for a rule to set the current action's NICE value."
+  "A function wrapper for a rule to set the current action's NICE value."
   (setq autobuild-nice nice))
 
 ;;;###autoload
