@@ -231,7 +231,6 @@
    prompt for selection of one of the currently-applicable build rules.
    Otherwise, chose the last-executed build rule, if known,
    or the rule with the lowest NICE property (highest priority)."
-
   (interactive "P")
   (let* ((cands (or (and (not prompt)
                          autobuild-last-rule-name
