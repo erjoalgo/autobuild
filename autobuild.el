@@ -45,9 +45,9 @@
 
 
 (require 'cl-lib)
-(require 'selcand nil t)
 (eval-when-compile (require 'subr-x))
 
+(require 'selcand nil t)
 (unless (fboundp #'selcand-select)
   (defun selcand-select (cands &optional prompt stringify)
     "Use PROMPT to prompt for a selection from CANDS candidates."
