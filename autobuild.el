@@ -242,8 +242,8 @@
                              (when (setq action
                                          (autobuild-rule-action last-rule))
                                (list (list autobuild-last-rule-name
-                                           last-rule
-                                           action))))))
+                                           (autobuild-rule-action autobuild-last-rule-name)
+                                           0))))))
                     (autobuild-current-build-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
                        ((not prompt) (car cands))
@@ -254,9 +254,9 @@
                                                 rule-action-nice
                                               (format "%s (%s)" rule nice))))))))
     (cl-assert choice)
-    (setq autobuild-last-rule-name (car choice))
-    (cl-destructuring-bind (_rule action _nice) choice
-      (autobuild-run-action (cl-second choice)))))
+    (cl-destructuring-bind (rule action _nice) choice
+      (setq autobuild-last-rule-name rule)
+      (autobuild-run-action action))))
 
 (defvar autobuild-last-executed-action nil)
 
