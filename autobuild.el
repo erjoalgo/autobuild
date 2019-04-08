@@ -72,7 +72,7 @@
   (and (functionp rule)
        (cl-find rule autobuild-rules-list)))
 
-(defvar autobuild-nice 10
+(defvar autobuild-nice nil
   "Dynamic var which the currently executing rule may setq when generating an action.")
 
 (defconst autobuild-nice-default 10
