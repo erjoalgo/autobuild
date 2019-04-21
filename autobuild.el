@@ -308,8 +308,9 @@
       (setq-local autobuild-last-compilation-buffer compilation-buffer)))
   (with-current-buffer compilation-buffer
     ;; TODO check if this is already available in compile
-    (setq autobuild-compilation-start-time (time-to-seconds)
-          compile-command (or compile-command cmd))))
+    (setq-local
+     autobuild-compilation-start-time (time-to-seconds)
+     compile-command (or cmd compile-command))))
 
 (defadvice compilation-start (after
                               autobuild-compilation-buffer-setup-advice
