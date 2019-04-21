@@ -308,18 +308,10 @@
       (setq-local autobuild-last-compilation-buffer compilation-buffer)))
   (with-current-buffer compilation-buffer
     ;; TODO check if this is already available in compile
-    (setq-local
-     autobuild-compilation-start-time (time-to-seconds)
-     compile-command (or cmd compile-command))))
+    (setq-local autobuild-compilation-start-time (time-to-seconds))
+    (setq-local compile-command (or cmd compile-command))))
 
-(defadvice compilation-start (after
-                              autobuild-compilation-buffer-setup-advice
-                              activate)
-  "Around advice to invoke ‘autobuild-compilation-buffer-setup' on a new compilation."
-  (autobuild-compilation-buffer-setup
-   ad-return-value
-   (current-buffer)
-   (ad-get-arg 1)))
+(advice-add #'compilation-start :after #'autobuild-compilation-buffer-setup)
 
 (defcustom autobuild-notify-threshold-secs 10
   "Min seconds elapsed since compilation start before a notification is issued.
