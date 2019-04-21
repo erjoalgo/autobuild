@@ -215,8 +215,7 @@
            into name-action-nice-list
            finally (return (autobuild--sort-by #'cl-third name-action-nice-list))))
 
-;; TODO rename to autobuild-last-rule
-(defvar-local autobuild-last-rule-name nil)
+(defvar-local autobuild-last-rule nil)
 
 (defun autobuild--sort-by (key list)
   "Sort LIST by the key-function KEY."
@@ -233,16 +232,16 @@
    or the rule with the lowest NICE property (highest priority)."
   (interactive "P")
   (let* ((cands (or (and (not prompt)
-                         autobuild-last-rule-name
-                         (let* ((last-rule autobuild-last-rule-name)
+                         autobuild-last-rule
+                         (let* ((last-rule autobuild-last-rule)
                                 action)
                            (if (null last-rule)
-                               (progn (warn "rule no longer exists: %s" autobuild-last-rule-name)
+                               (progn (warn "rule no longer exists: %s" autobuild-last-rule)
                                       nil)
                              (when (setq action
                                          (autobuild-rule-action last-rule))
-                               (list (list autobuild-last-rule-name
-                                           (autobuild-rule-action autobuild-last-rule-name)
+                               (list (list autobuild-last-rule
+                                           (autobuild-rule-action autobuild-last-rule)
                                            0))))))
                     (autobuild-current-build-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
@@ -255,7 +254,7 @@
                                               (format "%s (%s)" rule nice))))))))
     (cl-assert choice)
     (cl-destructuring-bind (rule action _nice) choice
-      (setq-local autobuild-last-rule-name rule)
+      (setq-local autobuild-last-rule rule)
       (autobuild-run-action action))))
 
 (defvar-local autobuild-last-executed-action nil)
