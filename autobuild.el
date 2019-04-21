@@ -200,7 +200,7 @@
                thereis (and (boundp mode)
                             (symbol-value mode)))))
 
-(defun autobuild-current-build-actions ()
+(defun autobuild-applicable-rule-actions ()
   "Return a list of the currently applicable build actions.
 
    A rule RULE is applicable if the current major mode is contained in the
@@ -243,7 +243,7 @@
                                (list (list autobuild-last-rule
                                            (autobuild-rule-action autobuild-last-rule)
                                            0))))))
-                    (autobuild-current-build-actions)))
+                    (autobuild-applicable-rule-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
                        ((not prompt) (car cands))
                        (t (selcand-select cands "select build rule: "
