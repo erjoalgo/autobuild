@@ -305,7 +305,7 @@
    CMD should be the compilation command."
   (when original-buffer
     (with-current-buffer original-buffer
-      (setq autobuild-last-compilation-buffer compilation-buffer)))
+      (setq-local autobuild-last-compilation-buffer compilation-buffer)))
   (with-current-buffer compilation-buffer
     ;; TODO check if this is already available in compile
     (setq autobuild-compilation-start-time (time-to-seconds)
