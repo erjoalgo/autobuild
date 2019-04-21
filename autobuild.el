@@ -159,12 +159,12 @@
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
                 (with-current-buffer result
-                  (setq autobuild-pipeline-rules-remaining (cdr rules-remaining))
+                  (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
                   (message "scheduling remaining rules: %s" autobuild-pipeline-rules-remaining))
               (progn
                 ;; TODO fail early on non-zero exit, error
                 ;; or ensure each action errs
-                (setq autobuild-pipeline-rules-remaining (cdr rules-remaining))
+                (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
                 (autobuild-pipeline-run (cdr rules-remaining))))))))))
 
 ;; TODO
@@ -185,7 +185,7 @@
       (if (not (autobuild-compilation-succeeded-p finish-state))
           (progn
             (message "aborting pipeline: %s" autobuild-pipeline-rules-remaining)
-            (setq autobuild-pipeline-rules-remaining nil))
+            (setq-local autobuild-pipeline-rules-remaining nil))
         (progn
           (message "continuing with pipeline: %s" autobuild-pipeline-rules-remaining)
           (autobuild-pipeline-run autobuild-pipeline-rules-remaining))))))
@@ -255,15 +255,15 @@
                                               (format "%s (%s)" rule nice))))))))
     (cl-assert choice)
     (cl-destructuring-bind (rule action _nice) choice
-      (setq autobuild-last-rule-name rule)
+      (setq-local autobuild-last-rule-name rule)
       (autobuild-run-action action))))
 
-(defvar autobuild-last-executed-action nil)
+(defvar-local autobuild-last-executed-action nil)
 
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
   (cl-assert action)
-  (setq autobuild-last-executed-action (cons action (current-buffer)))
+  (setq-local autobuild-last-executed-action (cons action (current-buffer)))
   (cond
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
@@ -374,8 +374,8 @@
    (list (selcand-select (mapcar #'car autobuild-rules-list)
                          "select rule to delete: ")))
   (cl-assert (assoc rule autobuild-rules-list))
-  (setq autobuild-rules-list
-        (assq-delete-all rule autobuild-rules-list)))
+  (setq-local autobuild-rules-list
+              (assq-delete-all rule autobuild-rules-list)))
 
 ;; TODO support autobuild-next-buffer and defining one-off pipelines interactively
 
