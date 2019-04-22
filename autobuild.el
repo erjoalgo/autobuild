@@ -303,12 +303,12 @@
    CMD should be the compilation command."
   (let* ((original-buffer (current-buffer))
          (compilation-buffer (apply orig command args)))
-  (when original-buffer
-    (with-current-buffer original-buffer
-      (setq-local autobuild-last-compilation-buffer compilation-buffer)))
-  (with-current-buffer compilation-buffer
-    ;; TODO check if this is already available in compile
-    (setq-local autobuild-compilation-start-time (time-to-seconds))
+    (when original-buffer
+      (with-current-buffer original-buffer
+        (setq-local autobuild-last-compilation-buffer compilation-buffer)))
+    (with-current-buffer compilation-buffer
+      ;; TODO check if this is already available in compile
+      (setq-local autobuild-compilation-start-time (time-to-seconds))
       (setq-local compile-command (or cmd compile-command)))))
 
 (advice-add #'compilation-start :around #'autobuild-compilation-buffer-setup)
