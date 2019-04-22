@@ -313,6 +313,8 @@
 
 (advice-add #'compilation-start :around #'autobuild-compilation-buffer-setup)
 
+;; (advice-remove #'compilation-start #'autobuild-compilation-buffer-setup)
+
 (defcustom autobuild-notify-threshold-secs 10
   "Min seconds elapsed since compilation start before a notification is issued.
 
