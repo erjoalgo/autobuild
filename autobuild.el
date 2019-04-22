@@ -295,22 +295,23 @@
     (let* ((ansi-color-for-comint-mode t))
       (compile cmd))))
 
-(defun autobuild-compilation-buffer-setup (compilation-buffer &optional
-                                                              original-buffer cmd)
+(defun autobuild-compilation-buffer-setup (orig command &rest args)
   "Add information needed by autobuild on a new compilation.
 
    COMPILATION-BUFFER points to the newly started compilation buffer,
    ORIGINAL-BUFFER points to the buffer where the compilation originated, and
    CMD should be the compilation command."
+  (let* ((original-buffer (current-buffer))
+         (compilation-buffer (apply orig command args)))
   (when original-buffer
     (with-current-buffer original-buffer
       (setq-local autobuild-last-compilation-buffer compilation-buffer)))
   (with-current-buffer compilation-buffer
     ;; TODO check if this is already available in compile
     (setq-local autobuild-compilation-start-time (time-to-seconds))
-    (setq-local compile-command (or cmd compile-command))))
+      (setq-local compile-command (or cmd compile-command)))))
 
-(advice-add #'compilation-start :after #'autobuild-compilation-buffer-setup)
+(advice-add #'compilation-start :around #'autobuild-compilation-buffer-setup)
 
 (defcustom autobuild-notify-threshold-secs 10
   "Min seconds elapsed since compilation start before a notification is issued.
