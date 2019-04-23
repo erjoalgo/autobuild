@@ -233,16 +233,15 @@
   (interactive "P")
   (let* ((cands (or (and (not prompt)
                          autobuild-last-rule
-                         (let* ((last-rule autobuild-last-rule)
-                                action)
-                           (if (null last-rule)
-                               (progn (warn "rule no longer exists: %s" autobuild-last-rule)
-                                      nil)
-                             (when (setq action
-                                         (autobuild-rule-action last-rule))
-                               (list (list autobuild-last-rule
-                                           (autobuild-rule-action autobuild-last-rule)
-                                           0))))))
+                         (if (not (autobuild-rule-p autobuild-last-rule))
+                             (progn
+                               (warn "rule no longer exists: %s" autobuild-last-rule)
+                               nil)
+                           (if-let ((action (autobuild-rule-action autobuild-last-rule))
+                                    (cand (list autobuild-last-rule
+                                                (autobuild-rule-action autobuild-last-rule)
+                                                0)))
+                               (list cand))))
                     (autobuild-applicable-rule-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
                        ((not prompt) (car cands))
