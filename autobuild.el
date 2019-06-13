@@ -375,11 +375,9 @@
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
   (interactive
-   (list (selcand-select (mapcar #'car autobuild-rules-list)
-                         "select rule to delete: ")))
-  (cl-assert (assoc rule autobuild-rules-list))
-  (setq-local autobuild-rules-list
-              (assq-delete-all rule autobuild-rules-list)))
+   (list (selcand-select autobuild-rules-list "select rule to delete: ")))
+  (cl-assert (autobuild-rule-p rule))
+  (setq autobuild-rules-list (delq rule autobuild-rules-list)))
 
 ;; TODO support autobuild-next-buffer and defining one-off pipelines interactively
 
