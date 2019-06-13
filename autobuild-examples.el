@@ -77,10 +77,10 @@
     (server-edit)))
 
 (autobuild-define-rule autobuild-run-executable nil
-  (autobuild-nice 9)
   (let ((filename (buffer-file-name)))
     (when (and filename
                (file-executable-p filename))
+      (autobuild-nice 7)
       (format "./%s" (f-filename filename)))))
 
 (autobuild-define-rule autobuild-dired-build-file-at-point (dired-mode)
