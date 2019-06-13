@@ -67,6 +67,8 @@
 
 (defvar autobuild-rules-list nil "A list of all known autobuild rules.")
 
+(defvar autobuild-debug nil "Log rule names before generating their action.")
+
 (defun autobuild-rule-p (rule)
   "Return non-nil if RULE has been registered as an autobuild rule."
   (and (functionp rule)
@@ -129,6 +131,8 @@
 (defun autobuild-rule-action (rule)
   "Funcall wrapper to safely obtain an action for rule RULE."
   (assert (functionp rule))
+  (when autobuild-debug
+    (message "autobuild-rule-action: %s" rule))
   (let ((original-buffer (current-buffer)))
     (prog1
         (condition-case ex (funcall rule)
