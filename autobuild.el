@@ -299,11 +299,9 @@
       (compile cmd))))
 
 (defun autobuild-compilation-buffer-setup (orig command &rest args)
-  "Add information needed by autobuild on a new compilation.
+  "‘compilation-start' around advice to add information needed by autobuild.
 
-   COMPILATION-BUFFER points to the newly started compilation buffer,
-   ORIGINAL-BUFFER points to the buffer where the compilation originated, and
-   CMD should be the compilation command."
+   ORIG, COMMAND, ARGS should be ‘compilation-start' and its arguments."
   (let* ((original-buffer (current-buffer))
          (compilation-buffer (apply orig command args)))
     (when original-buffer
@@ -312,7 +310,8 @@
     (with-current-buffer compilation-buffer
       ;; TODO check if this is already available in compile
       (setq-local autobuild-compilation-start-time (time-to-seconds))
-      (setq-local compile-command (or cmd compile-command)))))
+      (setq-local compile-command command))
+    compilation-buffer))
 
 (advice-add #'compilation-start :around #'autobuild-compilation-buffer-setup)
 
