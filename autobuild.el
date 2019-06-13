@@ -102,7 +102,7 @@
      (defun ,name ()
        (when (autobuild-mode-filer-applicable-p ',mode-filter)
          ,@body))
-     (pushnew ',name autobuild-rules-list)))
+     (cl-pushnew ',name autobuild-rules-list)))
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
 
@@ -130,7 +130,7 @@
 
 (defun autobuild-rule-action (rule)
   "Funcall wrapper to safely obtain an action for rule RULE."
-  (assert (functionp rule))
+  (cl-assert (autobuild-rule-p rule))
   (when autobuild-debug
     (message "autobuild-rule-action: %s" rule))
   (let ((original-buffer (current-buffer)))
