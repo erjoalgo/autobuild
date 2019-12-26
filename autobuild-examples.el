@@ -252,10 +252,9 @@
   #'org-odt-export-to-odt)
 
 (autobuild-define-rule autobuild-octave-eval (octave-mode)
-  (call-interactively
-   (if (region-active-p)
-       #'octave-send-region
-     #'octave-send-buffer)))
+  (if (region-active-p)
+      (apply-partially #'call-interactively #'octave-send-region)
+    #'octave-send-buffer))
 
 (autobuild-define-rule autobuild-html-browse (html-mode mhtml-mode)
   "Open the current html file in the browser"
