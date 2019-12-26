@@ -385,6 +385,11 @@
   "Evaluate the current emacs-lisp buffer"
   #'eval-buffer)
 
+(defun autobuild-debug-toggle ()
+  (interactive)
+  (setq autobuild-debug (not autobuild-debug))
+  (message "autobuild rule debugging %s" (if autobuild-debug "enabled" "disabled")))
+
 (provide 'autobuild)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild.el ends here
