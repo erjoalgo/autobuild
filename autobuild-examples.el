@@ -318,6 +318,9 @@
     (format "dot -Tps %s -o %s.ps"
             file file)))
 
+(autobuild-define-rule autobuild-python-pylint (python-mode)
+  #'python-check)
+
 (provide 'autobuild-examples)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
