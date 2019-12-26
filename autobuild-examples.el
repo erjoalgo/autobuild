@@ -278,6 +278,9 @@
 (autobuild-define-rule autobuild-nginx-restart (nginx-mode)
   "sudo service nginx restart")
 
+(autobuild-define-rule autobuild-nginx-test-config (nginx-mode)
+  "sudo nginx -t")
+
 (autobuild-define-rule autobuild-ispell (text-mode org-mode)
   "Do a spell check"
   #'ispell)
