@@ -1,4 +1,4 @@
-;;; autobuild.el --- Define and execute build rules and compilation pipelines
+;;; autobuild.el --- Define and execute build rules and compilation pipelines -*- lexical-binding: t; -*-
 ;;
 ;; Filename: autobuild.el
 ;; Description: Define and execute composable build rules and compilation pipelines
