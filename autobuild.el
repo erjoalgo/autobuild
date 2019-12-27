@@ -61,7 +61,7 @@
   "Dynamic var which the currently executing rule may setq when generating an action.")
 
 (defconst autobuild-nice-default 10
-  "Default nice value for rules which do not setq autobuild-nice explicitly.")
+  "Default nice value for rules which do not setq variable ‘autobuild-nice’ explicitly.")
 
 (defun autobuild-nice (nice)
   "A function wrapper for a rule to set the current action's NICE value."
@@ -130,7 +130,7 @@
 
 (defun autobuild-pipeline-run (rules-remaining)
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
-  (error "autobuild-pipeline not implemented")
+  (error "Not implemented")
   (when rules-remaining
     (cl-destructuring-bind (buffer rule-or-action) (car rules-remaining)
       (unless rule-or-action
@@ -370,9 +370,11 @@
   #'eval-buffer)
 
 (defun autobuild-debug-toggle ()
+  "Toggle logging rule names before generating their action."
   (interactive)
   (setq autobuild-debug (not autobuild-debug))
-  (message "autobuild rule debugging %s" (if autobuild-debug "enabled" "disabled")))
+  (message "autobuild rule debugging %s"
+           (if autobuild-debug "enabled" "disabled")))
 
 (defun autobuild-select (cands &optional prompt stringify)
   "Use PROMPT to prompt for a selection from CANDS candidates."
