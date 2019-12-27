@@ -47,23 +47,6 @@
 (require 'cl-lib)
 (eval-when-compile (require 'subr-x))
 
-(require 'selcand nil t)
-(unless (fboundp #'selcand-select)
-  (defun selcand-select (cands &optional prompt stringify)
-    "Use PROMPT to prompt for a selection from CANDS candidates."
-    (let* ((stringify (or stringify #'prin1-to-string))
-           (prompt (or prompt "select candidate: "))
-           (hints-cands
-            (cl-loop for cand in cands
-                     as string = (funcall stringify cand)
-                     collect (cons string cand)))
-           (choice (minibuffer-with-setup-hook
-                       #'minibuffer-completion-help
-                     (completing-read prompt (mapcar #'car hints-cands)
-                                      nil
-                                      t)))
-           (cand (alist-get choice hints-cands nil nil #'equal)))
-      cand)))
 
 (defvar autobuild-rules-list nil "A list of all known autobuild rules.")
 
@@ -249,7 +232,7 @@
                     (autobuild-applicable-rule-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
                        ((not prompt) (car cands))
-                       (t (selcand-select cands "select build rule: "
+                       (t (autobuild-select cands "select build rule: "
                                           ;; TODO sort vertically
                                           (lambda (rule-action-nice)
                                             (cl-destructuring-bind (rule _action nice)
@@ -375,7 +358,7 @@
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
   (interactive
-   (list (selcand-select autobuild-rules-list "select rule to delete: ")))
+   (list (autobuild-select autobuild-rules-list "select rule to delete: ")))
   (cl-assert (autobuild-rule-p rule))
   (setq autobuild-rules-list (delq rule autobuild-rules-list)))
 
@@ -389,6 +372,22 @@
   (interactive)
   (setq autobuild-debug (not autobuild-debug))
   (message "autobuild rule debugging %s" (if autobuild-debug "enabled" "disabled")))
+
+(defun autobuild-select (cands &optional prompt stringify)
+  "Use PROMPT to prompt for a selection from CANDS candidates."
+  (let* ((stringify (or stringify #'prin1-to-string))
+         (prompt (or prompt "select candidate: "))
+         (hints-cands
+          (cl-loop for cand in cands
+                   as string = (funcall stringify cand)
+                   collect (cons string cand)))
+         (choice (minibuffer-with-setup-hook
+                     #'minibuffer-completion-help
+                   (completing-read prompt (mapcar #'car hints-cands)
+                                    nil
+                                    t)))
+         (cand (alist-get choice hints-cands nil nil #'equal)))
+    cand))
 
 (provide 'autobuild)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
