@@ -130,6 +130,7 @@
 
 (defun autobuild-pipeline-run (rules-remaining)
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
+  (error "autobuild-pipeline not implemented")
   (when rules-remaining
     (cl-destructuring-bind (buffer rule-or-action) (car rules-remaining)
       (unless rule-or-action
