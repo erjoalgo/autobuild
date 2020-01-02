@@ -8,7 +8,7 @@
 ;; Created: Wed Jan 23 20:45:01 2019 (-0800)
 ;; Version: 0.0.1
 ;; Package-Requires: ((cl-lib "0.3") (emacs "26.1"))
-;; URL: http://github.com/erjoalgo/autobuild
+;; URL: https://github.com/erjoalgo/autobuild
 ;; Keywords: compile, build, pipeline, autobuild, extensions, processes, tools
 ;; Compatibility:
 ;;
@@ -47,7 +47,6 @@
 (require 'cl-lib)
 (eval-when-compile (require 'subr-x))
 
-
 (defvar autobuild-rules-list nil "A list of all known autobuild rules.")
 
 (defvar autobuild-debug nil "Log rule names before generating their action.")
@@ -58,14 +57,23 @@
        (cl-find rule autobuild-rules-list)))
 
 (defvar autobuild-nice nil
-  "Dynamic var which the currently executing rule may setq when generating an action.")
+  "Dynamic var which an autobuild rule may setq when generating an action.
+
+   This variable defines the 'nice' priority of the last generated action,
+   with lower values commanding a higher priority.")
 
 (defconst autobuild-nice-default 10
-  "Default nice value for rules which do not setq variable ‘autobuild-nice’ explicitly.")
+  "Default nice value for rule actions that do not setq the variable ‘autobuild-nice’.")
 
 (defun autobuild-nice (nice)
   "A function wrapper for a rule to set the current action's NICE value."
   (setq autobuild-nice nice))
+
+(defcustom autobuild-candidate-default-hints
+  "1234acdefqrstvwxz"
+  "Default hint chars."
+  :type 'string
+  :group 'autobuild)
 
 ;;;###autoload
 (cl-defmacro autobuild-define-rule (name mode-filter &rest body)
@@ -188,20 +196,24 @@
                thereis (and (boundp mode)
                             (symbol-value mode)))))
 
+;; internal struct used to collect rule's action and it's specified "nice" priority
+(cl-defstruct autobuild-action rule action nice)
+
 (defun autobuild-applicable-rule-actions ()
   "Return a list of the currently applicable build actions.
 
    A rule RULE is applicable if the current major mode is contained in the
    rule's list of major modes, and if the rule generates a non-nil action."
-  (cl-loop for rule in (reverse autobuild-rules-list)
-           as action-nice = (if-let* ((autobuild-nice autobuild-nice-default)
-                                      (action (autobuild-rule-action rule)))
-                                (cons action autobuild-nice))
-           when action-nice
-           collect (cl-destructuring-bind (action . nice) action-nice
-                     (list rule action nice))
-           into name-action-nice-list
-           finally (return (autobuild--sort-by #'cl-third name-action-nice-list))))
+  (cl-loop with actions
+           for rule in (reverse autobuild-rules-list)
+           do (if-let* ((autobuild-nice autobuild-nice-default)
+                        (action (autobuild-rule-action rule)))
+                  (push (make-autobuild-action :rule rule
+                                               :action action
+                                               :nice autobuild-nice)
+                        actions))
+           finally
+           (return (autobuild--sort-by #'autobuild-action-nice actions))))
 
 (defvar-local autobuild-last-rule nil)
 
@@ -219,30 +231,30 @@
    Otherwise, chose the last-executed build rule, if known,
    or the rule with the lowest NICE property (highest priority)."
   (interactive "P")
-  (let* ((cands (or (and (not prompt)
-                         autobuild-last-rule
-                         (if (not (autobuild-rule-p autobuild-last-rule))
-                             (progn
-                               (warn "rule no longer exists: %s" autobuild-last-rule)
-                               nil)
-                           (if-let ((action (autobuild-rule-action autobuild-last-rule))
-                                    (cand (list autobuild-last-rule
-                                                (autobuild-rule-action autobuild-last-rule)
-                                                0)))
-                               (list cand))))
-                    (autobuild-applicable-rule-actions)))
+  (let* ((cands
+          (if-let* ((not-force-prompt (not prompt))
+                    (last-rule-valid (autobuild-rule-p autobuild-last-rule))
+                    (action (autobuild-rule-action autobuild-last-rule)))
+              ;; the last action is still applicable, and prompt was not forced
+              (list (make-autobuild-action :rule autobuild-last-rule
+                                           :action action
+                                           :nice 0))
+            ;; fall back to generating actions for all applicable rules
+            (autobuild-applicable-rule-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
                        ((not prompt) (car cands))
-                       (t (autobuild-select cands "select build rule: "
-                                          ;; TODO sort vertically
-                                          (lambda (rule-action-nice)
-                                            (cl-destructuring-bind (rule _action nice)
-                                                rule-action-nice
-                                              (format "%s (%s)" rule nice))))))))
+                       (t (autobuild-candidate-select
+                           cands "select build rule: "
+                           #'autobuild-action-to-string)))))
     (cl-assert choice)
-    (cl-destructuring-bind (rule action _nice) choice
-      (setq-local autobuild-last-rule rule)
-      (autobuild-run-action action))))
+    (setq-local autobuild-last-rule (autobuild-action-rule choice))
+    (autobuild-run-action (autobuild-action-action choice))))
+
+(defun autobuild-action-to-string (action)
+  "Generate a string representation of an autobuild ACTION."
+  (format "%s (%s)"
+          (autobuild-action-rule action)
+          (autobuild-action-nice action)))
 
 (defvar-local autobuild-last-executed-action nil)
 
@@ -278,9 +290,7 @@
          ;; allow file-local compile commands to use rename-proof filename
          (concat "AUTOBUILD_FILENAME=" (buffer-file-name (current-buffer)))))
     (push emacs-filename-env-directive process-environment)
-    ;; TODO decouple this from autobuild
-    (let* ((ansi-color-for-comint-mode t))
-      (compile cmd))))
+    (compile cmd)))
 
 (defun autobuild-compilation-buffer-setup (orig command &rest args)
   "‘compilation-start' around advice to add information needed by autobuild.
@@ -350,16 +360,18 @@
     (error
      ;; avoid interrupting compilation-finish-functions due to
      ;; errors in potentially user-provided ‘autobuild-notification-function'
-     (message (format "Error in autobuild-notify: %s" ex)))))
+     (message "Error in autobuild-notify: %s" ex))))
 
 
 ;; TODO use pipeline hook, not compilation hook
-(add-hook 'compilation-finish-functions 'autobuild-notify)
+(add-hook 'compilation-finish-functions #'autobuild-notify)
 
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
   (interactive
-   (list (autobuild-select autobuild-rules-list "select rule to delete: ")))
+   (list (autobuild-candidate-select
+          autobuild-rules-list "select rule to delete: "
+          #'symbol-name)))
   (cl-assert (autobuild-rule-p rule))
   (setq autobuild-rules-list (delq rule autobuild-rules-list)))
 
@@ -376,20 +388,43 @@
   (message "autobuild rule debugging %s"
            (if autobuild-debug "enabled" "disabled")))
 
-(defun autobuild-select (cands &optional prompt stringify)
-  "Use PROMPT to prompt for a selection from CANDS candidates."
-  (let* ((stringify (or stringify #'prin1-to-string))
+(defun autobuild-candidate-hints (candidates &optional chars)
+  "Return an alist (HINT . CAND) for each candidate in CANDIDATES.
+
+  Each hint consists of characters in the string CHARS."
+  (setf chars (or chars autobuild-candidate-default-hints))
+  (cl-assert candidates)
+  (cl-loop
+   with hint-width = (ceiling (log (length candidates) (length chars)))
+   with hints = '("")
+   for wi below hint-width do
+   (setf hints
+         (cl-loop for c across chars
+                  append (mapcar (apply-partially
+                                  'concat (char-to-string c))
+                                 hints)))
+   finally (return (cl-loop for hint in hints
+                            for cand in candidates
+                            collect (cons hint cand)))))
+
+(defun autobuild-candidate-select (candidates &optional prompt stringify-fn
+                                         autoselect-if-single)
+  "Use PROMPT to prompt for a selection from CANDIDATES."
+  (let* ((hints-cands (autobuild-candidate-hints candidates))
+         (sep ") ")
+         (stringify-fn (or stringify-fn #'prin1-to-string))
+         (choices (cl-loop for (hint . cand) in hints-cands
+                           collect (concat hint sep (funcall stringify-fn cand))))
          (prompt (or prompt "select candidate: "))
-         (hints-cands
-          (cl-loop for cand in cands
-                   as string = (funcall stringify cand)
-                   collect (cons string cand)))
-         (choice (minibuffer-with-setup-hook
+         (choice (if (and autoselect-if-single (null (cdr choices)))
+                     (car choices)
+                     (minibuffer-with-setup-hook
                      #'minibuffer-completion-help
-                   (completing-read prompt (mapcar #'car hints-cands)
+                   (completing-read prompt choices
                                     nil
-                                    t)))
-         (cand (alist-get choice hints-cands nil nil #'equal)))
+                                    t))))
+         (cand (let* ((hint (car (split-string choice sep))))
+                 (cdr (assoc hint hints-cands #'equal)))))
     cand))
 
 (provide 'autobuild)

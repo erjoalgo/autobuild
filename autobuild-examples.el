@@ -155,7 +155,15 @@
 
 (autobuild-define-rule autobuild-el-run-tests (emacs-lisp-mode)
   "Run emacs lisp tests."
-  (lambda () (eval-buffer) (ert (regexp-quote (f-base buffer-file-name)))))
+  (when (string-match-p "-tests?.el" (buffer-file-name))
+    (autobuild-nice 8)
+    (lambda () (eval-buffer) (ert (regexp-quote (f-base buffer-file-name))))))
+
+(autobuild-define-rule autobuild-el-run-tests-interactively (emacs-lisp-mode)
+  "Run emacs lisp tests."
+  (when (string-match-p "-tests?.el" (buffer-file-name))
+    (autobuild-nice 9)
+    #'ert-run-tests-interactively))
 
 (autobuild-define-rule autobuild-makefile-make nil
   "Run make"
@@ -220,6 +228,7 @@
   (when (or (eq major-mode 'git-rebase-mode)
             (and (eq major-mode 'text-mode)
                  (equal (f-filename (buffer-file-name)) "COMMIT_EDITMSG")))
+    (autobuild-nice 8)
     (lambda ()
       (progn
         (save-buffer)
