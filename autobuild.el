@@ -7,7 +7,7 @@
 
 ;; Created: Wed Jan 23 20:45:01 2019 (-0800)
 ;; Version: 0.0.1
-;; Package-Requires: ((cl-lib "0.3") (emacs "26.1") (compile))
+;; Package-Requires: ((cl-lib "0.3") (emacs "26.1"))
 ;; URL: https://github.com/erjoalgo/autobuild
 ;; Keywords: compile, build, pipeline, autobuild, extensions, processes, tools
 ;; Compatibility:
@@ -364,7 +364,7 @@
 
 
 ;; TODO use pipeline hook, not compilation hook
-(add-hook #'compilation-finish-functions #'autobuild-notify)
+(add-hook 'compilation-finish-functions #'autobuild-notify)
 
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
