@@ -79,7 +79,7 @@
       (letf (((symbol-function #'autobuild-candidate-select)
               (lambda (cands _prompt _stringify-fn)
                 (cl-loop for action in cands
-                         thereis (when (eq (autobuild-action-rule action)
+                         thereis (when (eq (autobuild--invocation-rule action)
                                            #'high-nice)
                                    action)))))
         (autobuild-build t)

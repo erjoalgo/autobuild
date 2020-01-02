@@ -86,11 +86,13 @@
    re-executes it if it is known and if prompting was not requested.
 
 ** ~autobuild-nice~
-   Rule priorities may be specified via a top-level directive ~(autobuild-nice N)~ within a rule's body,
-   with lower nice values denoting higher priority. A rule priority controls the default rule selected by
-   ~autobuild-build~. The most specific rule under a certain context should strive to have the highest priority
-   in order for ~autobuild-build~ to select it as the default. \\
-   The exact mechanism for specifying rule priorities may change in the future.
+   A rule may specify the priority of its action by setting the value of
+   ~autobuild-nice~, with lower nice values denoting higher priority.
+   ~autobuild-build~ defaults to selecting the action with the highest priority, unless
+   prompting was requested via a prefix argument.
+
+   The most specific rule under a certain context should strive to have the highest priority
+   in order for ~autobuild-build~ to select it as the default.
 
 ** ~autobuild-pipeline~
    Several build rules may be chained together to form compilation-pipelines. (TODO example)
