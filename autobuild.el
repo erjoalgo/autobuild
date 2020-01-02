@@ -250,6 +250,12 @@
     (setq-local autobuild-last-rule (autobuild-action-rule choice))
     (autobuild-run-action (autobuild-action-action choice))))
 
+(defun autobuild-action-to-string (action)
+  "Generate a string representation of an autobuild ACTION."
+  (format "%s (%s)"
+          (autobuild-action-rule action)
+          (autobuild-action-nice action)))
+
 (defvar-local autobuild-last-executed-action nil)
 
 (defun autobuild-run-action (action)
@@ -399,12 +405,6 @@
    finally (return (cl-loop for hint in hints
                             for cand in candidates
                             collect (cons hint cand)))))
-
-(defun autobuild-action-to-string (action)
-  "Generate a string representation of an autobuild ACTION."
-  (format "%s (%s)"
-          (autobuild-action-rule action)
-          (autobuild-action-nice action)))
 
 (defun autobuild-candidate-select (candidates &optional prompt stringify-fn
                                          autoselect-if-single)
