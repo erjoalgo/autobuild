@@ -284,9 +284,7 @@
          ;; allow file-local compile commands to use rename-proof filename
          (concat "AUTOBUILD_FILENAME=" (buffer-file-name (current-buffer)))))
     (push emacs-filename-env-directive process-environment)
-    ;; TODO decouple this from autobuild
-    (let* ((ansi-color-for-comint-mode t))
-      (compile cmd))))
+    (compile cmd)))
 
 (defun autobuild-compilation-buffer-setup (orig command &rest args)
   "‘compilation-start' around advice to add information needed by autobuild.
