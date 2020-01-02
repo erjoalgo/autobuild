@@ -63,7 +63,7 @@
    with lower values commanding a higher priority.")
 
 (defconst autobuild-nice-default 10
-  "Default nice value for rule actions that do not setq the variable ‘autobuild-nice’.")
+  "Default nice value for rule invocations that do not setq the variable ‘autobuild-nice’.")
 
 (defun autobuild-nice (nice)
   "A function wrapper for a rule to set the current action's NICE value."
