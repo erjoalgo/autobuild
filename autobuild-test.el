@@ -77,16 +77,13 @@
       (autobuild-build nil)
       (should (eq 'low ran))
       (should (eq autobuild-last-rule #'low-nice))
-      (letf (((symbol-function #'selcand-select)
-              (lambda (cands)
-                (message "DEBUG c3t7 TRACE")
-                (cl-loop for (rule _ _) in cands
-                         thereis (and (eq rule #'high-nice)
-                                      (progn (message "DEBUG rp9c rule: %s"
-                                                      rule)
-                                             t)
-                                      rule)))))
-        (autobuild-build nil)
+      (letf (((symbol-function #'autobuild-candidate-select)
+              (lambda (cands _prompt _stringify-fn)
+                (cl-loop for action in cands
+                         thereis (when (eq (autobuild-action-rule action)
+                                           #'high-nice)
+                                   action)))))
+        (autobuild-build t)
         (should (eq 'high ran))
         (should (eq autobuild-last-rule #'high-nice))
         (autobuild-build nil)
