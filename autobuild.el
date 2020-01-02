@@ -369,8 +369,9 @@
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
   (interactive
-   (list (autobuild-select autobuild-rules-list "select rule to delete: "
-                           #'autobuild-action-to-string)))
+   (list (autobuild-candidate-select
+          autobuild-rules-list "select rule to delete: "
+          #'symbol-name)))
   (cl-assert (autobuild-rule-p rule))
   (setq autobuild-rules-list (delq rule autobuild-rules-list)))
 
