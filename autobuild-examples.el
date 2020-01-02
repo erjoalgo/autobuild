@@ -161,14 +161,14 @@
 (autobuild-define-rule autobuild-el-run-tests (emacs-lisp-mode)
   "Run emacs lisp tests."
   (when (string-match-p "-tests?.el" (buffer-file-name))
-    (autobuild-nice 8))
-  (lambda () (eval-buffer) (ert (regexp-quote (f-base buffer-file-name)))))
+    (autobuild-nice 8)
+    (lambda () (eval-buffer) (ert (regexp-quote (f-base buffer-file-name))))))
 
 (autobuild-define-rule autobuild-el-run-tests-interactively (emacs-lisp-mode)
   "Run emacs lisp tests."
   (when (string-match-p "-tests?.el" (buffer-file-name))
-    (autobuild-nice 8))
-  #'ert-run-tests-interactively)
+    (autobuild-nice 9)
+    #'ert-run-tests-interactively))
 
 (autobuild-define-rule autobuild-makefile-make nil
   "Run make"
