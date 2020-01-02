@@ -69,6 +69,12 @@
   "A function wrapper for a rule to set the current action's NICE value."
   (setq autobuild-nice nice))
 
+(defcustom autobuild-candidate-default-hints
+  "1234acdefqrstvwxz"
+  "Default hint chars."
+  :type 'string
+  :group 'autobuild)
+
 ;;;###autoload
 (cl-defmacro autobuild-define-rule (name mode-filter &rest body)
   "Define a build rule NAME.
@@ -359,7 +365,8 @@
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
   (interactive
-   (list (autobuild-select autobuild-rules-list "select rule to delete: ")))
+   (list (autobuild-select autobuild-rules-list "select rule to delete: "
+                           #'autobuild-action-to-string)))
   (cl-assert (autobuild-rule-p rule))
   (setq autobuild-rules-list (delq rule autobuild-rules-list)))
 
@@ -376,20 +383,49 @@
   (message "autobuild rule debugging %s"
            (if autobuild-debug "enabled" "disabled")))
 
-(defun autobuild-select (cands &optional prompt stringify)
-  "Use PROMPT to prompt for a selection from CANDS candidates."
-  (let* ((stringify (or stringify #'prin1-to-string))
+(defun autobuild-candidate-hints (candidates &optional chars)
+  "Return an alist (HINT . CAND) for each candidate in CANDIDATES.
+
+  Each hint consists of characters in the string CHARS."
+  (setf chars (or chars autobuild-candidate-default-hints))
+  (cl-assert candidates)
+  (cl-loop
+   with hint-width = (ceiling (log (length candidates) (length chars)))
+   with hints = '("")
+   for wi below hint-width do
+   (setf hints
+         (cl-loop for c across chars
+                  append (mapcar (apply-partially
+                                  'concat (char-to-string c))
+                                 hints)))
+   finally (return (cl-loop for hint in hints
+                            for cand in candidates
+                            collect (cons hint cand)))))
+
+(defun autobuild-action-to-string (action)
+  "Generate a string representation of an autobuild ACTION."
+  (format "%s (%s)"
+          (autobuild-action-rule action)
+          (autobuild-action-nice action)))
+
+(defun autobuild-candidate-select (candidates &optional prompt stringify-fn
+                                         autoselect-if-single)
+  "Use PROMPT to prompt for a selection from CANDIDATES."
+  (let* ((hints-cands (autobuild-candidate-hints candidates))
+         (sep ") ")
+         (stringify-fn (or stringify-fn #'prin1-to-string))
+         (choices (cl-loop for (hint . cand) in hints-cands
+                           collect (concat hint sep (funcall stringify-fn cand))))
          (prompt (or prompt "select candidate: "))
-         (hints-cands
-          (cl-loop for cand in cands
-                   as string = (funcall stringify cand)
-                   collect (cons string cand)))
-         (choice (minibuffer-with-setup-hook
+         (choice (if (and autoselect-if-single (null (cdr choices)))
+                     (car choices)
+                     (minibuffer-with-setup-hook
                      #'minibuffer-completion-help
-                   (completing-read prompt (mapcar #'car hints-cands)
+                   (completing-read prompt choices
                                     nil
-                                    t)))
-         (cand (alist-get choice hints-cands nil nil #'equal)))
+                                    t))))
+         (cand (let* ((hint (car (split-string choice sep))))
+                 (cdr (assoc hint hints-cands #'equal)))))
     cand))
 
 (provide 'autobuild)
