@@ -354,7 +354,7 @@
     (error
      ;; avoid interrupting compilation-finish-functions due to
      ;; errors in potentially user-provided ‘autobuild-notification-function'
-     (message (format "Error in autobuild-notify: %s" ex)))))
+     (message "Error in autobuild-notify: %s" ex))))
 
 
 ;; TODO use pipeline hook, not compilation hook
