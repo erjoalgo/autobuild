@@ -196,8 +196,8 @@
                thereis (and (boundp mode)
                             (symbol-value mode)))))
 
-;; internal struct used to collect rule's action and it's specified "nice" priority
-(cl-defstruct autobuild-action rule action nice)
+;; internal struct used to collect a rule's action and it's nice value
+(cl-defstruct autobuild--invocation rule action nice)
 
 (defun autobuild-applicable-rule-actions ()
   "Return a list of the currently applicable build actions.
@@ -208,12 +208,12 @@
            for rule in (reverse autobuild-rules-list)
            do (if-let* ((autobuild-nice autobuild-nice-default)
                         (action (autobuild-rule-action rule)))
-                  (push (make-autobuild-action :rule rule
-                                               :action action
-                                               :nice autobuild-nice)
+                  (push (make-autobuild--invocation :rule rule
+                                                    :action action
+                                                    :nice autobuild-nice)
                         actions))
            finally
-           (return (autobuild--sort-by #'autobuild-action-nice actions))))
+           (return (autobuild--sort-by #'autobuild--invocation-nice actions))))
 
 (defvar-local autobuild-last-rule nil)
 
@@ -236,25 +236,25 @@
                     (last-rule-valid (autobuild-rule-p autobuild-last-rule))
                     (action (autobuild-rule-action autobuild-last-rule)))
               ;; the last action is still applicable, and prompt was not forced
-              (list (make-autobuild-action :rule autobuild-last-rule
-                                           :action action
-                                           :nice 0))
+              (list (make-autobuild--invocation :rule autobuild-last-rule
+                                                :action action
+                                                :nice 0))
             ;; fall back to generating actions for all applicable rules
             (autobuild-applicable-rule-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
                        ((not prompt) (car cands))
                        (t (autobuild-candidate-select
                            cands "select build rule: "
-                           #'autobuild-action-to-string)))))
+                           #'autobuild--invocation-to-string)))))
     (cl-assert choice)
-    (setq-local autobuild-last-rule (autobuild-action-rule choice))
-    (autobuild-run-action (autobuild-action-action choice))))
+    (setq-local autobuild-last-rule (autobuild--invocation-rule choice))
+    (autobuild-run-action (autobuild--invocation-action choice))))
 
-(defun autobuild-action-to-string (action)
+(defun autobuild--invocation-to-string (action)
   "Generate a string representation of an autobuild ACTION."
   (format "%s (%s)"
-          (autobuild-action-rule action)
-          (autobuild-action-nice action)))
+          (autobuild--invocation-rule action)
+          (autobuild--invocation-nice action)))
 
 (defvar-local autobuild-last-executed-action nil)
 
@@ -369,9 +369,8 @@
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
   (interactive
-   (list (autobuild-candidate-select
-          autobuild-rules-list "select rule to delete: "
-          #'symbol-name)))
+   (list (autobuild-candidate-select autobuild-rules-list
+                                     "select rule to delete: ")))
   (cl-assert (autobuild-rule-p rule))
   (setq autobuild-rules-list (delq rule autobuild-rules-list)))
 
@@ -408,7 +407,7 @@
                             collect (cons hint cand)))))
 
 (defun autobuild-candidate-select (candidates &optional prompt stringify-fn
-                                         autoselect-if-single)
+                                              autoselect-if-single)
   "Use PROMPT to prompt for a selection from CANDIDATES."
   (let* ((hints-cands (autobuild-candidate-hints candidates))
          (sep ") ")
