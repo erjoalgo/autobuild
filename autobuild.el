@@ -47,7 +47,6 @@
 (require 'cl-lib)
 (eval-when-compile (require 'subr-x))
 
-
 (defvar autobuild-rules-list nil "A list of all known autobuild rules.")
 
 (defvar autobuild-debug nil "Log rule names before generating their action.")
