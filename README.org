@@ -120,6 +120,16 @@
   (global-set-key (kbd "M-c") #'autobuild-build)
 
   #+END_SRC
+* Differences with other packages
+  Autobuild is different from other similar packages in that it provides a menu of various applicable build options,
+  from which the user makes an explicit or implicit choice,
+  as opposed to a providing a single line of hooks that are always implicitly executed.
+  This ability to make an explicit choice about which build rule to apply
+  allows users to switch back-and-forth between several different flows for
+  whatever building/compiling means in the current context.
+
+  Autobuild rules are also capable of dynamically determining their own applicability, priority, and are able to
+  customize generated build actions based on the current contex.
 
 * More Examples
   [[./autobuild-examples.el][Example rule definitions]]
