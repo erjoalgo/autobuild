@@ -153,11 +153,6 @@
               filename
               (f-base filename)))))
 
-(autobuild-define-rule autobuild-el-eval-buffer (emacs-lisp-mode)
-  "Run emacs lisp tests."
-  (autobuild-nice 8)
-  #'eval-buffer)
-
 (autobuild-define-rule autobuild-el-run-tests (emacs-lisp-mode)
   "Run emacs lisp tests."
   (when (string-match-p "-tests?.el" (buffer-file-name))
