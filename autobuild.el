@@ -197,7 +197,7 @@
                             (symbol-value mode)))))
 
 ;; internal struct used to collect rule's action and it's specified "nice" priority
-(defstruct autobuild-action rule action nice)
+(cl-defstruct autobuild-action rule action nice)
 
 (defun autobuild-applicable-rule-actions ()
   "Return a list of the currently applicable build actions.
