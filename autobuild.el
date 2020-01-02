@@ -416,11 +416,10 @@
          (prompt (or prompt "select candidate: "))
          (choice (if (and autoselect-if-single (null (cdr choices)))
                      (car choices)
-                     (minibuffer-with-setup-hook
-                     #'minibuffer-completion-help
-                   (completing-read prompt choices
-                                    nil
-                                    t))))
+                   (minibuffer-with-setup-hook #'minibuffer-completion-help
+                     (completing-read prompt choices
+                                      nil
+                                      t))))
          (cand (let* ((hint (car (split-string choice sep))))
                  (cdr (assoc hint hints-cands #'equal)))))
     cand))
