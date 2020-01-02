@@ -57,10 +57,13 @@
        (cl-find rule autobuild-rules-list)))
 
 (defvar autobuild-nice nil
-  "Dynamic var which the currently executing rule may setq when generating an action.")
+  "Dynamic var which an autobuild rule may setq when generating an action.
+
+   This variable defines the 'nice' priority of the last generated action,
+   with lower values commanding a higher priority.")
 
 (defconst autobuild-nice-default 10
-  "Default nice value for rules which do not setq variable ‘autobuild-nice’ explicitly.")
+  "Default nice value for rule actions that do not setq the variable ‘autobuild-nice’.")
 
 (defun autobuild-nice (nice)
   "A function wrapper for a rule to set the current action's NICE value."
