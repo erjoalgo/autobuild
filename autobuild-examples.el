@@ -233,6 +233,7 @@
   (when (or (eq major-mode 'git-rebase-mode)
             (and (eq major-mode 'text-mode)
                  (equal (f-filename (buffer-file-name)) "COMMIT_EDITMSG")))
+    (autobuild-nice 8)
     (lambda ()
       (progn
         (save-buffer)
