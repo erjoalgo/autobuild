@@ -364,7 +364,7 @@
 
 
 ;; TODO use pipeline hook, not compilation hook
-(add-hook 'compilation-finish-functions 'autobuild-notify)
+(add-hook #'compilation-finish-functions #'autobuild-notify)
 
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
