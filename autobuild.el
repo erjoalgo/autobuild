@@ -190,20 +190,24 @@
                thereis (and (boundp mode)
                             (symbol-value mode)))))
 
+;; internal struct used to collect rule's action and it's specified "nice" priority
+(defstruct autobuild-action rule action nice)
+
 (defun autobuild-applicable-rule-actions ()
   "Return a list of the currently applicable build actions.
 
    A rule RULE is applicable if the current major mode is contained in the
    rule's list of major modes, and if the rule generates a non-nil action."
-  (cl-loop for rule in (reverse autobuild-rules-list)
-           as action-nice = (if-let* ((autobuild-nice autobuild-nice-default)
-                                      (action (autobuild-rule-action rule)))
-                                (cons action autobuild-nice))
-           when action-nice
-           collect (cl-destructuring-bind (action . nice) action-nice
-                     (list rule action nice))
-           into name-action-nice-list
-           finally (return (autobuild--sort-by #'cl-third name-action-nice-list))))
+  (cl-loop with actions
+           for rule in (reverse autobuild-rules-list)
+           do (if-let* ((autobuild-nice autobuild-nice-default)
+                        (action (autobuild-rule-action rule)))
+                  (push (make-autobuild-action :rule rule
+                                               :action action
+                                               :nice autobuild-nice)
+                        actions))
+           finally
+           (return (autobuild--sort-by #'autobuild-action-nice actions))))
 
 (defvar-local autobuild-last-rule nil)
 
@@ -221,30 +225,24 @@
    Otherwise, chose the last-executed build rule, if known,
    or the rule with the lowest NICE property (highest priority)."
   (interactive "P")
-  (let* ((cands (or (and (not prompt)
-                         autobuild-last-rule
-                         (if (not (autobuild-rule-p autobuild-last-rule))
-                             (progn
-                               (warn "rule no longer exists: %s" autobuild-last-rule)
-                               nil)
-                           (if-let ((action (autobuild-rule-action autobuild-last-rule))
-                                    (cand (list autobuild-last-rule
-                                                (autobuild-rule-action autobuild-last-rule)
-                                                0)))
-                               (list cand))))
-                    (autobuild-applicable-rule-actions)))
+  (let* ((cands
+          (if-let* ((not-force-prompt (not prompt))
+                    (last-rule-valid (autobuild-rule-p autobuild-last-rule))
+                    (action (autobuild-rule-action autobuild-last-rule)))
+              ;; the last action is still applicable, and prompt was not forced
+              (list (make-autobuild-action :rule autobuild-last-rule
+                                           :action action
+                                           :nice 0))
+            ;; fall back to generating actions for all applicable rules
+            (autobuild-applicable-rule-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
                        ((not prompt) (car cands))
-                       (t (autobuild-select cands "select build rule: "
-                                          ;; TODO sort vertically
-                                          (lambda (rule-action-nice)
-                                            (cl-destructuring-bind (rule _action nice)
-                                                rule-action-nice
-                                              (format "%s (%s)" rule nice))))))))
+                       (t (autobuild-candidate-select
+                           cands "select build rule: "
+                           #'autobuild-action-to-string)))))
     (cl-assert choice)
-    (cl-destructuring-bind (rule action _nice) choice
-      (setq-local autobuild-last-rule rule)
-      (autobuild-run-action action))))
+    (setq-local autobuild-last-rule (autobuild-action-rule choice))
+    (autobuild-run-action (autobuild-action-action choice))))
 
 (defvar-local autobuild-last-executed-action nil)
 
