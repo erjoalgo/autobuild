@@ -1,5 +1,4 @@
 (require 'autobuild)
-;; (require 'el-mock)
 
 ;; add test re-reading the last rule correctly
 (ert-deftest autobuild-test-mode-filter ()
