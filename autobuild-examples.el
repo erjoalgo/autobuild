@@ -173,8 +173,7 @@
   "Run make clean"
   (when (file-exists-p "Makefile") "make clean"))
 
-(autobuild-define-rule autobuild-configure-make-install
-  nil
+(autobuild-define-rule autobuild-configure-make-install nil
   (lexical-let ((autogen
                  (when (file-exists-p "autogen.sh")
                    (find-file-noselect "autogen.sh")))
