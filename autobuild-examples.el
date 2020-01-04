@@ -210,8 +210,24 @@
     (format "g++ %s -std=c++11 && ./a.out %s"
             fn pipe-in)))
 
-(autobuild-define-rule autobuild-go (go-mode)
+(autobuild-define-rule autobuild-go-test (go-mode)
   "go test")
+
+(autobuild-define-rule autobuild-go-run (go-mode)
+  (lambda ()
+    ;; maybe kill the last compilation, if it was a "go run"
+    (if-let* ((compilation "*compilation*")
+              (buffer (get-buffer compilation)))
+        (with-current-buffer buffer
+          (when (bound-and-true-p autobuild-go-run-compilation)
+            (kill-buffer))))
+    (let* ((cmd (concat "go run " (f-filename (buffer-file-name))))
+           (buffer (compile cmd)))
+      (with-current-buffer buffer
+        (setq autobuild-go-run-compilation t)))))
+
+(autobuild-define-rule autobuild-go-install (go-mode)
+  "go install")
 
 (autobuild-define-rule autobuild-latex (tex-mode latex-mode)
   'latex-compile)
