@@ -180,8 +180,7 @@
                 (configure
                  (when (file-exists-p "configure")
                    (find-file-noselect "configure"))))
-    (when (or (file-exists-p "autogen")
-              (file-exists-p "configure"))
+    (when (or autogen configure)
       (autobuild-pipeline
        (autogen "./autogen.sh")
        (configure "./configure")
