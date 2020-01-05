@@ -156,11 +156,10 @@
                 (with-current-buffer result
                   (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
                   (message "scheduling remaining rules: %s" autobuild-pipeline-rules-remaining))
-              (progn
-                ;; TODO fail early on non-zero exit, error
-                ;; or ensure each action errs
-                (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
-                (autobuild-pipeline-run (cdr rules-remaining))))))))))
+              ;; TODO fail early on non-zero exit, error
+              ;; or ensure each action errs
+              (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
+              (autobuild-pipeline-run (cdr rules-remaining)))))))))
 
 ;; TODO
 (defvar autobuild-pipeline-finish-hook nil
@@ -181,9 +180,8 @@
           (progn
             (message "aborting pipeline: %s" autobuild-pipeline-rules-remaining)
             (setq-local autobuild-pipeline-rules-remaining nil))
-        (progn
-          (message "continuing with pipeline: %s" autobuild-pipeline-rules-remaining)
-          (autobuild-pipeline-run autobuild-pipeline-rules-remaining))))))
+        (message "resuming pipeline: %s" autobuild-pipeline-rules-remaining)
+        (autobuild-pipeline-run autobuild-pipeline-rules-remaining)))))
 
 (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
 
