@@ -397,7 +397,7 @@
    (setf hints
          (cl-loop for c across chars
                   append (mapcar (apply-partially
-                                  'concat (char-to-string c))
+                                  #'concat (char-to-string c))
                                  hints)))
    finally (return (cl-loop for hint in hints
                             for cand in candidates
