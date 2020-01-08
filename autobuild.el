@@ -51,6 +51,11 @@
 
 (defvar autobuild-debug nil "Log rule names before generating their action.")
 
+(defun autobuild-toggle-debug ()
+  (interactive)
+  (message "setting autobuild-debug to %s"
+           (setq autobuild-debug (not autobuild-debug))))
+
 (defun autobuild-rule-p (rule)
   "Return non-nil if RULE has been registered as an autobuild rule."
   (and (functionp rule)
