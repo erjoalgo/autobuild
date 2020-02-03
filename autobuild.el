@@ -91,7 +91,7 @@
     (error "Invalid major mode specification"))
   `(progn
      (defun ,name ()
-       (when (autobuild-mode-filer-applicable-p ',mode-filter)
+       (when (autobuild-mode-filter-applicable-p ',mode-filter)
          ,@body))
      (cl-pushnew ',name autobuild-rules-list)))
 
@@ -184,7 +184,7 @@
         (message "resuming pipeline: %s" autobuild-pipeline-rules-remaining)
         (autobuild-pipeline-run autobuild-pipeline-rules-remaining)))))
 
-(defun autobuild-mode-filer-applicable-p (mode-filter)
+(defun autobuild-mode-filter-applicable-p (mode-filter)
   "Determine whether mode-filter MODE-FILTER is currently applicable."
   (or (null mode-filter)
       (cl-find major-mode mode-filter)
