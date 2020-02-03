@@ -386,10 +386,6 @@
 
 ;; TODO support autobuild-next-buffer and defining one-off pipelines interactively
 
-(autobuild-define-rule autobuild-emacs-lisp-eval-buffer (emacs-lisp-mode)
-  "Evaluate the current emacs-lisp buffer"
-  #'eval-buffer)
-
 (defun autobuild-debug-toggle ()
   "Toggle logging rule names before generating their action."
   (interactive)
@@ -434,6 +430,10 @@
          (cand (let* ((hint (car (split-string choice sep))))
                  (cdr (assoc hint hints-cands #'equal)))))
     cand))
+
+(autobuild-define-rule autobuild-emacs-lisp-eval-buffer (emacs-lisp-mode)
+  "Evaluate the current emacs-lisp buffer"
+  #'eval-buffer)
 
 (provide 'autobuild)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
