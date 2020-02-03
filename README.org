@@ -12,6 +12,8 @@
   create more complete build processes, with individual steps that
   may be either synchronous or asynchronous.
 
+  [[http://downloads.erjoalgo.com/autobuild-demo.png]]
+
 * Index
 ** ~autobuild-define-rule~
    Autobuild rules are zero-ary named functions that contain knowledge about

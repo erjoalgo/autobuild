@@ -343,6 +343,9 @@
 (autobuild-define-rule autobuild-python-pylint (python-mode)
   #'python-check)
 
+(autobuild-define-rule autobuild-python-modernize (python-mode)
+  (format "python-modernize %s -w" (f-filename (buffer-file-name))))
+
 (provide 'autobuild-examples)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
