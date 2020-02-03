@@ -360,6 +360,7 @@
      (message "Error in autobuild-notify: %s" ex))))
 
 
+;;;###autoload
 (define-minor-mode autobuild-mode
   "Define and execute build rules and compilation pipelines."
   :global t
@@ -372,7 +373,7 @@
    do (funcall add-or-remove hook function)))
 
 (defun autobuild-mode-assert-enabled ()
-  "Signal an error if autobuild-mode is not enabled."
+  "Signal an error if ‘autobuild-mode’ is not enabled."
   (unless autobuild-mode
     (error "autobuild-mode is not enabled")))
 
