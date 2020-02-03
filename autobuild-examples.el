@@ -51,7 +51,6 @@
 (require 'f)
 (require 's)
 
-
 (autobuild-define-rule autobuild-file-local-compile-command nil
   "Set and run the file-local compile command"
   (when (buffer-file-name)
@@ -343,6 +342,9 @@
 
 (autobuild-define-rule autobuild-python-pylint (python-mode)
   #'python-check)
+
+(autobuild-define-rule autobuild-python-modernize (python-mode)
+  (format "python-modernize %s -w" (f-filename (buffer-file-name))))
 
 (provide 'autobuild-examples)
 

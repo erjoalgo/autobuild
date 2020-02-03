@@ -91,7 +91,7 @@
     (error "Invalid major mode specification"))
   `(progn
      (defun ,name ()
-       (when (autobuild-mode-filer-applicable-p ',mode-filter)
+       (when (autobuild-mode-filter-applicable-p ',mode-filter)
          ,@body))
      (cl-pushnew ',name autobuild-rules-list)))
 
@@ -138,6 +138,7 @@
 
 (defun autobuild-pipeline-run (rules-remaining)
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
+  (autobuild-mode-assert-enabled)
   (when rules-remaining
     (cl-destructuring-bind (buffer rule-or-action) (car rules-remaining)
       (unless rule-or-action
@@ -156,11 +157,10 @@
                 (with-current-buffer result
                   (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
                   (message "scheduling remaining rules: %s" autobuild-pipeline-rules-remaining))
-              (progn
-                ;; TODO fail early on non-zero exit, error
-                ;; or ensure each action errs
-                (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
-                (autobuild-pipeline-run (cdr rules-remaining))))))))))
+              ;; TODO fail early on non-zero exit, error
+              ;; or ensure each action errs
+              (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
+              (autobuild-pipeline-run (cdr rules-remaining)))))))))
 
 ;; TODO
 (defvar autobuild-pipeline-finish-hook nil
@@ -181,13 +181,10 @@
           (progn
             (message "aborting pipeline: %s" autobuild-pipeline-rules-remaining)
             (setq-local autobuild-pipeline-rules-remaining nil))
-        (progn
-          (message "continuing with pipeline: %s" autobuild-pipeline-rules-remaining)
-          (autobuild-pipeline-run autobuild-pipeline-rules-remaining))))))
+        (message "resuming pipeline: %s" autobuild-pipeline-rules-remaining)
+        (autobuild-pipeline-run autobuild-pipeline-rules-remaining)))))
 
-(add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
-
-(defun autobuild-mode-filer-applicable-p (mode-filter)
+(defun autobuild-mode-filter-applicable-p (mode-filter)
   "Determine whether mode-filter MODE-FILTER is currently applicable."
   (or (null mode-filter)
       (cl-find major-mode mode-filter)
@@ -204,7 +201,7 @@
    A rule RULE is applicable if the current major mode is contained in the
    rule's list of major modes, and if the rule generates a non-nil action."
   (cl-loop with actions
-           for rule in (reverse autobuild-rules-list)
+           for rule in autobuild-rules-list
            do (if-let* ((autobuild-nice autobuild-nice-default)
                         (action (autobuild-rule-action rule)))
                   (push (make-autobuild--invocation :rule rule
@@ -230,6 +227,7 @@
    Otherwise, chose the last-executed build rule, if known,
    or the rule with the lowest NICE property (highest priority)."
   (interactive "P")
+  (autobuild-mode-assert-enabled)
   (let* ((cands
           (if-let* ((not-force-prompt (not prompt))
                     (last-rule-valid (autobuild-rule-p autobuild-last-rule))
@@ -362,8 +360,21 @@
      (message "Error in autobuild-notify: %s" ex))))
 
 
-;; TODO use pipeline hook, not compilation hook
-(add-hook 'compilation-finish-functions #'autobuild-notify)
+(define-minor-mode autobuild-mode
+  "Define and execute build rules and compilation pipelines."
+  :global t
+  ;; add or remove hooks used by autobuild
+  (cl-loop
+   with add-or-remove = (if autobuild-mode #'add-hook #'remove-hook)
+   for (hook function)
+   in `((compilation-finish-functions ,#'autobuild-pipeline-continue)
+        (compilation-finish-functions ,#'autobuild-notify))
+   do (funcall add-or-remove hook function)))
+
+(defun autobuild-mode-assert-enabled ()
+  "Signal an error if autobuild-mode is not enabled."
+  (unless autobuild-mode
+    (error "autobuild-mode is not enabled")))
 
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
@@ -374,10 +385,6 @@
   (setq autobuild-rules-list (delq rule autobuild-rules-list)))
 
 ;; TODO support autobuild-next-buffer and defining one-off pipelines interactively
-
-(autobuild-define-rule autobuild-emacs-lisp-eval-buffer (emacs-lisp-mode)
-  "Evaluate the current emacs-lisp buffer"
-  #'eval-buffer)
 
 (defun autobuild-debug-toggle ()
   "Toggle logging rule names before generating their action."
@@ -399,7 +406,7 @@
    (setf hints
          (cl-loop for c across chars
                   append (mapcar (apply-partially
-                                  'concat (char-to-string c))
+                                  #'concat (char-to-string c))
                                  hints)))
    finally (return (cl-loop for hint in hints
                             for cand in candidates
@@ -423,6 +430,10 @@
          (cand (let* ((hint (car (split-string choice sep))))
                  (cdr (assoc hint hints-cands #'equal)))))
     cand))
+
+(autobuild-define-rule autobuild-emacs-lisp-eval-buffer (emacs-lisp-mode)
+  "Evaluate the current emacs-lisp buffer"
+  #'eval-buffer)
 
 (provide 'autobuild)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

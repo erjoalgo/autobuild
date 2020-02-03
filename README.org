@@ -12,6 +12,8 @@
   create more complete build processes, with individual steps that
   may be either synchronous or asynchronous.
 
+  [[http://downloads.erjoalgo.com/autobuild-demo.png]]
+
 * Index
 ** ~autobuild-define-rule~
    Autobuild rules are zero-ary named functions that contain knowledge about
@@ -118,7 +120,7 @@
   #+BEGIN_SRC emacs-lisp
   (require 'autobuild)
   (require 'autobuild-examples)
-
+  (autobuild-mode)
   (global-set-key (kbd "M-c") #'autobuild-build)
 
   #+END_SRC
