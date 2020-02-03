@@ -138,6 +138,7 @@
 
 (defun autobuild-pipeline-run (rules-remaining)
   "Run the RULES-REMAINING of an autobuild pipeline.  See ‘autobuild-pipeline'."
+  (autobuild-mode-assert-enabled)
   (when rules-remaining
     (cl-destructuring-bind (buffer rule-or-action) (car rules-remaining)
       (unless rule-or-action
@@ -183,8 +184,6 @@
         (message "resuming pipeline: %s" autobuild-pipeline-rules-remaining)
         (autobuild-pipeline-run autobuild-pipeline-rules-remaining)))))
 
-(add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
-
 (defun autobuild-mode-filer-applicable-p (mode-filter)
   "Determine whether mode-filter MODE-FILTER is currently applicable."
   (or (null mode-filter)
@@ -228,6 +227,7 @@
    Otherwise, chose the last-executed build rule, if known,
    or the rule with the lowest NICE property (highest priority)."
   (interactive "P")
+  (autobuild-mode-assert-enabled)
   (let* ((cands
           (if-let* ((not-force-prompt (not prompt))
                     (last-rule-valid (autobuild-rule-p autobuild-last-rule))
@@ -360,8 +360,21 @@
      (message "Error in autobuild-notify: %s" ex))))
 
 
-;; TODO use pipeline hook, not compilation hook
-(add-hook 'compilation-finish-functions #'autobuild-notify)
+(define-minor-mode autobuild-mode
+  "Define and execute build rules and compilation pipelines."
+  :global t
+  ;; add or remove hooks used by autobuild
+  (cl-loop
+   with add-or-remove = (if autobuild-mode #'add-hook #'remove-hook)
+   for (hook function)
+   in `((compilation-finish-functions ,#'autobuild-pipeline-continue)
+        (compilation-finish-functions ,#'autobuild-notify))
+   do (funcall add-or-remove hook function)))
+
+(defun autobuild-mode-assert-enabled ()
+  "Signal an error if autobuild-mode is not enabled."
+  (unless autobuild-mode
+    (error "autobuild-mode is not enabled")))
 
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
