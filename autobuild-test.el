@@ -87,3 +87,25 @@
         (autobuild-build nil)
         (should (eq 'high ran))
         (should (eq autobuild-last-rule #'high-nice))))))
+
+(ert-deftest autobuild-test-prioritizing-rules-defined-first ()
+  (let (autobuild-rules-list
+        rule-executed)
+    (eval
+     '(progn
+        (autobuild-define-rule older-rule (sh-mode)
+          (autobuild-nice 7)
+          (lambda () (setq rule-executed 'older)))
+        (autobuild-define-rule newer-rule (sh-mode)
+          (autobuild-nice 7)
+          (lambda () (setq rule-executed 'newer)))))
+    (should (eq 'newer-rule (car autobuild-rules-list)))
+    (with-temp-buffer
+      (sh-mode)
+      (should (eq 2 (length (autobuild-applicable-rule-actions))))
+      (should (eq 'older-rule
+                  (autobuild--invocation-rule
+                   (car (autobuild-applicable-rule-actions)))))
+      (autobuild-build nil)
+      (should (eq autobuild-last-rule 'older-rule))
+      (should (eq rule-executed 'older)))))
