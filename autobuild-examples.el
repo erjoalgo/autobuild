@@ -51,7 +51,6 @@
 (require 'f)
 (require 's)
 
-
 (autobuild-define-rule autobuild-file-local-compile-command nil
   "Set and run the file-local compile command"
   (when (buffer-file-name)
