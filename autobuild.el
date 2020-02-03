@@ -201,7 +201,7 @@
    A rule RULE is applicable if the current major mode is contained in the
    rule's list of major modes, and if the rule generates a non-nil action."
   (cl-loop with actions
-           for rule in (reverse autobuild-rules-list)
+           for rule in autobuild-rules-list
            do (if-let* ((autobuild-nice autobuild-nice-default)
                         (action (autobuild-rule-action rule)))
                   (push (make-autobuild--invocation :rule rule
