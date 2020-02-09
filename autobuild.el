@@ -373,7 +373,7 @@
 (defun autobuild-mode-assert-enabled ()
   "Signal an error if ‘autobuild-mode’ is not enabled."
   (unless autobuild-mode
-    (error "autobuild-mode is not enabled")))
+    (error "`autobuild-mode' is not enabled")))
 
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
