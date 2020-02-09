@@ -415,8 +415,8 @@
                                               autoselect-if-single)
   "Use PROMPT to prompt for a selection from CANDIDATES.
 
-  STRINGIFY-FN, if provided, is used to serialize candidates to a human-readable string
-  to use during prompting.
+  STRINGIFY-FN, if provided, is used to serialize candidates to a
+  human-readable string to use during prompting.
   STRINGIFY-FN is required when candidates are not of type string.
 
   AUTOSELECT-IF-SINGLE, if non-nil, indicates to bypass prompting if
