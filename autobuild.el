@@ -304,10 +304,6 @@
       (setq-local compile-command command))
     compilation-buffer))
 
-(advice-add #'compilation-start :around #'autobuild-compilation-buffer-setup)
-
-;; (advice-remove #'compilation-start #'autobuild-compilation-buffer-setup)
-
 (defcustom autobuild-notify-threshold-secs 10
   "Min seconds elapsed since compilation start before a notification is issued.
 
@@ -364,13 +360,15 @@
 (define-minor-mode autobuild-mode
   "Define and execute build rules and compilation pipelines."
   :global t
-  ;; add or remove hooks used by autobuild
-  (cl-loop
-   with add-or-remove = (if autobuild-mode #'add-hook #'remove-hook)
-   for (hook function)
-   in `((compilation-finish-functions ,#'autobuild-pipeline-continue)
-        (compilation-finish-functions ,#'autobuild-notify))
-   do (funcall add-or-remove hook function)))
+  ;; add or remove hooks and advice used by autobuild
+  (if autobuild-mode
+      (progn
+        (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
+        (add-hook 'compilation-finish-functions #'autobuild-notify)
+        (advice-add #'compilation-start :around #'autobuild-compilation-buffer-setup))
+    (remove-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
+    (remove-hook 'compilation-finish-functions #'autobuild-notify)
+    (advice-remove #'compilation-start #'autobuild-compilation-buffer-setup)))
 
 (defun autobuild-mode-assert-enabled ()
   "Signal an error if ‘autobuild-mode’ is not enabled."
