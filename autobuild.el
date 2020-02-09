@@ -413,7 +413,14 @@
 
 (defun autobuild-candidate-select (candidates &optional prompt stringify-fn
                                               autoselect-if-single)
-  "Use PROMPT to prompt for a selection from CANDIDATES."
+  "Use PROMPT to prompt for a selection from CANDIDATES.
+
+  STRINGIFY-FN, if provided, is used to serialize candidates to a human-readable string
+  to use during prompting.
+  STRINGIFY-FN is required when candidates are not of type string.
+
+  AUTOSELECT-IF-SINGLE, if non-nil, indicates to bypass prompting if
+  the length of candidates is one."
   (let* ((hints-cands (autobuild-candidate-hints candidates))
          (sep ") ")
          (stringify-fn (or stringify-fn #'prin1-to-string))
