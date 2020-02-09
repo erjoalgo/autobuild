@@ -166,10 +166,12 @@
 
 (autobuild-define-rule autobuild-makefile-make nil
   "Run make"
+  (autobuild-nice 12)
   (when (file-exists-p "Makefile") "make"))
 
 (autobuild-define-rule autobuild-makefile-make-clean nil
   "Run make clean"
+  (autobuild-nice 13)
   (when (file-exists-p "Makefile") "make clean"))
 
 (autobuild-define-rule autobuild-configure-make-install nil

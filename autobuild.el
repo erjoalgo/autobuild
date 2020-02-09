@@ -143,7 +143,7 @@
     (cl-destructuring-bind (buffer rule-or-action) (car rules-remaining)
       (unless rule-or-action
         ;; TODO use dynamic var to get name of pipeline
-        (error "Null rule in piepine"))
+        (error "Null rule in pipeline"))
       (unless buffer (setq buffer (current-buffer)))
       (with-current-buffer buffer
         (let* ((action (if (autobuild-rule-p rule-or-action)
@@ -304,10 +304,6 @@
       (setq-local compile-command command))
     compilation-buffer))
 
-(advice-add #'compilation-start :around #'autobuild-compilation-buffer-setup)
-
-;; (advice-remove #'compilation-start #'autobuild-compilation-buffer-setup)
-
 (defcustom autobuild-notify-threshold-secs 10
   "Min seconds elapsed since compilation start before a notification is issued.
 
@@ -364,18 +360,20 @@
 (define-minor-mode autobuild-mode
   "Define and execute build rules and compilation pipelines."
   :global t
-  ;; add or remove hooks used by autobuild
-  (cl-loop
-   with add-or-remove = (if autobuild-mode #'add-hook #'remove-hook)
-   for (hook function)
-   in `((compilation-finish-functions ,#'autobuild-pipeline-continue)
-        (compilation-finish-functions ,#'autobuild-notify))
-   do (funcall add-or-remove hook function)))
+  ;; add or remove hooks and advice used by autobuild
+  (if autobuild-mode
+      (progn
+        (add-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
+        (add-hook 'compilation-finish-functions #'autobuild-notify)
+        (advice-add #'compilation-start :around #'autobuild-compilation-buffer-setup))
+    (remove-hook 'compilation-finish-functions #'autobuild-pipeline-continue)
+    (remove-hook 'compilation-finish-functions #'autobuild-notify)
+    (advice-remove #'compilation-start #'autobuild-compilation-buffer-setup)))
 
 (defun autobuild-mode-assert-enabled ()
   "Signal an error if ‘autobuild-mode’ is not enabled."
   (unless autobuild-mode
-    (error "autobuild-mode is not enabled")))
+    (error "`autobuild-mode' is not enabled")))
 
 (defun autobuild-delete-rule (rule)
   "Delete the RULE from the autobuild rules registry."
@@ -415,7 +413,14 @@
 
 (defun autobuild-candidate-select (candidates &optional prompt stringify-fn
                                               autoselect-if-single)
-  "Use PROMPT to prompt for a selection from CANDIDATES."
+  "Use PROMPT to prompt for a selection from CANDIDATES.
+
+  STRINGIFY-FN, if provided, is used to serialize candidates to a
+  human-readable string to use during prompting.
+  STRINGIFY-FN is required when candidates are not of type string.
+
+  AUTOSELECT-IF-SINGLE, if non-nil, indicates to bypass prompting if
+  the length of candidates is one."
   (let* ((hints-cands (autobuild-candidate-hints candidates))
          (sep ") ")
          (stringify-fn (or stringify-fn #'prin1-to-string))
