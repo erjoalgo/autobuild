@@ -143,7 +143,7 @@
     (cl-destructuring-bind (buffer rule-or-action) (car rules-remaining)
       (unless rule-or-action
         ;; TODO use dynamic var to get name of pipeline
-        (error "Null rule in piepine"))
+        (error "Null rule in pipeline"))
       (unless buffer (setq buffer (current-buffer)))
       (with-current-buffer buffer
         (let* ((action (if (autobuild-rule-p rule-or-action)
