@@ -136,4 +136,4 @@
   customize generated build actions based on the current contex.
 
 * More Examples
-  [[./autobuild-examples.el][Example rule definitions]]
+  [[./examples/autobuild-examples.el][Example rule definitions]]
