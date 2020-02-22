@@ -316,12 +316,14 @@
              (equal "json" (f-ext (buffer-file-name))))
     (format "python -m json.tool < %s" (f-filename (buffer-file-name)))))
 
-(autobuild-define-rule autobuild-python-setupy-install (python-mode)
+(autobuild-define-rule autobuild-python-setupy-install (python-mode dired-mode)
   "Run setup.py install"
-  (when (and (buffer-file-name)
-             (equal "setup.py"
-                    (f-filename (buffer-file-name))))
-    (format "python %s install --user" (f-filename (buffer-file-name)))))
+  (when (or
+         (and (buffer-file-name)
+              (equal "setup.py"
+                     (f-filename (buffer-file-name))))
+         (file-exists-p "setup.py"))
+    (format "python setup.py install --user")))
 
 (autobuild-define-rule autobuild-xmodmap (conf-unix-mode)
   "run xmodmap on a file"
