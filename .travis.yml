@@ -22,9 +22,8 @@ before_install:
   - export PATH="$HOME/bin:$PATH"
   # Download the makefile to emacs-travis.mk
   - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
-  # Install Emacs (according to $EMACS_VERSION) and Cask
+  # Install Emacs (according to $EMACS_VERSION)
   - make -f emacs-travis.mk install_emacs
-  - make -f emacs-travis.mk install_cask
 script:
   # Run your tests
   - emacs -Q -batch -l ert -L . -l autobuild-test.el --eval '(autobuild-mode t)' -f ert-run-tests-batch-and-exit
