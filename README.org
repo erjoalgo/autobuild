@@ -111,21 +111,34 @@
    in custom ways, for example via notify-send "desktop" notifications, beeps, etc.
 
 * Installation and sample usage
+** From melpa
+   - Add melpa as a package repository
+    #+BEGIN_SRC emacs-lisp
+    (require 'package)
+    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+    #+END_SRC
+   - ~M-x package-refresh-contents~
+   - ~M-x package-install RET autobuild~
+** From source file
+    - Add autobuild to the load path and require it, or simply load the file.
+      #+BEGIN_SRC emacs-lisp
+      (add-to-list 'load-path (expand-file-name "~/git/autobuild/"))
+      (add-to-list 'load-path (expand-file-name "~/git/autobuild/examples"))
+      (require 'autobuild)
+      (require 'autobuild-examples)
+      #+END_SRC
+** Usage
+    - Enable global autobuild mode
+    - Bind ~#'autobuild-build~ to a key.
+    - Define appropriate rules.
+      - Optionally load ~autobuild-examples~ for a some commonly-applicable build rules.
+    - Invoke ~autobuild-build~ to build in the current context.
 
-  - Add autobuild to the load path and require it, or simply load the file.
-  - Bind ~#'autobuild-build~ to a key.
-  - Define appropriate rules.
-    - Optionally, require ~autobuild-examples~ to obtain a few commonly-applicable build rules.
+    #+BEGIN_SRC emacs-lisp
+    (autobuild-mode)
+    (global-set-key (kbd "M-c") #'autobuild-build)
+    #+END_SRC
 
-  - Invoke ~autobuild-build~ to build in the current context.
-
-  #+BEGIN_SRC emacs-lisp
-  (require 'autobuild)
-  (require 'autobuild-examples)
-  (autobuild-mode)
-  (global-set-key (kbd "M-c") #'autobuild-build)
-
-  #+END_SRC
 * Differences with other packages
   Autobuild is different from other similar packages in that it provides a menu of various applicable build options,
   from which the user makes an explicit or implicit choice,
@@ -138,4 +151,4 @@
   customize generated build actions based on the current contex.
 
 * More Examples
-  [[./autobuild-examples.el][Example rule definitions]]
+  [[./examples/autobuild-rules.el][Example rule definitions]]
