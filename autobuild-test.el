@@ -98,8 +98,7 @@
         (should (eq autobuild-last-rule #'high-nice))))))
 
 (ert-deftest autobuild-test-prioritizing-rules-defined-first ()
-  (let (autobuild-rules-list
-        rule-executed)
+  (let (autobuild-rules-list rule-executed)
     (eval
      '(progn
         (autobuild-define-rule older-rule (sh-mode)
