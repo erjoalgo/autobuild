@@ -1,4 +1,7 @@
 (require 'autobuild)
+(require 'cl-lib)
+
+(autobuild-mode t)
 
 (ert-deftest autobuild-test-mode-filter ()
   (let (autobuild-rules-list)
@@ -25,8 +28,14 @@
          finish-order
          (autobuild-notification-function
           (lambda (buffer state)
-            (push-last compile-command finish-order)))
-         (autobuild-notify-threshold-secs t))
+            (add-to-list 'finish-order compile-command t)))
+         (autobuild-notify-threshold-secs t)
+         (compilation-auto-rename-buffer-fn
+          (lambda (&rest args)
+             (with-current-buffer "*compilation*"
+               (rename-buffer (generate-new-buffer-name "*autobuild-test-*")))))
+         (compilation-start-hook
+          (cons compilation-auto-rename-buffer-fn compilation-start-hook)))
 
     (progn
       (should (null finish-order))
@@ -75,7 +84,7 @@
       (autobuild-build nil)
       (should (eq 'low ran))
       (should (eq autobuild-last-rule #'low-nice))
-      (letf (((symbol-function #'autobuild-candidate-select)
+      (cl-letf (((symbol-function #'autobuild-candidate-select)
               (lambda (cands _prompt _stringify-fn)
                 (cl-loop for action in cands
                          thereis (when (eq (autobuild--invocation-rule action)
@@ -89,8 +98,7 @@
         (should (eq autobuild-last-rule #'high-nice))))))
 
 (ert-deftest autobuild-test-prioritizing-rules-defined-first ()
-  (let (autobuild-rules-list
-        rule-executed)
+  (let (autobuild-rules-list rule-executed)
     (eval
      '(progn
         (autobuild-define-rule older-rule (sh-mode)

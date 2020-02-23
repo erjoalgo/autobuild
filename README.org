@@ -1,3 +1,5 @@
+[[https://api.travis-ci.com/erjoalgo/autobuild.svg]]
+
 * Overview
   Autobuild is a framework for defining and executing arbitrary build rules.
 
