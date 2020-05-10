@@ -1,6 +1,6 @@
-;;; autobuild-examples.el --- Sample rules for autobuild.el
+;;; autobuild-common-rules.el --- Sample rules for autobuild.el
 ;;
-;; Filename: autobuild-examples.el
+;; Filename: autobuild-common-rules.el
 ;; Description:
 ;; Author: Ernesto Alfonso
 ;; Maintainer:
@@ -18,7 +18,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
-;; Sample rules for autobuild.el
+;; Common autobuild.el rules.
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -348,7 +348,7 @@
 (autobuild-define-rule autobuild-python-modernize (python-mode)
   (format "python-modernize %s -w" (f-filename (buffer-file-name))))
 
-(provide 'autobuild-examples)
+(provide 'autobuild-common-rules)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; autobuild-examples.el ends here
+;;; autobuild-common-rules.el ends here

@@ -123,9 +123,9 @@
     - Add autobuild to the load path and require it, or simply load the file.
       #+BEGIN_SRC emacs-lisp
       (add-to-list 'load-path (expand-file-name "~/git/autobuild/"))
-      (add-to-list 'load-path (expand-file-name "~/git/autobuild/examples"))
+      (add-to-list 'load-path (expand-file-name "~/git/autobuild/common-rules"))
       (require 'autobuild)
-      (require 'autobuild-examples)
+      (require 'autobuild-common-rules)
       #+END_SRC
 ** Usage
     - Enable global autobuild mode
