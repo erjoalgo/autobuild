@@ -56,7 +56,7 @@
   (when (buffer-file-name)
     (autobuild-nice
      (if (alist-get 'compile-command file-local-variables-alist)
-         8 12))
+         5 12))
     (lambda ()
       (let* ((command
               (if (and (bound-and-true-p compile-command)
