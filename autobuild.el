@@ -280,8 +280,8 @@
    ((functionp action) (funcall action))
    (t (error "Action must be string or function, not %s" action))))
 
-(defun autobuild-rebuild-last-action ()
-  "Rerun the last autobuild action in the current buffer."
+(defun autobuild-rebuild ()
+  "Rerun the last autobuild action."
   (interactive)
   (if (null autobuild-last-build-buffer)
       (error "No known last autobuild buffer.")
