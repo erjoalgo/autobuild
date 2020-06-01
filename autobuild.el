@@ -268,12 +268,12 @@
 
 ;; global
 (defvar autobuild-last-build-buffer nil)
+(defvar autobuild-last-executed-action nil)
 
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
   (cl-assert action)
-  (setq-local autobuild-last-executed-action action)
-  (setq autobuild-last-build-buffer (current-buffer))
+  (setq autobuild-last-executed-action (cons action (current-buffer)))
   (cond
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
