@@ -253,12 +253,19 @@
           (autobuild--invocation-rule action)
           (autobuild--invocation-nice action)))
 
+;; buffer-local
 (defvar-local autobuild-last-executed-action nil)
+(defvar-local autobuild-compilation-start-time nil)
+(defvar-local autobuild-last-compilation-buffer nil)
+
+;; global
+(defvar autobuild-last-build-buffer nil)
 
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
   (cl-assert action)
-  (setq-local autobuild-last-executed-action (cons action (current-buffer)))
+  (setq-local autobuild-last-executed-action action)
+  (setq autobuild-last-build-buffer (current-buffer))
   (cond
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
@@ -266,20 +273,16 @@
    (t (error "Action must be string or function, not %s" action))))
 
 (defun autobuild-rebuild-last-action ()
-  "Rerun the last autobuild action."
+  "Rerun the last autobuild action in the current buffer."
   (interactive)
-  (if (not autobuild-last-executed-action)
-      (error "No last known action")
-    (cl-destructuring-bind (action . buffer)
-        autobuild-last-executed-action
-      (if (not (buffer-live-p buffer))
-          (error "Buffer not live: %s" buffer)
-        (with-current-buffer buffer
-          (autobuild-run-action action))))))
-
-(defvar-local autobuild-compilation-start-time nil)
-
-(defvar-local autobuild-last-compilation-buffer nil)
+  (if (null autobuild-last-build-buffer)
+      (error "No known last autobuild buffer.")
+    (if (not (buffer-live-p autobuild-last-build-buffer))
+        (error "Buffer not live: %s" buffer)
+      (with-current-buffer autobuild-last-build-buffer
+        (if (not autobuild-last-executed-action)
+            (error "No last known action")
+          (autobuild-run-action autobuild-last-executed-action))))))
 
 (defun autobuild-run-string-command (cmd)
   "Execute CMD as an asynchronous command via ‘compile'."
