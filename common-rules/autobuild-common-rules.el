@@ -350,6 +350,16 @@
 (autobuild-define-rule autobuild-python-modernize (python-mode)
   (format "python-modernize %s -w" (f-filename (buffer-file-name))))
 
+(autobuild-define-rule autobuild-systemd-lint ()
+  (save-match-data
+    (when (and
+           (buffer-file-name)
+           (string-match "/etc/systemd/system/[^/]+.service"
+                         (buffer-file-name)))
+      (autobuild-nice 8)
+      (format "sudo systemd-analyze verify %s"
+              (f-filename (buffer-file-name))))))
+
 (provide 'autobuild-common-rules)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
