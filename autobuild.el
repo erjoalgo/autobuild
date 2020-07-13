@@ -278,7 +278,7 @@
   (if (null autobuild-last-build-buffer)
       (error "No known last autobuild buffer.")
     (if (not (buffer-live-p autobuild-last-build-buffer))
-        (error "Buffer not live: %s" buffer)
+        (error "Buffer not live: %s" autobuild-last-build-buffer)
       (with-current-buffer autobuild-last-build-buffer
         (if (not autobuild-last-executed-action)
             (error "No last known action")
