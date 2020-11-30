@@ -237,6 +237,7 @@
   (format "python %s" (f-filename (buffer-file-name))))
 
 (autobuild-define-rule autobuild-python3-run (python-mode)
+  (autobuild-nice 8)
   (format "python3 %s" (f-filename (buffer-file-name))))
 
 (autobuild-define-rule autobuild-git-finish nil
