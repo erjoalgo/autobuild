@@ -105,8 +105,7 @@
   (when (or (eq 'java-mode major-mode)
             (and (buffer-file-name)
                  (equal (f-filename (buffer-file-name)) "pom.xml")))
-    (let ((f-no-ext
-           (-> (buffer-file-name) (f-filename) (f-no-ext)))
+    (let ((f-no-ext (f-no-ext (f-filename (buffer-file-name))))
           (pom-directory (cl-loop with dir =  default-directory
                                   thereis (and
                                            (member "pom.xml"
