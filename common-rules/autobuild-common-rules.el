@@ -338,12 +338,17 @@
   "Send an email in gnus message-mode"
   #'message-send-and-exit)
 
-(autobuild-define-rule autobuild-dot-to-ps (graphviz-dot-mode)
+(autobuild-define-rule autobuild-dot-to-ps ()
   "Convert a .dot file to ps."
+  (autobuild-nice 8)
   (when-let ((buffer-file-name)
-             (file (f-filename buffer-file-name)))
-    (format "dot -Tps %s -o %s.ps"
-            file file)))
+             (file (f-filename buffer-file-name))
+             (_applicable
+              (or (bound-and-true-p graphviz-dot-mode)
+                  (and (buffer-file-name)
+                       (equal "dot" (f-ext file))))))
+    (format "dot -Tps %s -o %s.ps && evince %s.ps"
+            file file (f-filename file))))
 
 (autobuild-define-rule autobuild-python-pylint (python-mode)
   #'python-check)
