@@ -105,8 +105,7 @@
   (when (or (eq 'java-mode major-mode)
             (and (buffer-file-name)
                  (equal (f-filename (buffer-file-name)) "pom.xml")))
-    (let ((f-no-ext
-           (-> (buffer-file-name) (f-filename) (f-no-ext)))
+    (let ((f-no-ext (f-no-ext (f-filename (buffer-file-name))))
           (pom-directory (cl-loop with dir =  default-directory
                                   thereis (and
                                            (member "pom.xml"
@@ -237,6 +236,7 @@
   (format "python %s" (f-filename (buffer-file-name))))
 
 (autobuild-define-rule autobuild-python3-run (python-mode)
+  (autobuild-nice 8)
   (format "python3 %s" (f-filename (buffer-file-name))))
 
 (autobuild-define-rule autobuild-git-finish nil
@@ -337,12 +337,17 @@
   "Send an email in gnus message-mode"
   #'message-send-and-exit)
 
-(autobuild-define-rule autobuild-dot-to-ps (graphviz-dot-mode)
+(autobuild-define-rule autobuild-dot-to-ps ()
   "Convert a .dot file to ps."
+  (autobuild-nice 8)
   (when-let ((buffer-file-name)
-             (file (f-filename buffer-file-name)))
-    (format "dot -Tps %s -o %s.ps"
-            file file)))
+             (file (f-filename buffer-file-name))
+             (_applicable
+              (or (bound-and-true-p graphviz-dot-mode)
+                  (and (buffer-file-name)
+                       (equal "dot" (f-ext file))))))
+    (format "dot -Tps %s -o %s.ps && evince %s.ps"
+            file file (f-filename file))))
 
 (autobuild-define-rule autobuild-python-pylint (python-mode)
   #'python-check)
@@ -359,6 +364,12 @@
       (autobuild-nice 8)
       (format "sudo systemd-analyze verify %s"
               (f-filename (buffer-file-name))))))
+
+(autobuild-define-rule autobuild-ps2pdf (ps-mode)
+  "Evaluate the current emacs-lisp buffer"
+  (format "ps2pdf %s" (shell-quote-argument
+                       (f-filename (buffer-file-name)))))
+
 
 (provide 'autobuild-common-rules)
 
