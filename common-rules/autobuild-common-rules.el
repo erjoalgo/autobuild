@@ -365,6 +365,12 @@
       (format "sudo systemd-analyze verify %s"
               (f-filename (buffer-file-name))))))
 
+(autobuild-define-rule autobuild-ps2pdf (ps-mode)
+  "Evaluate the current emacs-lisp buffer"
+  (format "ps2pdf %s" (shell-quote-argument
+                       (f-filename (buffer-file-name)))))
+
+
 (provide 'autobuild-common-rules)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
