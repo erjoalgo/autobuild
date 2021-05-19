@@ -371,6 +371,9 @@
   (format "ps2pdf %s" (shell-quote-argument
                        (f-filename (buffer-file-name)))))
 
+(autobuild-define-rule autobuild-docker-compose (conf-colon-mode)
+  (when (equal "docker-compose.yml" (f-filename (buffer-file-name)))
+    (format "sudo docker-compose up")))
 
 (provide 'autobuild-common-rules)
 
