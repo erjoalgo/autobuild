@@ -233,11 +233,12 @@
 (autobuild-define-rule autobuild-latex (tex-mode latex-mode)
   'latex-compile)
 
+(autobuild-define-rule autobuild-python3-run (python-mode)
+  (autobuild-nice 8)
+  (format "python3 %s" (f-filename (buffer-file-name))))
+
 (autobuild-define-rule autobuild-python-run (python-mode)
   (format "python %s" (f-filename (buffer-file-name))))
-
-(autobuild-define-rule autobuild-python3-run (python-mode)
-  (format "python3 %s" (f-filename (buffer-file-name))))
 
 (autobuild-define-rule autobuild-git-finish nil
   (when (or (eq major-mode 'git-rebase-mode)
@@ -321,7 +322,8 @@
   (when (and (buffer-file-name)
              (equal "setup.py"
                     (f-filename (buffer-file-name))))
-    (format "python %s install --user" (f-filename (buffer-file-name)))))
+    (autobuild-nice 7)
+    (format "python3 %s install --user" (f-filename (buffer-file-name)))))
 
 (autobuild-define-rule autobuild-xmodmap (conf-unix-mode)
   "run xmodmap on a file"
