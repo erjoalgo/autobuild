@@ -344,6 +344,13 @@
     (format "dot -Tps %s -o %s.ps"
             file file)))
 
+(autobuild-define-rule autobuild-dot-to-pdf (graphviz-dot-mode)
+  "Convert a .dot file to a pdf."
+  (when-let ((buffer-file-name)
+             (file (f-filename buffer-file-name)))
+    (format "dot -Tps %s -o %s.ps; convert %s.ps %s.pdf; zathura %s.pdf"
+            file file file file file)))
+
 (autobuild-define-rule autobuild-python-pylint (python-mode)
   #'python-check)
 
