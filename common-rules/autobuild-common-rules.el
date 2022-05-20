@@ -1,4 +1,4 @@
-;;; autobuild-common-rules.el --- Sample rules for autobuild.el
+;;; autobuild-common-rules.el --- Sample rules for autobuild.el  -*- lexical-binding: t; -*-
 ;;
 ;; Filename: autobuild-common-rules.el
 ;; Description:
@@ -174,7 +174,7 @@
   (when (file-exists-p "Makefile") "make clean"))
 
 (autobuild-define-rule autobuild-configure-make-install nil
-  (lexical-let ((autogen
+  (let ((autogen
                  (when (file-exists-p "autogen.sh")
                    (find-file-noselect "autogen.sh")))
                 (configure
