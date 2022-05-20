@@ -265,6 +265,7 @@
                            #'autobuild--invocation-to-string)))))
     (cl-assert choice)
     (setq-local autobuild-last-rule (autobuild--invocation-rule choice))
+    (push (cons (current-buffer) autobuild-last-rule) autobuild-history)
     (autobuild-run-action (autobuild--invocation-action choice))))
 
 (defun autobuild--invocation-to-string (action)
@@ -294,6 +295,23 @@
         (if (not autobuild-last-executed-action)
             (error "No last known action")
           (autobuild-run-action autobuild-last-executed-action))))))
+
+
+(defun autobuild-rebuild-recent ()
+  "Prompt to select a recent build to rebuild."
+  (interactive)
+  (if (null autobuild-history)
+      (error "No builds found in history")
+    (let ((buffer-action
+           (selcand-select autobuild-history
+                           "Select recent build: "
+                           ;; (lambda (buffer-action) )
+                           )))
+      (when buffer-action
+        (cl-destructuring-bind (buffer . action) buffer-action
+          (with-current-buffer buffer
+            (autobuild-run-action action)))))))
+
 
 (defun autobuild-run-string-command (cmd)
   "Execute CMD as an asynchronous command via ‘compile'."
