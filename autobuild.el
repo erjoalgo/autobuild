@@ -51,16 +51,6 @@
 
 (defvar autobuild-debug nil "Log rule names before generating their action.")
 
-(defun autobuild-toggle-debug ()
-  (interactive)
-  (message "setting autobuild-debug to %s"
-           (setq autobuild-debug (not autobuild-debug))))
-
-(defun autobuild-rule-p (rule)
-  "Return non-nil if RULE has been registered as an autobuild rule."
-  (and (functionp rule)
-       (cl-find rule autobuild-rules-list)))
-
 (defvar autobuild-nice nil
   "Dynamic var which an autobuild rule may setq when generating an action.
 
@@ -70,15 +60,45 @@
 (defconst autobuild-nice-default 10
   "Default nice value for rule invocations that do not setq the variable ‘autobuild-nice’.")
 
-(defun autobuild-nice (nice)
-  "A function wrapper for a rule to set the current action's NICE value."
-  (setq autobuild-nice nice))
-
 (defcustom autobuild-candidate-default-hints
   "1234acdefqrstvwxz"
   "Default hint chars."
   :type 'string
   :group 'autobuild)
+
+;; buffer-local
+(defvar-local autobuild-last-executed-action nil)
+(defvar-local autobuild-compilation-start-time nil)
+(defvar-local autobuild-last-compilation-buffer nil)
+
+;; global
+(defvar autobuild-last-build-buffer nil)
+(defvar autobuild-last-executed-action nil)
+
+(defvar-local autobuild-pipeline-rules-remaining nil)
+
+;; TODO
+(defvar autobuild-pipeline-finish-hook nil
+  "Hook called when the entire pipeline has finished.")
+
+(defvar-local autobuild-last-rule nil)
+
+(defvar autobuild-history nil)
+
+(defun autobuild-toggle-debug ()
+  "Enable or disable `autobuild-debug`."
+  (interactive)
+  (message "setting autobuild-debug to %s"
+           (setq autobuild-debug (not autobuild-debug))))
+
+(defun autobuild-rule-p (rule)
+  "Return non-nil if RULE has been registered as an autobuild rule."
+  (and (functionp rule)
+       (cl-find rule autobuild-rules-list)))
+
+(defun autobuild-nice (nice)
+  "A function wrapper for a rule to set the current action's NICE value."
+  (setq autobuild-nice nice))
 
 ;;;###autoload
 (cl-defmacro autobuild-define-rule (name mode-filter &rest body)
@@ -99,8 +119,6 @@
        (when (autobuild-mode-filter-applicable-p ',mode-filter)
          ,@body))
      (cl-pushnew ',name autobuild-rules-list)))
-
-(defvar-local autobuild-pipeline-rules-remaining nil)
 
 ;;;###autoload
 (defmacro autobuild-pipeline (&rest buffer-rule-list)
@@ -167,10 +185,6 @@
               (setq-local autobuild-pipeline-rules-remaining (cdr rules-remaining))
               (autobuild-pipeline-run (cdr rules-remaining)))))))))
 
-;; TODO
-(defvar autobuild-pipeline-finish-hook nil
-  "Hook called when the entire pipeline has finished.")
-
 (defun autobuild-compilation-succeeded-p (compilation-finished-message)
   "Determine from COMPILATION-FINISHED-MESSAGE whether compilation failed."
   (equal "finished\n" compilation-finished-message))
@@ -219,8 +233,6 @@
                     ;; prioritize rules defined first if they have the same nice
                     (reverse actions)))))
 
-(defvar-local autobuild-last-rule nil)
-
 (defun autobuild--sort-by (key list)
   "Sort LIST by the key-function KEY."
   (sort list (lambda (a b) (< (funcall key a) (funcall key b)))))
@@ -260,15 +272,6 @@
   (format "%s (%s)"
           (autobuild--invocation-rule action)
           (autobuild--invocation-nice action)))
-
-;; buffer-local
-(defvar-local autobuild-last-executed-action nil)
-(defvar-local autobuild-compilation-start-time nil)
-(defvar-local autobuild-last-compilation-buffer nil)
-
-;; global
-(defvar autobuild-last-build-buffer nil)
-(defvar autobuild-last-executed-action nil)
 
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
