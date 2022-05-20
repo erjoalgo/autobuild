@@ -109,7 +109,7 @@
    which must be one of the following types:
 
    nil if the generator doesn't know how to generate an action.
-   string is interpreted as a compile-command, which is executed via ‘compile'
+   string is interpreted as a ‘compile-command', which is executed via ‘compile'
    function is executed via ‘funcall'"
   (declare (indent defun))
   (unless (listp mode-filter)
@@ -287,7 +287,7 @@
   "Rerun the last autobuild action."
   (interactive)
   (if (null autobuild-last-build-buffer)
-      (error "No known last autobuild buffer.")
+      (error "No known last autobuild buffer")
     (if (not (buffer-live-p autobuild-last-build-buffer))
         (error "Buffer not live: %s" autobuild-last-build-buffer)
       (with-current-buffer autobuild-last-build-buffer
