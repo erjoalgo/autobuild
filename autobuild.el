@@ -72,7 +72,7 @@
 (defvar-local autobuild-last-compilation-buffer nil)
 
 ;; global
-(defvar autobuild-last-executed-action nil)
+(defvar autobuild-global-last-executed-action nil)
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
 
@@ -285,7 +285,8 @@
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
   (cl-assert action)
-  (setq autobuild-last-executed-action (cons action (current-buffer)))
+  (setq autobuild-last-executed-action (cons action (current-buffer))
+        autobuild-global-last-executed-action autobuild-last-executed-action)
   (cond
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
