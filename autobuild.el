@@ -72,7 +72,6 @@
 (defvar-local autobuild-last-compilation-buffer nil)
 
 ;; global
-(defvar autobuild-last-build-buffer nil)
 (defvar autobuild-last-executed-action nil)
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
@@ -296,14 +295,16 @@
 (defun autobuild-rebuild ()
   "Rerun the last autobuild action."
   (interactive)
-  (if (null autobuild-last-build-buffer)
+  (if (null autobuild-last-executed-action)
       (error "No known last autobuild buffer")
-    (if (not (buffer-live-p autobuild-last-build-buffer))
-        (error "Buffer not live: %s" autobuild-last-build-buffer)
-      (with-current-buffer autobuild-last-build-buffer
-        (if (not autobuild-last-executed-action)
-            (error "No last known action")
-          (autobuild-run-action autobuild-last-executed-action))))))
+    (cl-destructuring-bind (action buffer) autobuild-last-executed-action
+      (cond
+       ((null autobuild-last-executed-action)
+        (error "No last known action"))
+       ((not (buffer-live-p buffer))
+        (error "Buffer not live: %s" buffer))
+       (t (with-current-buffer buffer
+            (autobuild-run-action action)))))))
 
 
 (defun autobuild-rebuild-recent ()
