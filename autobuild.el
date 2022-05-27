@@ -264,9 +264,18 @@
                            cands "select build rule: "
                            #'autobuild--invocation-to-string)))))
     (cl-assert choice)
-    (setq-local autobuild-last-rule (autobuild--invocation-rule choice))
-    (push (cons (current-buffer) autobuild-last-rule) autobuild-history)
-    (autobuild-run-action (autobuild--invocation-action choice))))
+    (let* ((rule (autobuild--invocation-rule choice))
+           (action (autobuild-rule-action rule)))
+      (setq-local autobuild-last-rule rule)
+      (unless (and autobuild-history
+                   (cl-destructuring-bind (buffer . old-choice)
+                       (car autobuild-history)
+                     (and (equal buffer (current-buffer))
+                          (equal (autobuild--invocation-action old-choice)
+                                 action))))
+        (push (cons (current-buffer) choice) autobuild-history))
+      (autobuild-run-action action))))
+
 
 (defun autobuild--invocation-to-string (action)
   "Generate a string representation of an autobuild ACTION."
