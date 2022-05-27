@@ -313,15 +313,20 @@
   (interactive)
   (if (null autobuild-history)
       (error "No builds found in history")
-    (let ((buffer-action
-           (selcand-select autobuild-history
-                           "Select recent build: "
-                           ;; (lambda (buffer-action) )
-                           )))
-      (when buffer-action
-        (cl-destructuring-bind (buffer . action) buffer-action
+    (let ((buffer-invocation
+           (selcand-select
+            autobuild-history
+            "Select recent build: "
+            (lambda (buffer-invocation)
+              (cl-destructuring-bind (buffer . invocation) buffer-invocation
+                  (format "%s: %s"
+                          (or (buffer-name buffer) buffer)
+                          (autobuild--invocation-rule invocation)))))))
+      (when buffer-invocation
+        (cl-destructuring-bind (buffer . invocation) buffer-invocation
           (with-current-buffer buffer
-            (autobuild-run-action action)))))))
+            (autobuild-run-action
+             (autobuild--invocation-action invocation))))))))
 
 
 (defun autobuild-run-string-command (cmd)
