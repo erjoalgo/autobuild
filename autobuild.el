@@ -45,6 +45,7 @@
 
 
 (require 'cl-lib)
+(require 'selcand)
 (eval-when-compile (require 'subr-x))
 
 (defvar autobuild-rules-list nil "A list of all known autobuild rules.")
