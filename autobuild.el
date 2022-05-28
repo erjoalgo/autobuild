@@ -320,9 +320,9 @@
             "Select recent build: "
             (lambda (buffer-invocation)
               (cl-destructuring-bind (buffer . invocation) buffer-invocation
-                  (format "%s: %s"
-                          (or (buffer-name buffer) buffer)
-                          (autobuild--invocation-rule invocation)))))))
+                (format "%s: %s"
+                        (or (buffer-name buffer) buffer)
+                        (autobuild--invocation-rule invocation)))))))
       (when buffer-invocation
         (cl-destructuring-bind (buffer . invocation) buffer-invocation
           (with-current-buffer buffer
