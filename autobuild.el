@@ -293,8 +293,8 @@
 (defun autobuild-rebuild ()
   "Rerun the last autobuild action."
   (interactive)
-  (if (null autobuild-last-executed-action)
-      (error "No known last autobuild buffer")
+  (if (null autobuild-global-last-executed-action)
+      (error "No known last autobuild executed action")
     (cl-destructuring-bind (action buffer) autobuild-last-executed-action
       (cond
        ((null autobuild-last-executed-action)
