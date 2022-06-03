@@ -308,6 +308,10 @@
 (defun autobuild-rebuild-recent ()
   "Prompt to select a recent build to rebuild."
   (interactive)
+  (setq autobuild-history
+        (cl-remove-if-not (lambda (buffer-invocation)
+                            (buffer-live-p (car buffer-invocation)))
+                          autobuild-history))
   (if (null autobuild-history)
       (error "No builds found in history")
     (let ((buffer-invocation
