@@ -267,13 +267,9 @@
     (let* ((rule (autobuild--invocation-rule choice))
            (action (autobuild-rule-action rule)))
       (setq-local autobuild-last-rule rule)
-      (unless (and autobuild-history
-                   (cl-destructuring-bind (buffer . old-choice)
-                       (car autobuild-history)
-                     (and (equal buffer (current-buffer))
-                          (equal (autobuild--invocation-action old-choice)
-                                 action))))
-        (push (cons (current-buffer) choice) autobuild-history))
+      (let ((entry (cons (current-buffer) choice)))
+        (setq autobuild-history (delete entry autobuild-history))
+        (push entry autobuild-history))
       (autobuild-run-action action))))
 
 
