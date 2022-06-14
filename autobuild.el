@@ -489,6 +489,7 @@
 
 (autobuild-define-rule autobuild-emacs-lisp-eval-buffer (emacs-lisp-mode)
   "Evaluate the current emacs-lisp buffer"
+  (autobuild-nice 9)
   #'eval-buffer)
 
 (provide 'autobuild)
