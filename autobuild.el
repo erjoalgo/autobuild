@@ -142,7 +142,7 @@
   "Funcall wrapper to safely obtain an action for rule RULE."
   (cl-assert (autobuild-rule-p rule))
   (when autobuild-debug
-    (message "autobuild-rule-action: %s" rule))
+    (message "considering autobuild-rule-action: %s" rule))
   (let ((original-buffer (current-buffer)))
     (prog1
         (condition-case ex (funcall rule)
@@ -263,6 +263,7 @@
     (cl-assert choice)
     (let* ((rule (autobuild--invocation-rule choice))
            (action (autobuild-rule-action rule)))
+      (when autobuild-debug (message "selected rule %s" rule))
       (setq-local autobuild-last-local-rule rule)
       (autobuild-run-action action))))
 
