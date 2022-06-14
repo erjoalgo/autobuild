@@ -68,12 +68,8 @@
   :group 'autobuild)
 
 ;; buffer-local
-(defvar-local autobuild-last-executed-action nil)
 (defvar-local autobuild-compilation-start-time nil)
 (defvar-local autobuild-last-compilation-buffer nil)
-
-;; global
-(defvar autobuild-global-last-executed-action nil)
 (defvar-local autobuild-last-local-rule nil)
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
@@ -268,9 +264,6 @@
     (let* ((rule (autobuild--invocation-rule choice))
            (action (autobuild-rule-action rule)))
       (setq-local autobuild-last-local-rule rule)
-      (let ((entry (cons (current-buffer) choice)))
-        (setq autobuild-history (delete entry autobuild-history))
-        (push entry autobuild-history))
       (autobuild-run-action action))))
 
 
@@ -283,53 +276,59 @@
 (defun autobuild-run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
   (cl-assert action)
-  (setq autobuild-last-executed-action (cons action (current-buffer))
-        autobuild-global-last-executed-action autobuild-last-executed-action)
+  (let ((entry (cons (current-buffer) action)))
+    (setq autobuild-history (delete entry autobuild-history))
+    (push entry autobuild-history))
   (cond
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
    ((functionp action) (funcall action))
    (t (error "Action must be string or function, not %s" action))))
 
-(defun autobuild-rebuild ()
-  "Rerun the last autobuild action."
+(defun autobuild-rebuild-last-local ()
+  "Rebuilt the last rule invoked in the current buffer."
   (interactive)
-  (if (null autobuild-global-last-executed-action)
-      (error "No known last autobuild executed action")
-    (cl-destructuring-bind (action buffer) autobuild-last-executed-action
-      (cond
-       ((null autobuild-last-executed-action)
-        (error "No last known action"))
-       ((not (buffer-live-p buffer))
-        (error "Buffer not live: %s" buffer))
-       (t (with-current-buffer buffer
-            (autobuild-run-action action)))))))
-
+  (autobuild--rebuild :last-local))
 
 (defun autobuild-rebuild-recent ()
-  "Prompt to select a recent build to rebuild."
+  "Select a recently built rule to rebuild."
   (interactive)
+  (autobuild--rebuild :prompt))
+
+(defun autobuild-rebuild-last-global ()
+  "Rebuilt the last rule invoked globally."
+  (interactive)
+  (autobuild--rebuild :last-global))
+
+(defun autobuild--rebuild (recent-selection)
+  "Rebuild a rule.  RECENT-SELECTION is in '(:last-local :last-global :prompt)."
   (setq autobuild-history
         (cl-remove-if-not (lambda (buffer-invocation)
                             (buffer-live-p (car buffer-invocation)))
                           autobuild-history))
   (if (null autobuild-history)
-      (error "No builds found in history")
-    (let ((buffer-invocation
-           (selcand-select
-            autobuild-history
-            "Select recent build: "
-            (lambda (buffer-invocation)
-              (cl-destructuring-bind (buffer . invocation) buffer-invocation
-                (format "%s: %s"
-                        (or (buffer-name buffer) buffer)
-                        (autobuild--invocation-rule invocation)))))))
-      (when buffer-invocation
-        (cl-destructuring-bind (buffer . invocation) buffer-invocation
-          (with-current-buffer buffer
-            (autobuild-run-action
-             (autobuild--invocation-action invocation))))))))
-
+      (error "No autobuild builds found in history")
+    (let ((buffer-action
+           (cl-case recent-selection
+             (:last-local
+              (cons (current-buffer)
+                    (autobuild-rule-action autobuild-last-local-rule)))
+             (:last-global (car autobuild-history))
+             (:prompt
+              (selcand-select
+               autobuild-history
+               "Select recent build: "
+               (lambda (buffer-invocation)
+                 (cl-destructuring-bind (buffer . invocation) buffer-invocation
+                   (format "%s: %s"
+                           (or (buffer-name buffer) buffer)
+                           invocation))))))))
+      (cl-assert buffer-action)
+      (cl-destructuring-bind (buffer . action) buffer-action
+        (cl-assert action)
+        (cl-assert (buffer-live-p buffer))
+        (with-current-buffer buffer
+          (autobuild-run-action action))))))
 
 (defun autobuild-run-string-command (cmd)
   "Execute CMD as an asynchronous command via ‘compile'."
