@@ -74,6 +74,7 @@
 
 ;; global
 (defvar autobuild-global-last-executed-action nil)
+(defvar-local autobuild-last-local-rule nil)
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
 
@@ -81,7 +82,6 @@
 (defvar autobuild-pipeline-finish-hook nil
   "Hook called when the entire pipeline has finished.")
 
-(defvar-local autobuild-last-rule nil)
 
 (defvar autobuild-history nil)
 
@@ -250,10 +250,11 @@
   (autobuild-mode-assert-enabled)
   (let* ((cands
           (if-let* ((not-force-prompt (not prompt))
-                    (last-rule-valid (autobuild-rule-p autobuild-last-rule))
-                    (action (autobuild-rule-action autobuild-last-rule)))
+                    (last-rule-valid
+                     (autobuild-rule-p autobuild-last-local-rule))
+                    (action (autobuild-rule-action autobuild-last-local-rule)))
               ;; the last action is still applicable, and prompt was not forced
-              (list (make-autobuild--invocation :rule autobuild-last-rule
+              (list (make-autobuild--invocation :rule autobuild-last-local-rule
                                                 :action action
                                                 :nice 0))
             ;; fall back to generating actions for all applicable rules
@@ -266,7 +267,7 @@
     (cl-assert choice)
     (let* ((rule (autobuild--invocation-rule choice))
            (action (autobuild-rule-action rule)))
-      (setq-local autobuild-last-rule rule)
+      (setq-local autobuild-last-local-rule rule)
       (let ((entry (cons (current-buffer) choice)))
         (setq autobuild-history (delete entry autobuild-history))
         (push entry autobuild-history))
