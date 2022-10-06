@@ -96,6 +96,9 @@
   "A function wrapper for a rule to set the current action's NICE value."
   (setq autobuild-nice nice))
 
+;; internal struct used to collect a rule's action and it's nice value
+(cl-defstruct autobuild--invocation rule action nice)
+
 ;;;###autoload
 (cl-defmacro autobuild-define-rule (name mode-filter &rest body)
   "Define a build rule NAME.
@@ -206,9 +209,6 @@
       (cl-loop for mode in mode-filter
                thereis (and (boundp mode)
                             (symbol-value mode)))))
-
-;; internal struct used to collect a rule's action and it's nice value
-(cl-defstruct autobuild--invocation rule action nice)
 
 (defun autobuild-applicable-rule-actions ()
   "Return a list of the currently applicable build actions.
