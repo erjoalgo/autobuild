@@ -182,7 +182,8 @@
                    (find-file-noselect "configure"))))
     (when (or autogen configure)
       (autobuild-pipeline
-       (autogen "./autogen.sh")
+       ((current-buffer) (if (file-exists-p "deps.sh") "./deps.sh" "true"))
+       (autogen (if autogen "./autogen.sh" "true"))
        (configure "./configure")
        ((find-file-noselect "Makefile") "make")
        ((find-file-noselect "Makefile") "sudo make install")))))
