@@ -70,7 +70,7 @@
 ;; buffer-local
 (defvar-local autobuild-compilation-start-time nil)
 (defvar-local autobuild-last-compilation-buffer nil)
-(defvar-local autobuild-last-local-rule nil)
+(defvar-local autobuild-last-local-invocation nil)
 
 (defvar-local autobuild-pipeline-rules-remaining nil)
 
@@ -141,11 +141,11 @@
       (list ,@(cl-loop for (buffer rule-name) in buffer-rule-list
                        collect `(list ,buffer ,rule-name))))))
 
-(defun autobuild-rule-action (rule)
+(defun autobuild-rule-generate-action (rule)
   "Funcall wrapper to safely obtain an action for rule RULE."
   (cl-assert (autobuild-rule-p rule))
   (when autobuild-debug
-    (message "considering autobuild-rule-action: %s" rule))
+    (message "considering autobuild rule: %s" rule))
   (let ((original-buffer (current-buffer)))
     (prog1
         (condition-case ex (funcall rule)
@@ -168,12 +168,17 @@
         (error "Null rule in pipeline"))
       (unless buffer (setq buffer (current-buffer)))
       (with-current-buffer buffer
-        (let* ((action (if (autobuild-rule-p rule-or-action)
-                           (autobuild-rule-action rule-or-action)
+        (let* ((rule (when (autobuild-rule-p rule-or-action)
+                         rule-or-action))
+                (action (if rule
+                           (autobuild-rule-generate-action rule-or-action)
                          rule-or-action)))
           (unless action
             (error "Rule %s in pipeline should have generated an action" rule-or-action))
-          (let ((result (autobuild-run-action action)))
+          (let ((result (autobuild-run-invocation
+                         (make-autobuild--invocation :rule rule
+                                                     :action action
+                                                     :nice nil))))
             (if (and (bufferp result)
                      (eq 'compilation-mode (buffer-local-value 'major-mode result)))
                 (with-current-buffer result
@@ -217,8 +222,8 @@
    rule's list of major modes, and if the rule generates a non-nil action."
   (cl-loop with actions
            for rule in autobuild-rules-list
-           do (if-let* ((autobuild-nice autobuild-nice-default)
-                        (action (autobuild-rule-action rule)))
+           do (autobuild-nice autobuild-nice-default)
+           do (if-let* ((action (autobuild-rule-generate-action rule)))
                   (push (make-autobuild--invocation :rule rule
                                                     :action action
                                                     :nice autobuild-nice)
@@ -246,13 +251,16 @@
   (autobuild-mode-assert-enabled)
   (let* ((cands
           (if-let* ((not-force-prompt (not prompt))
-                    (last-rule-valid
-                     (autobuild-rule-p autobuild-last-local-rule))
-                    (action (autobuild-rule-action autobuild-last-local-rule)))
-              ;; the last action is still applicable, and prompt was not forced
-              (list (make-autobuild--invocation :rule autobuild-last-local-rule
-                                                :action action
-                                                :nice 0))
+                    (--last-rule-valid-p autobuild-last-local-invocation))
+              (progn
+                (cl-assert (and
+                            (autobuild-rule-p
+                             (autobuild--invocation-rule
+                              autobuild-last-local-invocation))
+                            (autobuild--invocation-action
+                             autobuild-last-local-invocation)))
+                ;; the last action is still applicable, and prompt was not forced
+                (list autobuild-last-local-invocation))
             ;; fall back to generating actions for all applicable rules
             (autobuild-applicable-rule-actions)))
          (choice (cond ((null cands) (error "No build rules matched"))
@@ -261,25 +269,30 @@
                            cands "select build rule: "
                            #'autobuild--invocation-to-string)))))
     (cl-assert choice)
-    (let* ((rule (autobuild--invocation-rule choice))
-           (action (autobuild-rule-action rule)))
+    (let* ((rule (autobuild--invocation-rule choice)))
       (when autobuild-debug (message "selected rule %s" rule))
-      (setq-local autobuild-last-local-rule rule)
-      (autobuild-run-action action))))
+      (setq-local autobuild-last-local-invocation choice)
+      (autobuild-run-invocation choice))))
 
 
-(defun autobuild--invocation-to-string (action)
+(defun autobuild--invocation-to-string (invocation)
   "Generate a string representation of an autobuild ACTION."
   (format "%s (%s)"
-          (autobuild--invocation-rule action)
-          (autobuild--invocation-nice action)))
+          (autobuild--invocation-rule invocation)
+          (autobuild--invocation-nice invocation)))
 
-(defun autobuild-run-action (action)
-  "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
-  (cl-assert action)
-  (let ((entry (cons (current-buffer) action)))
+(defun autobuild-run-invocation (invocation)
+  "Run the given INVOCATION."
+  (let* ((action (autobuild--invocation-action invocation))
+         (entry (cons (current-buffer) invocation)))
     (setq autobuild-history (delete entry autobuild-history))
-    (push entry autobuild-history))
+    (push entry autobuild-history)
+    (autobuild--run-action action)))
+
+(defun autobuild--run-action (action)
+  "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
+
+  (cl-assert action)
   (cond
    ((stringp action) (autobuild-run-string-command action))
    ((commandp action) (call-interactively action))
@@ -307,29 +320,35 @@
         (cl-remove-if-not (lambda (buffer-invocation)
                             (buffer-live-p (car buffer-invocation)))
                           autobuild-history))
-  (if (null autobuild-history)
-      (error "No autobuild builds found in history")
-    (let ((buffer-action
-           (cl-case recent-selection
-             (:last-local
-              (cons (current-buffer)
-                    (autobuild-rule-action autobuild-last-local-rule)))
-             (:last-global (car autobuild-history))
-             (:prompt
-              (selcand-select
-               autobuild-history
-               "Select recent build: "
-               (lambda (buffer-invocation)
-                 (cl-destructuring-bind (buffer . invocation) buffer-invocation
-                   (format "%s: %s"
-                           (or (buffer-name buffer) buffer)
-                           invocation))))))))
-      (cl-assert buffer-action)
-      (cl-destructuring-bind (buffer . action) buffer-action
-        (cl-assert action)
-        (cl-assert (buffer-live-p buffer))
-        (with-current-buffer buffer
-          (autobuild-run-action action))))))
+  (let ((buffer-invocation
+         (cl-case recent-selection
+           (:last-local
+            (if autobuild-last-local-invocation
+                (cons (current-buffer)
+                      autobuild-last-local-invocation)
+              (error "No autobuild invocation found in the current buffer")))
+           (:last-global
+            (or
+             (car autobuild-history)
+             (error "No autobuild global invocation found")))
+           (:prompt
+            (selcand-select
+             autobuild-history
+             "Select recent build: "
+             (lambda (buffer-invocation)
+               (cl-destructuring-bind (buffer . invocation) buffer-invocation
+                 (condition-case ()
+                     (format "%s: %s"
+                             (or (buffer-name buffer) buffer)
+                             (autobuild--invocation-to-string invocation))
+                   (error (format "2 : %s" buffer-invocation)))
+)))))))
+    (cl-assert buffer-invocation)
+    (cl-destructuring-bind (buffer . invocation) buffer-invocation
+      (cl-assert (buffer-live-p buffer))
+      (cl-assert (autobuild--invocation-action invocation))
+      (with-current-buffer buffer
+        (autobuild-run-invocation invocation)))))
 
 (defun autobuild-run-string-command (cmd)
   "Execute CMD as an asynchronous command via ‘compile'."
