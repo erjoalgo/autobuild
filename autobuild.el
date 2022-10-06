@@ -214,7 +214,9 @@
                                                     :nice autobuild-nice)
                         actions))
            finally
-           (return (autobuild--sort-by #'autobuild--invocation-nice actions))))
+           ;; (return (autobuild--sort-by #'autobuild--invocation-nice actions))
+           ;; prioritize rules defined first if they have the same nice
+           (return (reverse actions))))
 
 (defvar-local autobuild-last-rule nil)
 
