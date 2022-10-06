@@ -99,23 +99,6 @@
 ;; internal struct used to collect a rule's action and it's nice value
 (cl-defstruct autobuild--invocation rule action nice)
 
-(defmacro autobuild--with-slots (class-name slots obj &rest body)
-  "Bind slot names SLOTS in an instance OBJ of class CLASS-NAME, and execute BODY."
-  (declare (indent 3))
-  `(cl-symbol-macrolet
-       ,(cl-loop for slot in slots
-                 collect `(,slot (cl-struct-slot-value ',class-name ',slot ,obj)))
-     ,@body))
-
-(defmacro autobuild--def-with-slots (name class-name &rest body)
-  "Define a with-slots macro NAME for the given defstruct CLASS-NAME.  BODY."
-  `(defmacro ,name (slots instance &rest body)
-     (autobuild--with-slots ,class-name slots instance
-                            ,@body)))
-
-(autobuild--def-with-slots autobuild--with-invocation-slots
-                           autobuild-invocation)
-
 ;;;###autoload
 (cl-defmacro autobuild-define-rule (name mode-filter &rest body)
   "Define a build rule NAME.
