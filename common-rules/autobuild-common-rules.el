@@ -351,6 +351,14 @@
     (format "dot -Tps %s -o %s.ps; convert %s.ps %s.pdf; zathura %s.pdf"
             file file file file file)))
 
+(defun graphviz-update-file ()
+  "Maybe compile .dot file updates to PDF and switch to PDF viewer."
+  (when (eq major-mode 'graphviz-dot-mode)
+    (let ((async-shell-command-buffer (get-buffer-create "*graphviz-update*")))
+      (async-shell-command (autobuild-dot-to-pdf)))))
+
+(add-hook 'after-save-hook #'graphviz-update-file)
+
 (autobuild-define-rule autobuild-python-pylint (python-mode)
   #'python-check)
 
