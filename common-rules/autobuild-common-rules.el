@@ -346,10 +346,13 @@
 
 (autobuild-define-rule autobuild-dot-to-pdf (graphviz-dot-mode)
   "Convert a .dot file to a pdf."
+  (autobuild-nice 9)
   (when-let ((buffer-file-name)
              (file (f-filename buffer-file-name)))
-    (format "dot -Tps %s -o %s.ps; convert %s.ps %s.pdf; zathura %s.pdf"
-            file file file file file)))
+    (format
+     (concat "dot -Tps %s -o %s.ps && ps2pdf %s.ps && "
+             "( wmctrl -a %s || evince %s.ps )&")
+     file file file file file)))
 
 (defun graphviz-update-file ()
   "Maybe compile .dot file updates to PDF and switch to PDF viewer."
