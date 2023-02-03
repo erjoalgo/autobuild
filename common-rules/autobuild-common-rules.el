@@ -175,12 +175,12 @@
   (when (file-exists-p "Makefile") "make clean"))
 
 (autobuild-define-rule autobuild-configure-make-install nil
-  (lexical-let ((autogen
-                 (when (file-exists-p "autogen.sh")
-                   (find-file-noselect "autogen.sh")))
-                (configure
-                 (when (file-exists-p "configure")
-                   (find-file-noselect "configure"))))
+  (let ((autogen
+         (when (file-exists-p "autogen.sh")
+           (find-file-noselect "autogen.sh")))
+        (configure
+         (when (file-exists-p "configure")
+           (find-file-noselect "configure"))))
     (when (or autogen configure)
       (autobuild-pipeline
        (autogen "./autogen.sh")
