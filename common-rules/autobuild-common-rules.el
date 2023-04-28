@@ -1,4 +1,4 @@
-;;; autobuild-common-rules.el --- Sample rules for autobuild.el
+;;; autobuild-common-rules.el --- Sample rules for autobuild.el  -*- lexical-binding: t; -*-
 ;;
 ;; Filename: autobuild-common-rules.el
 ;; Description:
@@ -56,7 +56,7 @@
   (when (buffer-file-name)
     (autobuild-nice
      (if (alist-get 'compile-command file-local-variables-alist)
-         8 12))
+         5 12))
     (lambda ()
       (let* ((command
               (if (and (bound-and-true-p compile-command)
@@ -174,7 +174,7 @@
   (when (file-exists-p "Makefile") "make clean"))
 
 (autobuild-define-rule autobuild-configure-make-install nil
-  (lexical-let ((autogen
+  (let ((autogen
                  (when (file-exists-p "autogen.sh")
                    (find-file-noselect "autogen.sh")))
                 (configure
@@ -182,7 +182,8 @@
                    (find-file-noselect "configure"))))
     (when (or autogen configure)
       (autobuild-pipeline
-       (autogen "./autogen.sh")
+       ((current-buffer) (if (file-exists-p "deps.sh") "./deps.sh" "true"))
+       (autogen (if autogen "./autogen.sh" "true"))
        (configure "./configure")
        ((find-file-noselect "Makefile") "make")
        ((find-file-noselect "Makefile") "sudo make install")))))
@@ -239,7 +240,7 @@
   (autobuild-nice 8)
   (format "python3 %s" (f-filename (buffer-file-name))))
 
-(autobuild-define-rule autobuild-git-finish nil
+(autobuild-define-rule autobuild-git-finish (editorconfig-mode)
   (when (or (eq major-mode 'git-rebase-mode)
             (and (eq major-mode 'text-mode)
                  (equal (f-filename (buffer-file-name)) "COMMIT_EDITMSG")))
@@ -370,6 +371,9 @@
   (format "ps2pdf %s" (shell-quote-argument
                        (f-filename (buffer-file-name)))))
 
+(autobuild-define-rule autobuild-docker-compose (conf-colon-mode)
+  (when (equal "docker-compose.yml" (f-filename (buffer-file-name)))
+    (format "sudo docker-compose up")))
 
 (provide 'autobuild-common-rules)
 
