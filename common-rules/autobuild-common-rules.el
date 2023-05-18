@@ -208,7 +208,7 @@
 (autobuild-define-rule autobuild-c++ (c++-mode)
   (let ((fn (f-filename (buffer-file-name)))
         (pipe-in (if (file-exists-p "test.in") " < test.in" "")))
-    (format "g++ %s -std=c++11 && ./a.out %s"
+    (format "g++ %s -std=c++17 && ./a.out %s"
             fn pipe-in)))
 
 (autobuild-define-rule autobuild-go-test (go-mode)
