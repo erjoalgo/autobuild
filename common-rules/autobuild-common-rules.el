@@ -250,6 +250,13 @@
         (save-buffer)
         (with-editor-finish nil)))))
 
+(autobuild-define-rule autobuild-rebase-finish (git-rebase-mode)
+  (autobuild-nice 8)
+  (lambda ()
+    (progn
+      (save-buffer)
+      (with-editor-finish nil))))
+
 (autobuild-define-rule autobuild-diff (diff-mode)
   (lambda ()
     (progn (save-buffer)
