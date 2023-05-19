@@ -257,6 +257,14 @@
       (save-buffer)
       (with-editor-finish nil))))
 
+(autobuild-define-rule autobuild-git-commit-editmsg (text-mode)
+  (when (equal (buffer-name) "COMMIT_EDITMSG")
+    (autobuild-nice 8)
+    (lambda ()
+      (progn
+        (save-buffer)
+        (with-editor-finish nil)))))
+
 (autobuild-define-rule autobuild-diff (diff-mode)
   (lambda ()
     (progn (save-buffer)
