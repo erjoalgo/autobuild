@@ -521,6 +521,8 @@
   (autobuild-nice 9)
   #'eval-buffer)
 
+
+;;;###autoload
 (defmacro autobuild-defvar-file-local (var-sym
                                        &optional docstring prompt-form)
   "Define a command to set the file-local value of VAR-SYM.
