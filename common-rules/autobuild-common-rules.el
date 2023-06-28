@@ -347,9 +347,20 @@
   (let ((url (format "file://%s" (buffer-file-name))))
     (apply-partially #'browse-url url)))
 
+(defvar-file-local node-trace-deprecation ""
+  (y-or-n-p "pass --trace-deprecation to node?"))
+
 (autobuild-define-rule autobuild-node-run (js-mode)
+  (let ((filename (f-filename (buffer-file-name)))
+        flags)
+    (when (bound-and-true-p node-trace-deprecation)
+      (push "--trace-deprecation" flags))
+    (format "node %s %s" (string-join flags " ") filename)))
+
+(autobuild-define-rule autobuild-node-inspect (js-mode)
   (let ((filename (f-filename (buffer-file-name))))
-    (format "node %s" filename)))
+    (lambda ()
+      (compile (format "node inspect %s" filename) t))))
 
 (autobuild-define-rule autobuild-cfboot (js-mode)
   (let ((filename (f-filename (buffer-file-name))))
