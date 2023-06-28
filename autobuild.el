@@ -100,7 +100,7 @@
 (cl-defstruct autobuild--invocation rule action nice)
 
 ;;;###autoload
-(cl-defmacro autobuild-define-rule (name mode-filter &rest body)
+(defmacro autobuild-define-rule (name mode-filter &rest body)
   "Define a build rule NAME.
 
    When ‘major-mode' is in MODE-FILTER, or when MODE-FILTER is nil,
