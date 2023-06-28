@@ -80,10 +80,10 @@
       (sh-mode)
       (should (eq 2 (length (autobuild-applicable-rule-actions))))
       (should (null ran))
-      (should (null autobuild-last-rule))
+      (should (null autobuild-last-local-invocation))
       (autobuild-build nil)
       (should (eq 'low ran))
-      (should (eq autobuild-last-rule #'low-nice))
+      (should (eq (autobuild--invocation-rule autobuild-last-local-invocation) #'low-nice))
       (cl-letf (((symbol-function #'autobuild-candidate-select)
               (lambda (cands _prompt _stringify-fn)
                 (cl-loop for action in cands
@@ -92,10 +92,10 @@
                                    action)))))
         (autobuild-build t)
         (should (eq 'high ran))
-        (should (eq autobuild-last-rule #'high-nice))
+        (should (eq (autobuild--invocation-rule autobuild-last-local-invocation) #'high-nice))
         (autobuild-build nil)
         (should (eq 'high ran))
-        (should (eq autobuild-last-rule #'high-nice))))))
+        (should (eq (autobuild--invocation-rule autobuild-last-local-invocation) #'high-nice))))))
 
 (ert-deftest autobuild-test-prioritizing-rules-defined-first ()
   (let (autobuild-rules-list rule-executed)
@@ -115,5 +115,7 @@
                   (autobuild--invocation-rule
                    (car (autobuild-applicable-rule-actions)))))
       (autobuild-build nil)
-      (should (eq autobuild-last-rule 'older-rule))
+      (should (eq (autobuild--invocation-rule
+                   autobuild-last-local-invocation)
+                  'older-rule))
       (should (eq rule-executed 'older)))))
