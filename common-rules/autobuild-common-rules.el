@@ -286,10 +286,11 @@
   (autobuild-nice 8)
   (format "python3 %s" (f-filename (buffer-file-name))))
 
-(autobuild-define-rule autobuild-git-finish (editorconfig-mode)
+(autobuild-define-rule autobuild-git-finish (editorconfig-mode text-mode git-rebase-mode)
   (when (or (eq major-mode 'git-rebase-mode)
             (and (eq major-mode 'text-mode)
-                 (equal (f-filename (buffer-file-name)) "COMMIT_EDITMSG")))
+                 (member (f-filename (buffer-file-name))
+                         '("COMMIT_EDITMSG" "TAG_EDITMSG"))))
     (autobuild-nice 8)
     (lambda ()
       (progn
