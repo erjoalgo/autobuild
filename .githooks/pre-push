@@ -1,0 +1,26 @@
+#!/bin/bash -x
+
+set -euo pipefail
+#
+# Run various tests before push
+
+# test with package-install, check warnings
+# run .el ERT tests
+# byte-compile, check warnings
+# run flycheck, check warnings TODO
+
+emacs -Q --batch \
+      --eval "(progn (package-initialize) (package-refresh-contents))"  \
+      --eval "(progn  (package-install 'selcand) (require 'selcand))"  \
+      --eval "(package-install 'flycheck)" \
+      --eval '(package-install-file "autobuild.el")' \
+      --eval '(byte-compile "autobuild.el")' \
+      --eval '(with-current-buffer "*Compile-Log*" (when (string-match ":Warning:" (buffer-string)) (kill-emacs 1)))' \
+      -l autobuild-test.el \
+      --eval '(autobuild-mode t)' \
+      -f ert-run-tests-batch-and-exit
+
+
+# Local Variables:
+# mode: sh-mode
+# End:
