@@ -239,7 +239,8 @@
            (return (autobuild--sort-by
                     #'autobuild--invocation-nice
                     ;; prioritize rules defined first if they have the same nice
-                    (reverse actions)))))
+                    ;; but note rules were reversed by (push ...) above
+                    actions))))
 
 (defun autobuild--sort-by (key list)
   "Sort LIST by the key-function KEY."
