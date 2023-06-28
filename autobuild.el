@@ -156,8 +156,8 @@
   (let ((original-buffer (current-buffer)))
     (prog1
         (autobuild--debug-with-context
-         (format "Error while generating action for rule %s" rule)
-         (funcall rule))
+            (format "Error while generating action for rule %s" rule)
+            (funcall rule))
       (unless (eq (current-buffer) original-buffer)
         (error "‘genaction' of rule %s should not change buffers or have side effects"
                rule)))))
@@ -176,8 +176,8 @@
       (unless buffer (setq buffer (current-buffer)))
       (with-current-buffer buffer
         (let* ((rule (when (autobuild-rule-p rule-or-action)
-                         rule-or-action))
-                (action (if rule
+                       rule-or-action))
+               (action (if rule
                            (autobuild-rule-generate-action rule-or-action)
                          rule-or-action)))
           (unless action
@@ -296,9 +296,9 @@
     (setq autobuild-history (delete entry autobuild-history))
     (push entry autobuild-history)
     (autobuild--debug-with-context
-     (format "Error on `%s' rule's action"
-             (autobuild--invocation-rule invocation))
-     (autobuild--run-action action))))
+        (format "Error on `%s' rule's action"
+                (autobuild--invocation-rule invocation))
+        (autobuild--run-action action))))
 
 (defun autobuild--run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
@@ -352,8 +352,7 @@
                      (format "%s: %s"
                              (or (buffer-name buffer) buffer)
                              (autobuild--invocation-to-string invocation))
-                   (error (format "2 : %s" buffer-invocation)))
-)))))))
+                   (error (format "2 : %s" buffer-invocation))))))))))
     (cl-assert buffer-invocation)
     (cl-destructuring-bind (buffer . invocation) buffer-invocation
       (cl-assert (buffer-live-p buffer))
