@@ -284,7 +284,7 @@
 
 
 (defun autobuild--invocation-to-string (invocation)
-  "Generate a string representation of an autobuild ACTION."
+  "Generate a string representation of an autobuild INVOCATION."
   (format "%s (%s)"
           (autobuild--invocation-rule invocation)
           (autobuild--invocation-nice invocation)))
