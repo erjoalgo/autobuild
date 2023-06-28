@@ -9,6 +9,8 @@ set -euo pipefail
 # byte-compile, check warnings
 # run flycheck, check warnings TODO
 
+# TODO: checkdoc, flycheck, package-lint, melpa sandbox make
+
 emacs -Q --batch \
       --eval "(progn (package-initialize) (package-refresh-contents))"  \
       --eval "(progn  (package-install 'selcand) (require 'selcand))"  \
