@@ -157,7 +157,7 @@
     (prog1
         (autobuild--debug-with-context
             (format "Error while generating action for rule %s" rule)
-            (funcall rule))
+          (funcall rule))
       (unless (eq (current-buffer) original-buffer)
         (error "‘genaction' of rule %s should not change buffers or have side effects"
                rule)))))
@@ -298,7 +298,7 @@
     (autobuild--debug-with-context
         (format "Error on `%s' rule's action"
                 (autobuild--invocation-rule invocation))
-        (autobuild--run-action action))))
+      (autobuild--run-action action))))
 
 (defun autobuild--run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
@@ -522,7 +522,7 @@
   #'eval-buffer)
 
 (defmacro autobuild-defvar-file-local (var-sym
-                             &optional docstring prompt-form)
+                                       &optional docstring prompt-form)
   "Define a command to set the file-local value of VAR-SYM.
 
   PROMPT-FORM should be a form that prompts the user and returns the new value.
