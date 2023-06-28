@@ -121,7 +121,7 @@
 
 (defmacro autobuild--debug-with-context (context-string form)
   "Append CONTEXT-STRING to the debugger if an error is signalled on FORM."
-  (declare (indent 3))
+  (declare (indent 1))
   `(let ((debugger (lambda (&rest _args)
                      (debug ,context-string))))
      ,form))
