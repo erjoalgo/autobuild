@@ -75,12 +75,22 @@
     (save-buffer)
     (server-edit)))
 
+(defvar-file-local configure-flags "./configure AC script flags")
+
 (autobuild-define-rule autobuild-run-executable nil
-  (let ((filename (buffer-file-name)))
+  (let* ((filename (buffer-file-name))
+         (base (f-filename filename))
+         cmdline)
     (when (and filename
                (file-executable-p filename))
       (autobuild-nice 7)
-      (format "./%s" (f-filename filename)))))
+      (lambda ()
+        (cond
+         ((equal base "configure")
+          (setq cmdline
+                (format "./%s %s" base (bound-and-true-p configure-flags))))
+         (t (setq cmdline (format "./%s" (f-filename filename)))))
+        cmdline))))
 
 (autobuild-define-rule autobuild-dired-build-file-at-point (dired-mode)
   "Build the file at point"
