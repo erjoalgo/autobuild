@@ -8,6 +8,7 @@ set -euo pipefail
 # run .el ERT tests
 # byte-compile, check warnings
 # run flycheck, check warnings TODO
+# check that lexical binding header is present
 
 # TODO: checkdoc, flycheck, package-lint, melpa sandbox make
 
