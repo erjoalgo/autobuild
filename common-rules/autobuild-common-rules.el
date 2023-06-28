@@ -75,7 +75,7 @@
     (save-buffer)
     (server-edit)))
 
-(defvar-file-local configure-flags "./configure AC script flags")
+(autobuild-defvar-file-local configure-flags "./configure AC script flags")
 
 (autobuild-define-rule autobuild-run-executable nil
   (let* ((filename (buffer-file-name))
@@ -242,7 +242,7 @@
                 executable-args "")
             pipe-in)))
 
-(defvar-file-local gcc-flags "")
+(autobuild-defvar-file-local gcc-flags "")
 
 (autobuild-define-rule autobuild-c++ (c++-mode)
   (let ((fn (f-filename (buffer-file-name)))
@@ -347,7 +347,7 @@
   (let ((url (format "file://%s" (buffer-file-name))))
     (apply-partially #'browse-url url)))
 
-(defvar-file-local node-trace-deprecation ""
+(autobuild-defvar-file-local node-trace-deprecation ""
   (y-or-n-p "pass --trace-deprecation to node?"))
 
 (autobuild-define-rule autobuild-node-run (js-mode)
