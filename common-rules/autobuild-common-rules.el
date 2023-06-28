@@ -242,11 +242,13 @@
                 executable-args "")
             pipe-in)))
 
+(defvar-file-local gcc-flags "")
+
 (autobuild-define-rule autobuild-c++ (c++-mode)
   (let ((fn (f-filename (buffer-file-name)))
         (pipe-in (if (file-exists-p "test.in") " < test.in" "")))
-    (format "g++ %s -std=c++17 && ./a.out %s"
-            fn pipe-in)))
+    (format "g++ %s -std=c++17 %s && ./a.out %s"
+            fn (or (bound-and-true-p gcc-flags) "") pipe-in)))
 
 (autobuild-define-rule autobuild-go-test (go-mode)
   "go test")
