@@ -522,6 +522,31 @@
   (autobuild-nice 9)
   #'eval-buffer)
 
+(defmacro defvar-file-local (var-sym
+                             &optional docstring prompt-form)
+  "Define a command to set the file-local value of VAR-SYM.
+
+  PROMPT-FORM should be a form that prompts the user and returns the new value.
+  It defaults to using `read-string` using a prompt based on the DOCSTRING."
+
+  (let* ((fn-sym (intern (format "file-local-set-%s" var-sym)))
+         (new-val (gensym "new-val")))
+    `(progn
+       (defvar-local ,var-sym nil ,docstring)
+       (message ,(format "defining file-local setter: %s" fn-sym))
+       (defun ,fn-sym (arg)
+         (interactive "P")
+         (let ((,new-val
+                ,(or prompt-form
+                     `(read-string
+                       (format "Enter file-local value for %s: "
+                               ',var-sym)
+                       (bound-and-true-p ,var-sym)))))
+	   (save-excursion
+             (add-file-local-variable ',var-sym ,new-val))
+           (setq ,var-sym ,new-val)
+           (save-buffer))))))
+
 (provide 'autobuild)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; autobuild.el ends here
