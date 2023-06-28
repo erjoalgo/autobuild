@@ -119,6 +119,13 @@
          ,@body))
      (cl-pushnew ',name autobuild-rules-list)))
 
+(defmacro autobuild--debug-with-context (context-string form)
+  "Append CONTEXT-STRING to the debugger if an error is signalled on FORM."
+  (declare (indent 3))
+  `(let ((debugger (lambda (&rest _args)
+                     (debug ,context-string))))
+     ,form))
+
 ;;;###autoload
 (defmacro autobuild-pipeline (&rest buffer-rule-list)
   "Define a build pipeline.
@@ -148,9 +155,9 @@
     (message "considering autobuild rule: %s" rule))
   (let ((original-buffer (current-buffer)))
     (prog1
-        (condition-case ex (funcall rule)
-          (error
-           (error "Error while generating action for rule %s: %s" rule ex)))
+        (autobuild--debug-with-context
+         (format "Error while generating action for rule %s" rule)
+         (funcall rule))
       (unless (eq (current-buffer) original-buffer)
         (error "‘genaction' of rule %s should not change buffers or have side effects"
                rule)))))
@@ -287,7 +294,10 @@
          (entry (cons (current-buffer) invocation)))
     (setq autobuild-history (delete entry autobuild-history))
     (push entry autobuild-history)
-    (autobuild--run-action action)))
+    (autobuild--debug-with-context
+     (format "Error on `%s' rule's action"
+             (autobuild--invocation-rule invocation))
+     (autobuild--run-action action))))
 
 (defun autobuild--run-action (action)
   "Execute a rule-generated ACTION as specified in ‘autobuild-define-rule'."
