@@ -250,6 +250,13 @@
     (format "g++ %s -std=c++17 %s && ./a.out %s"
             fn (or (bound-and-true-p gcc-flags) "") pipe-in)))
 
+(autobuild-define-rule autobuild-valgrind (c++-mode)
+  (when (file-exists-p "a.out")
+    (autobuild-nice 13)
+    (lambda ()
+      (compile (autobuild-c++-debug))
+      (compile (format "valgrind ./a.out")))))
+
 (autobuild-define-rule autobuild-go-test (go-mode)
   "go test")
 
