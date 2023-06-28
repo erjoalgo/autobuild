@@ -98,6 +98,7 @@
         (should (eq (autobuild--invocation-rule autobuild-last-local-invocation) #'high-nice))))))
 
 (ert-deftest autobuild-test-prioritizing-rules-defined-first ()
+  "If rules have the same nice value, older rules should be prioritized."
   (let (autobuild-rules-list rule-executed)
     (eval
      '(progn
