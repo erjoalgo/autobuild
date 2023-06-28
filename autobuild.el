@@ -311,7 +311,7 @@
    (t (error "Action must be string or function, not %s" action))))
 
 (defun autobuild-rebuild-last-local ()
-  "Rebuilt the last rule invoked in the current buffer."
+  "Rebuild the last rule invoked in the current buffer."
   (interactive)
   (autobuild--rebuild :last-local))
 
