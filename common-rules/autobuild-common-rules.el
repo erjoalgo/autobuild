@@ -447,6 +447,29 @@
   (when (equal "docker-compose.yml" (f-filename (buffer-file-name)))
     (format "sudo docker-compose up")))
 
+(defun service-restart-and-tail (service-name)
+  (let ((buffer (get-buffer-create (format "*service-logs-%s*" service-name))))
+    (with-current-buffer buffer
+      (unless (get-buffer-process (current-buffer))
+        (start-process (buffer-name) (current-buffer)
+                       "sudo" "journalctl" "-fu" service-name))
+      (erase-buffer)
+      (start-process (buffer-name) nil
+                     "sudo" "service" service-name "restart")
+      (display-buffer (current-buffer))
+      (with-current-buffer buffer
+        (end-of-buffer-other-window nil)))))
+
+
+(autobuild-define-rule autobuild-service-restart-and-tail (conf-space-mode)
+  "Restart a service and tail its logs."
+  (let ((filename (car (last (s-split ":" (buffer-file-name (current-buffer)))))))
+    (cond
+     ((equal filename "/etc/dhcp/dhcpd.conf")
+      (autobuild-nice 6)
+      (apply-partially #'service-restart-and-tail "isc-dhcp-server")))))
+
+
 (provide 'autobuild-common-rules)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
