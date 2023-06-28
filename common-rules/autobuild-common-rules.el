@@ -90,7 +90,7 @@
           (setq cmdline
                 (format "./%s %s" base (bound-and-true-p configure-flags))))
          (t (setq cmdline (format "./%s" (f-filename filename)))))
-        cmdline))))
+        (compile cmdline t)))))
 
 (autobuild-define-rule autobuild-dired-build-file-at-point (dired-mode)
   "Build the file at point"
