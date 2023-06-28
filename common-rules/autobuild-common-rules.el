@@ -183,20 +183,47 @@
   (autobuild-nice 13)
   (when (file-exists-p "Makefile") "make clean"))
 
+(defun autobuild-directory-makeable ()
+  (or
+   (file-exists-p "autogen.sh")
+   (file-expand-wildcards "configure*")
+   (file-expand-wildcards "Makefile*")))
+
 (autobuild-define-rule autobuild-configure-make-install nil
-  (let ((autogen
-                 (when (file-exists-p "autogen.sh")
-                   (find-file-noselect "autogen.sh")))
-                (configure
-                 (when (file-exists-p "configure")
-                   (find-file-noselect "configure"))))
-    (when (or autogen configure)
-      (autobuild-pipeline
-       ((current-buffer) (if (file-exists-p "deps.sh") "./deps.sh" "true"))
-       (autogen (if autogen "./autogen.sh" "true"))
-       (configure "./configure")
-       ((find-file-noselect "Makefile") "make")
-       ((find-file-noselect "Makefile") "sudo make install")))))
+  (when (autobuild-directory-makeable)
+    (lambda ()
+      (let* (commands
+             (autogen (car (file-expand-wildcards "./autogen.sh")))
+             (configure (car (file-expand-wildcards "./configure")))
+             (configure-acs (file-expand-wildcards "./configure.ac*"))
+             (makefile (car (file-expand-wildcards "Makefile"))))
+        (when autogen (push autogen commands))
+        (cond
+         (configure (push configure commands))
+         (configure-acs
+          '(when (cdr configure-acs)
+             (push (format "cp %s configure.ac" (selcand-select configure-acs)) commands))
+          (push "autoreconf -i" commands)
+          (push (format "./configure %s" (or (bound-and-true-p configure-flags) ""))  commands))
+         ((not makefile)
+          (error "No configure* nor makefile found!")))
+        (when (bound-and-true-p autobuild-make-clean)
+          (push "make clean" commands))
+        (push "make" commands)
+        (compile (string-join (nreverse commands) " && "))))))
+
+(autobuild-define-rule autobuild-make-clean-install nil
+  "Run sudo make install."
+  (autobuild-nice 13)
+  (when (autobuild-directory-makeable)
+    (let ((autobuild-make-clean t))
+      (autobuild-configure-make-install))))
+
+(autobuild-define-rule autobuild-sudo-make-install nil
+  "Run sudo make install."
+  (autobuild-nice 13)
+  (when (autobuild-directory-makeable)
+    "sudo make install"))
 
 (autobuild-define-rule autobuild-mpm nil
   (when (and (buffer-file-name)
