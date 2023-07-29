@@ -19,6 +19,8 @@ emacs -Q --batch \
       --eval '(package-install-file "autobuild.el")' \
       --eval '(byte-compile "autobuild.el")' \
       --eval '(with-current-buffer "*Compile-Log*" (when (string-match ":Warning:" (buffer-string)) (kill-emacs 1)))' \
+      --eval '(with-current-buffer (find-file "autobuild.el") (flycheck-mode) (flycheck-list-errors) (sit-for 10))' \
+      --eval '(with-current-buffer "*Flycheck errors*" (when (string-match "\n" (buffer-string)) (princ (buffer-string)) (kill-emacs 1)))' \
       -l autobuild-test.el \
       --eval '(autobuild-mode t)' \
       -f ert-run-tests-batch-and-exit
