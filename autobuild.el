@@ -415,7 +415,8 @@
 (defun autobuild-notify (compilation-buffer compilation-state)
   "Hook function called to possibly issue compilation state notifications.
 
-   COMPILATION-BUFFER, COMPILATION-STATE are as described in ‘compilation-finish-functions'"
+   COMPILATION-BUFFER, COMPILATION-STATE are as described in
+   ‘compilation-finish-functions'"
   (condition-case ex
       (when compilation-state
         (with-current-buffer compilation-buffer
