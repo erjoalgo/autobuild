@@ -200,7 +200,7 @@
          (configure-acs
           '(when (cdr configure-acs)
              (push (format "cp %s configure.ac" (selcand-select configure-acs)) commands))
-          (push "autoreconf -i" commands)
+          (push "autoreconf -f -i" commands)
           (push (format "./configure %s" (or (bound-and-true-p configure-flags) ""))  commands))
          (configure (push configure commands))
          ((not makefile)
