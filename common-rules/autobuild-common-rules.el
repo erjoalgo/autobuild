@@ -197,12 +197,12 @@
              (makefile (car (file-expand-wildcards "Makefile"))))
         (when autogen (push autogen commands))
         (cond
-         (configure (push configure commands))
          (configure-acs
           '(when (cdr configure-acs)
              (push (format "cp %s configure.ac" (selcand-select configure-acs)) commands))
           (push "autoreconf -i" commands)
           (push (format "./configure %s" (or (bound-and-true-p configure-flags) ""))  commands))
+         (configure (push configure commands))
          ((not makefile)
           (error "No configure* nor makefile found!")))
         (when (bound-and-true-p autobuild-make-clean)
