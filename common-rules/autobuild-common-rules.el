@@ -468,6 +468,18 @@
       (autobuild-nice 6)
       (apply-partially #'service-restart-and-tail "isc-dhcp-server")))))
 
+(autobuild-define-rule autobuild-labelnation (fundamental-mode)
+  "Invoke labelnation"
+  (when-let* ((filename (buffer-file-name (current-buffer)))
+              (ext (f-ext filename))
+              (is-label (equal "label" ext))
+              (output (format "%s.ps" (f-base filename)))
+              (label-type "avery5167")
+              (cmd (format "labelnation -t%s -i%s -o%s; evince %s"
+                           label-type filename output output)))
+    (autobuild-nice 6)
+    cmd))
+
 
 (provide 'autobuild-common-rules)
 
