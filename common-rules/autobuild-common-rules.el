@@ -480,6 +480,18 @@
     (autobuild-nice 6)
     cmd))
 
+(autobuild-define-rule autobuild-npm-start ()
+  "Invoke labelnation"
+  (when (file-exists-p "package.json")
+    (autobuild-nice 6)
+    "npm start"))
+
+(autobuild-define-rule autobuild-npm-install ()
+  "Invoke labelnation"
+  (when (file-exists-p "package.json")
+    (autobuild-nice 8)
+    "npm install"))
+
 
 (provide 'autobuild-common-rules)
 
