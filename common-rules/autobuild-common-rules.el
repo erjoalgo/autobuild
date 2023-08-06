@@ -446,27 +446,56 @@
   (when (equal "docker-compose.yml" (f-filename (buffer-file-name)))
     (format "sudo docker-compose up")))
 
-(defun service-restart-and-tail (service-name)
-  (let ((buffer (get-buffer-create (format "*service-logs-%s*" service-name))))
+(defun service-list ()
+  (s-split
+   "\n"
+   (shell-command-to-string
+    "systemctl list-units | grep -Po '^.*?(?=.service)' | tr -d ' ●'")
+   t))
+
+(defun read-service-name ()
+  (completing-read "enter service name: " (service-list)))
+
+(defvar service-logs-buffer-prefix "*service-logs-")
+
+(defun service-buffer (service-name)
+  (get-buffer-create (concat service-logs-buffer-prefix service-name)))
+
+(defun service-tail (service-name &optional restart)
+  (interactive (list (read-service-name)))
+  (let ((buffer (service-buffer service-name)))
     (with-current-buffer buffer
       (unless (get-buffer-process (current-buffer))
         (start-process (buffer-name) (current-buffer)
                        "sudo" "journalctl" "-fu" service-name))
       (erase-buffer)
-      (start-process (buffer-name) nil
-                     "sudo" "service" service-name "restart")
+      (when restart
+        (start-process (buffer-name) nil
+                       "sudo" "service" service-name "restart"))
       (display-buffer (current-buffer))
       (with-current-buffer buffer
         (end-of-buffer-other-window nil)))))
 
+(defun service-name-from-buffer ()
+  (let ((bufname (buffer-name)))
+    (when (s-starts-with-p service-logs-buffer-prefix bufname)
+      (substring bufname (length service-logs-buffer-prefix)))))
 
-(autobuild-define-rule autobuild-service-restart-and-tail (conf-space-mode)
+(defun service-restart (service-name &optional restart)
+  (interactive (list (or (service-name-from-buffer)
+                         (read-service-name))))
+  (with-current-buffer (service-buffer service-name)
+    (start-process (buffer-name) nil "sudo" "service" service-name "restart")))
+
+(autobuild-define-rule autobuild-service-restart ()
   "Restart a service and tail its logs."
-  (let ((filename (car (last (s-split ":" (buffer-file-name (current-buffer)))))))
+  (let ((filename (when (buffer-file-name (current-buffer))
+                    (car (last (s-split ":" (buffer-file-name (current-buffer))))))))
     (cond
      ((equal filename "/etc/dhcp/dhcpd.conf")
       (autobuild-nice 6)
-      (apply-partially #'service-restart-and-tail "isc-dhcp-server")))))
+      (apply-partially #'service-tail "isc-dhcp-server" t))
+     (t #'service-restart))))
 
 (autobuild-define-rule autobuild-labelnation (fundamental-mode)
   "Invoke labelnation"
