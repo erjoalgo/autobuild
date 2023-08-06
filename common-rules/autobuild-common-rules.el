@@ -492,6 +492,48 @@
     (autobuild-nice 8)
     "npm install"))
 
+(defun read-shell-vars (sh-vars-filename)
+  "Source shell vars defined in the file SH-VARS-FILENAME.  No echo on QUIET."
+  (cl-assert (file-exists-p sh-vars-filename))
+  (cl-loop with cmd = (format "bash -c 'set -a; source %s &> /dev/null; env'"
+                              sh-vars-filename)
+           with out = (shell-command-to-string cmd)
+           with env = (s-split "\n" out t)
+           for var-val in env
+           when (string-match "^\\([^= ]+?\\)=\\(.*\\)$" var-val)
+           collect (let ((var (match-string 1 var-val))
+                         (val (match-string 2 var-val)))
+                     (unless (string-match "^\\(BASH_FUNC_\\|_\\| \\)" var)
+                       (cons var val)))))
+
+(autobuild-define-rule autobuild-liquibase-update (nxml-mode)
+  (when-let*
+      ((filename (f-filename (buffer-file-name)))
+       (changelog-file (when (equal "db.changelog.xml" filename) filename))
+       (vars-sh (if (file-exists-p "vars.sh") "vars.sh"
+                  (read-file-name "enter vars.sh with PG* secrets: ")))
+       (secrets (read-shell-vars vars-sh))
+       (vars
+        (cl-loop for (key . default) in
+                 '(("PGDATABASE" . nil)
+                   ("PGUSER" . nil)
+                   ("PGPASSWORD" . nil)
+                   ("PGHOST" . "localhost")
+                   ("PGPORT" . "5432"))
+                 as val = (or (alist-get key secrets default nil #'equal)
+                              (error "no %s found in %s" key vars-sh))
+                 collect val))
+       (cmd
+        (cl-destructuring-bind (dbname pguser pgpass pghost pgport) vars
+          (list
+           "liquibase"
+           (format "--changeLogFile=%s" changelog-file)
+           (format "--username=%s" pguser)
+           (format "--password=%s" pgpass)
+           (format "--url=jdbc:postgresql://%s:%s/%s" pghost pgport dbname)
+           "update"))))
+    (autobuild-nice 6)
+    (s-join " " cmd)))
 
 (provide 'autobuild-common-rules)
 
