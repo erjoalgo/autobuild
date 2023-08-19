@@ -563,6 +563,19 @@
     (autobuild-nice 6)
     (s-join " " cmd)))
 
+(autobuild-define-rule autobuild-docker-build ()
+  (when (and (buffer-file-name)
+             (s-starts-with-p "Dockerfile" (f-filename (buffer-file-name)))
+             (autobuild-nice 5))
+    "docker build -t $(basename $(pwd)) ." ))
+
+(autobuild-define-rule autobuild-docker-compose ()
+  (when (and (buffer-file-name)
+             (equal "docker-compose.yaml" (f-filename (buffer-file-name)))
+             (autobuild-nice 5))
+    "docker compose up"))
+
+
 (provide 'autobuild-common-rules)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
