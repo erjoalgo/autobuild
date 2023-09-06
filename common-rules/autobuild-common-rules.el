@@ -80,15 +80,14 @@
 (autobuild-define-rule autobuild-run-executable nil
   (when-let* ((filename (buffer-file-name))
               (base (f-filename filename))
-              (_executable (file-executable-p filename)))
+              (_is-executable (file-executable-p filename))
+              (cmdline
+               (cond
+                ((equal base "configure")
+                 (format "./%s %s" base (bound-and-true-p configure-flags)))
+                (t (format "./%s" (f-filename filename))))))
     (autobuild-nice 7)
-    (lambda ()
-      (let ((cmdline
-             (cond
-              ((equal base "configure")
-               (format "./%s %s" base (or (bound-and-true-p configure-flags) "")))
-              (t (format "./%s" (f-filename filename))))))
-        (compile cmdline t)))))
+    cmdline))
 
 (autobuild-define-rule autobuild-dired-build-file-at-point (dired-mode)
   "Build the file at point"
