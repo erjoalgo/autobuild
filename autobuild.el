@@ -59,7 +59,8 @@
    with lower values commanding a higher priority.")
 
 (defconst autobuild-nice-default 10
-  "Default nice value for rule invocations that do not setq the variable ‘autobuild-nice’.")
+  "Default nice value for rule invocations that do not setq the variable
+ ‘autobuild-nice’.")
 
 (defcustom autobuild-candidate-default-hints
   "1234acdefqrstvwxz"
@@ -395,7 +396,8 @@
   #'autobuild-notification-default-function
   "Function used to issue compilation notifications.
 
-   It is called with the same arguments as those in ‘compilation-finish-functions'"
+   It is called with the same arguments as those in
+   ‘compilation-finish-functions'"
   :type 'function
   :group 'autobuild)
 
@@ -440,6 +442,7 @@
 (define-minor-mode autobuild-mode
   "Define and execute build rules and compilation pipelines."
   :global t
+  :group 'autobuild
   ;; add or remove hooks and advice used by autobuild
   (if autobuild-mode
       (progn
