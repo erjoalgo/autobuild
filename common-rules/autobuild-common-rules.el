@@ -560,7 +560,7 @@
            (format "--password=%s" pgpass)
            (format "--url=jdbc:postgresql://%s:%s/%s" pghost pgport dbname)
            "update"))))
-    (autobuild-nice 6)
+    (autobuild-nice 5)
     (s-join " " cmd)))
 
 (autobuild-define-rule autobuild-docker-build ()
