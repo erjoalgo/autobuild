@@ -565,8 +565,8 @@
 
 (autobuild-define-rule autobuild-docker-build ()
   (when (and (buffer-file-name)
-             (s-starts-with-p "Dockerfile" (f-filename (buffer-file-name)))
-             (autobuild-nice 5))
+             (s-starts-with-p "Dockerfile" (f-filename (buffer-file-name))))
+    (autobuild-nice 5)
     "docker build -t $(basename $(pwd)) ." ))
 
 (autobuild-define-rule autobuild-docker-compose ()
