@@ -149,11 +149,13 @@
 
 (autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
   "Evaluate the current lisp buffer"
+  (autobuild-nice 6)
   #'slime-compile-and-load-file)
 
 (autobuild-define-rule autobuild-cl-asdf (lisp-mode)
   (let ((filename (f-filename (buffer-file-name))))
     (when (member (f-ext filename) '("asd" "asdf"))
+      (autobuild-nice 7)
       (format "sbcl --load %s --eval \"(ql:quickload '%s)\""
               filename
               (f-base filename)))))
@@ -398,7 +400,7 @@
 
 (autobuild-define-rule autobuild-xmodmap (conf-unix-mode)
   "run xmodmap on a file"
-  (autobuild-nice 9)
+  (autobuild-nice 5)
   (when (and (buffer-file-name)
              (equal "xmodmap"
                     (f-ext (buffer-file-name))))
