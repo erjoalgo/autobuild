@@ -575,12 +575,11 @@
        8))
     "docker build -t $(basename $(pwd)) ." ))
 
-(autobuild-define-rule autobuild-docker-compose ()
+(autobuild-define-rule autobuild-docker-compose-up ()
   (when (and (buffer-file-name)
              (equal "docker-compose.yaml" (f-filename (buffer-file-name)))
              (autobuild-nice 5))
-    "docker compose up"))
-
+    "docker compose up --build"))
 
 (provide 'autobuild-common-rules)
 
