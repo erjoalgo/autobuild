@@ -398,7 +398,7 @@
          (file-exists-p "setup.py"))
     (format "python setup.py install --user")))
 
-(autobuild-define-rule autobuild-xmodmap (conf-unix-mode)
+(autobuild-define-rule autobuild-xmodmap (conf-unix-mode fundamental-mode)
   "run xmodmap on a file"
   (autobuild-nice 5)
   (when (and (buffer-file-name)
