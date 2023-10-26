@@ -150,7 +150,7 @@
 (autobuild-define-rule autobuild-cl-slime-eval (lisp-mode)
   "Evaluate the current lisp buffer"
   (autobuild-nice 6)
-  #'slime-compile-and-load-file)
+  #'slime-eval-buffer)
 
 (autobuild-define-rule autobuild-cl-asdf (lisp-mode)
   (let ((filename (f-filename (buffer-file-name))))
