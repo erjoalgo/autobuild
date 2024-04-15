@@ -102,11 +102,11 @@
   (let ((fn (f-filename (buffer-file-name))))
     (format "bash %s" fn)))
 
-(autobuild-define-rule autobuild-shell-script-syntax-check (sh-mode)
-  "Syntax-check a bash script without running it"
+(autobuild-define-rule autobuild-shell-lint (sh-mode)
+  "Lint a bash script without running it"
   (autobuild-nice 15)
   (let ((fn (f-filename (buffer-file-name))))
-    (format "bash -n %s" fn)))
+    (format "bash -n %s; shellcheck %s" fn fn)))
 
 (autobuild-define-rule autobuild-java-mode (java-mode nxml-mode)
   (when (or (eq 'java-mode major-mode)
