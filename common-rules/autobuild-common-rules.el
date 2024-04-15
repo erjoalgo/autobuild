@@ -253,8 +253,9 @@
   (when (file-exists-p "a.out")
     (autobuild-nice 13)
     (lambda ()
-      (compile (autobuild-c++-debug))
-      (compile (format "valgrind ./a.out")))))
+      (let ((gcc-flags "-g -static"))
+        (compile (autobuild-c++)))
+      (compile (format "valgrind --track-origins=yes ./a.out")))))
 
 (autobuild-define-rule autobuild-go-test (go-mode)
   "go test")
