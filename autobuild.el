@@ -346,7 +346,8 @@
            (:prompt
             (selcand-select
              autobuild-history
-             "Select recent build: "
+             :prompt "Select recent build: "
+             :stringify-fn
              (lambda (buffer-invocation)
                (cl-destructuring-bind (buffer . invocation) buffer-invocation
                  (condition-case ()
