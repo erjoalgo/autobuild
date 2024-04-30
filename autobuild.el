@@ -6,7 +6,7 @@
 ;; Maintainer: (concat "erjoalgo" "@" "gmail" ".com")
 
 ;; Created: Wed Jan 23 20:45:01 2019 (-0800)
-;; Version: 0.2.2
+;; Version: 0.2.3
 ;; Package-Requires: ((emacs "26.1") (selcand "0.0.3"))
 ;; URL: https://github.com/erjoalgo/autobuild
 ;; Keywords: compile, build, pipeline, autobuild, extensions, processes, tools
