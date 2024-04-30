@@ -514,7 +514,7 @@
 (autobuild-define-rule autobuild-npm-start ()
   "Invoke labelnation"
   (when (file-exists-p "package.json")
-    (autobuild-nice 6)
+    (autobuild-nice 7)
     "npm start"))
 
 (autobuild-define-rule autobuild-npm-install ()
