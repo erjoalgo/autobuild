@@ -416,12 +416,13 @@
   (autobuild-nice 8)
   (when-let ((buffer-file-name)
              (file (f-filename buffer-file-name))
+             (basename (f-base file))
              (_applicable
               (or (bound-and-true-p graphviz-dot-mode)
                   (and (buffer-file-name)
                        (equal "dot" (f-ext file))))))
-    (format "dot -Tps %s -o %s.ps && evince %s.ps"
-            file file (f-filename file))))
+    (format "dot -Tps %s -o %s.ps && ps2pdf %s.ps %s.pdf && zathura %s.pdf"
+            file basename basename basename basename)))
 
 (autobuild-define-rule autobuild-python-pylint (python-mode)
   #'python-check)
@@ -581,6 +582,43 @@
              (equal "docker-compose.yaml" (f-filename (buffer-file-name)))
              (autobuild-nice 5))
     "docker compose up --build"))
+
+(autobuild-define-rule autobuild-openscad-visual (scad-mode)
+  (when (and (buffer-file-name)
+             (member (f-ext (buffer-file-name)) '("scad" "openscad"))
+             (autobuild-nice 8))
+    (format "openscad.sh %s" (buffer-file-name))))
+
+(defun wmctrl-activate (window-title-substring)
+  (let ((cmd (list "wmctrl" "-a" window-title-substring)))
+    (message "running: %s" (string-join cmd " "))
+    (apply #'start-process "wmctrl" "*wmctrl*" cmd)))
+
+(autobuild-define-rule autobuild-openscad (scad-mode)
+  (when (and (buffer-file-name)
+             (member (f-ext (buffer-file-name)) '("scad" "openscad"))
+             (autobuild-nice 5))
+    (let* ((source-file (f-filename (buffer-file-name)))
+           (output-file (format "%s.stl" (f-base source-file)))
+           (cmd (format "openscad.sh -o %s %s" output-file source-file)))
+      `(lambda ()
+         (prog1
+             (compile ,cmd)
+           (when (fboundp #'stumpwm-raise)
+             (stumpwm-raise
+              (format "%s.*OpenSCAD" (f-filename ,source-file))
+              :on-error
+              (lambda (error-message-string)
+                (when (s-contains-p "no such window" error-message-string)
+                  (let ((buffer (format "*openscad-%s*" ,source-file)))
+                    (start-process buffer buffer
+                                   "openscad.sh" ,source-file)))))))))))
+
+(autobuild-define-rule autobuild-esp-idf (dired-mode c-mode)
+  "IDF build."
+  (when (string-match-p "esp-idf" (or (buffer-file-name) default-directory))
+    (autobuild-nice 8)
+    "source $HOME/git/esp-idf/export.sh && idf.py build flash monitor"))
 
 (provide 'autobuild-common-rules)
 
