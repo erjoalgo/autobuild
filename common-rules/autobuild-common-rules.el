@@ -674,6 +674,12 @@
   (autobuild-nice 12)
   "lein repl")
 
+(autobuild-define-rule autobuild-node-eslint (js-mode)
+  (autobuild-nice 6)
+  (when (buffer-file-name)
+    (format "eslint %s" (buffer-file-name))))
+
+
 (provide 'autobuild-common-rules)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
