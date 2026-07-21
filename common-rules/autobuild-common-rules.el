@@ -670,6 +670,10 @@
   (autobuild-nice 7)
   (format "docker-util psql %s" (buffer-file-name)))
 
+(autobuild-define-rule autobuild-lein-repl (clojure-mode)
+  (autobuild-nice 12)
+  "lein repl")
+
 (provide 'autobuild-common-rules)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
