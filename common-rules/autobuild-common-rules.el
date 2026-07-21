@@ -358,10 +358,12 @@
       (apply-partially #'call-interactively #'octave-send-region)
     #'octave-send-buffer))
 
-(autobuild-define-rule autobuild-html-browse (html-mode mhtml-mode)
+(autobuild-define-rule autobuild-html-browse (html-mode mhtml-mode js-mode)
   "Open the current html file in the browser"
-  (let ((url (format "file://%s" (buffer-file-name))))
-    (apply-partially #'browse-url url)))
+  (when (and buffer-file-name (equal "html" (f-ext buffer-file-name)))
+    (autobuild-nice 8)
+    (let ((url (format "file://%s" (buffer-file-name))))
+      (apply-partially #'browse-url url))))
 
 (autobuild-defvar-file-local node-trace-deprecation ""
   (y-or-n-p "pass --trace-deprecation to node?"))
