@@ -366,7 +366,7 @@
       (apply-partially #'browse-url url))))
 
 (autobuild-defvar-file-local node-trace-deprecation ""
-  (y-or-n-p "pass --trace-deprecation to node?"))
+                             (y-or-n-p "pass --trace-deprecation to node?"))
 
 (autobuild-define-rule autobuild-node-run (js-mode)
   (let ((filename (f-filename (buffer-file-name)))
