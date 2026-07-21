@@ -679,6 +679,12 @@
   (when (buffer-file-name)
     (format "eslint %s" (buffer-file-name))))
 
+(autobuild-define-rule autobuild-gradlew ()
+  (let ((exe "./gradlew"))
+    (autobuild-nice 9)
+    (when (and (file-exists-p exe)
+               (file-executable-p exe))
+      exe)))
 
 (provide 'autobuild-common-rules)
 
