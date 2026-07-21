@@ -636,7 +636,17 @@
   (when (string-match-p "esp\\(32\\|-idf\\)"
                         (or (buffer-file-name) default-directory))
     (autobuild-nice 8)
-    "source $HOME/git/esp-idf/export.sh && idf.py build flash monitor"))
+    (let ((default-directory
+           ;; (cd-top "CMakeLists.txt")
+           (cd-top "sdkconfig")
+           ))
+      (cl-assert default-directory)
+      (s-join "; "
+              (list "pkill -Af esp_idf_monitor"
+                    (format
+                     "cd %s && source $HOME/git/esp-idf/export.sh && idf.py build flash monitor"
+                     default-directory))))))
+
 
 (provide 'autobuild-common-rules)
 
