@@ -659,6 +659,12 @@
            do (message "DDEBUG tgsd path: %s" path)
            do (setq dir parent)))
 
+(autobuild-define-rule autobuild-gradle-test (java-mode)
+  "gradle build."
+  (when-let ((gradle-dir (cd-top "gradlew")))
+    (autobuild-nice 7)
+    (format "cd %s && ./gradlew test --info" gradle-dir)))
+
 
 (provide 'autobuild-common-rules)
 
