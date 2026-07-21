@@ -647,6 +647,18 @@
                      "cd %s && source $HOME/git/esp-idf/export.sh && idf.py build flash monitor"
                      default-directory))))))
 
+(defun cd-top (filename)
+  "Find the first parent directory containing filename"
+  (cl-loop with dir = default-directory
+           as parent = (f-dirname dir)
+           as path = (f-join dir filename)
+           while (and parent
+                      (not (equal dir parent)))
+           when (file-exists-p path)
+           return dir
+           do (message "DDEBUG tgsd path: %s" path)
+           do (setq dir parent)))
+
 
 (provide 'autobuild-common-rules)
 
