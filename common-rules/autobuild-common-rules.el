@@ -665,6 +665,10 @@
     (autobuild-nice 7)
     (format "cd %s && ./gradlew test --info" gradle-dir)))
 
+(autobuild-define-rule autobuild-docker-sql (sql-mode)
+  "run sql on docker"
+  (autobuild-nice 7)
+  (format "docker-util psql %s" (buffer-file-name)))
 
 (provide 'autobuild-common-rules)
 
