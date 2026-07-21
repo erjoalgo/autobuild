@@ -108,7 +108,12 @@
   (let ((fn (f-filename (buffer-file-name))))
     (format "bash -n %s; shellcheck %s" fn fn)))
 
-(autobuild-define-rule autobuild-java-mode (java-mode nxml-mode)
+(autobuild-define-rule autobuild-javac (java-mode nxml-mode)
+  (when (eq 'java-mode major-mode)
+    (let ((f-no-ext (f-no-ext (f-filename (buffer-file-name)))))
+      (format "javac %s.java && java %s" f-no-ext f-no-ext))))
+
+(autobuild-define-rule autobuild-mvn-pom (java-mode nxml-mode)
   (when (or (eq 'java-mode major-mode)
             (and (buffer-file-name)
                  (equal (f-filename (buffer-file-name)) "pom.xml")))
@@ -119,8 +124,7 @@
                                                    (directory-files dir))
                                            dir)
                                   while (setq dir (f-dirname dir)))))
-      (if (not pom-directory)
-          (format "javac %s.java && java %s" f-no-ext f-no-ext)
+      (when pom-directory
         (concat "cd " pom-directory " && mvn "
                 ;;maybe add offline flag
                 (when (bound-and-true-p mvn-offline-p) "-o ")
