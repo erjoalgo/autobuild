@@ -332,6 +332,7 @@
            (server-edit))))
 
 (autobuild-define-rule autobuild-clojure (clojure-mode)
+  (autobuild-nice 7)
   #'cider-load-buffer)
 
 (autobuild-define-rule autobuild-send-message (message-mode)
