@@ -633,7 +633,8 @@
 
 (autobuild-define-rule autobuild-esp-idf (dired-mode c-mode)
   "IDF build."
-  (when (string-match-p "esp-idf" (or (buffer-file-name) default-directory))
+  (when (string-match-p "esp\\(32\\|-idf\\)"
+                        (or (buffer-file-name) default-directory))
     (autobuild-nice 8)
     "source $HOME/git/esp-idf/export.sh && idf.py build flash monitor"))
 
